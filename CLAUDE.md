@@ -30,9 +30,10 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | --- | --- | --- |
 | `yoon-core` | Money, state machines, shadow-ledger model, provider SPI | the JDK only |
 | `yoon-testkit` | `FakeProvider` — scriptable provider for tests | `yoon-core` |
-| `yoon-server` | Spring Boot 4 app: persistence, API (coming), webhooks, scheduler | core; testkit in test scope |
+| `yoon-server` | Spring Boot 4 app: HTTP API, persistence; webhooks and scheduler next | core; testkit in test scope |
 
-Package root: `dev.yoonpay`. Database migrations: `yoon-server/src/main/resources/db/migration` (Flyway, forward-only — never edit an applied migration, add a new one).
+Package root: `dev.yoonpay`. Architecture decisions: `docs/adr/` (never rewrite
+an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main/resources/db/migration` (Flyway, forward-only — never edit an applied migration, add a new one).
 
 ## Rules the code relies on — do not break them
 
@@ -73,6 +74,34 @@ Package root: `dev.yoonpay`. Database migrations: `yoon-server/src/main/resource
   raise). Corrections are new postings. `LedgerDatabaseGuardTest` proves it.
 - Account names come from `dev.yoonpay.core.ledger.Accounts` (per provider).
 
+### API (`dev.yoonpay.server.api`, `api/openapi.yaml`)
+
+- **Contract first.** `api/openapi.yaml` is hand-written and is the source of
+  truth. Any new or changed route, parameter, field or status code is added to
+  it in the same change. `ContractCoverageTest` fails if a `/v1` route is missing
+  from the spec (or documented but not implemented); `ApiTest` validates every
+  response against it. Swagger UI at `/docs` renders it — no code-generated spec.
+- JSON is snake_case. Errors are problem+json via `ApiProblem` with a stable
+  `code`; never return an error body by hand.
+- Every mutating endpoint goes through `IdempotentCall` and requires
+  `Idempotency-Key`.
+- Every query is scoped to the authenticated `AppPrincipal` (a controller
+  parameter). An application must never read another's data.
+- Lists: newest first, keyset pagination on the time-ordered id
+  (`starting_after`, `limit` ≤ 100), response `{data, has_more, next_cursor}`.
+- Phone numbers are stored in E.164 (`Phones.normalize`) and always returned masked.
+
+### Routing and failover (`Router`, `ProviderRegistry`, `*Service`)
+
+- Payments fail over to the next provider only after `Rejected`; `Unknown`
+  keeps the payment `PENDING` on that provider. Refunds go to the collecting
+  provider. Payouts: one provider, one call, never failed over.
+- Provider calls run outside DB transactions; each status change is a short
+  transaction that locks the row, asks the state machine and records a
+  `status_events` row.
+- Every mutating call goes through `ProviderRegistry.call` (circuit breaker per
+  application and provider).
+
 ### Idempotency (`IdempotencyStore`)
 
 - Claim the key (`begin`) **before** any provider call; it commits on its own.
@@ -82,7 +111,12 @@ Package root: `dev.yoonpay`. Database migrations: `yoon-server/src/main/resource
 ## Testing
 
 - Integration tests extend `dev.yoonpay.server.PostgresTest` (one shared Postgres
-  container, Flyway applied; `newApplication()` gives an isolated app id).
+  container and running server, Flyway applied; `newApplication()` gives an
+  isolated app id).
+- API tests extend `dev.yoonpay.server.api.ApiTest`: real HTTP against the
+  running server, apps `shop` and `other` with API keys, three fake providers
+  (`TestProviders`: `fakeone`, `faketwo`, `fakenorefund`) reset before each test.
+  Every response is checked against `api/openapi.yaml`.
 - Provider behaviour is tested with `FakeProvider`: script `Behaviour`s (accept,
   reject, down, hang, timeout-after-accept), settle provider-side truth, emit
   genuine, duplicate, late or forged webhooks.

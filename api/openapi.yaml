@@ -1,0 +1,792 @@
+openapi: 3.1.0
+info:
+  title: Yoon API
+  version: 0.1.0
+  summary: One API in front of African payment providers.
+  description: |
+    Yoon is a self-hosted payment gateway. Your application sends **intent** — collect
+    5 000 XOF from this customer by Wave — and Yoon picks a configured provider, talks to
+    it, verifies its callbacks and keeps a ledger.
+
+    ## Conventions
+    - **Authentication:** `Authorization: Bearer yk_…` on every `/v1` route except `/v1/about`.
+    - **Money:** integer amounts in the currency's minor unit. XOF has none: 5 000 XOF is `5000`.
+      Never floating point.
+    - **Idempotency:** every `POST` requires an `Idempotency-Key` header. Retrying with the same
+      key and body returns the original response (with `Idempotent-Replayed: true`). The same key
+      with a different body is refused. Keys are kept for 24 hours.
+    - **Errors:** [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) `application/problem+json`
+      with a stable machine-readable `code`.
+    - **Lists:** newest first, cursor-paginated with `starting_after` and `limit` (max 100).
+    - **Phone numbers** are returned masked (`+22177***67`).
+    - **Unknown outcomes:** if a provider does not answer, the payment stays `pending` on that
+      provider and is never sent to another one — the customer may already be paying.
+  license:
+    name: AGPL-3.0-only
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+
+servers:
+  - url: /
+
+security:
+  - apiKey: []
+
+tags:
+  - name: Payments
+    description: Collect money from a customer.
+  - name: Refunds
+    description: Give back all or part of a succeeded payment.
+  - name: Payouts
+    description: Send money to a phone wallet. Never retried, never sent to a second provider.
+  - name: Ledger
+    description: Yoon's shadow ledger of your provider accounts.
+  - name: Exports
+    description: CSV exports for accounting.
+  - name: Meta
+    description: Instance and configuration information.
+
+paths:
+  /v1/payments:
+    post:
+      tags: [Payments]
+      operationId: createPayment
+      summary: Create a payment
+      description: |
+        Routes the payment to a configured provider that supports the country, method and
+        currency. If that provider definitely refuses, the next one is tried. If its answer is
+        unknown (timeout, error), the payment stays `pending` there — no other provider is tried.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+            example:
+              amount: 5000
+              currency: XOF
+              country: SN
+              method: wave
+              customer: { phone: '+221771234567' }
+              reference: order_1042
+              return_url: https://shop.example/orders/1042
+      responses:
+        '201':
+          description: Payment created. Check `status`; `failed` means every provider refused.
+          headers:
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: |
+            No provider can take this payment. `code` is one of `no_provider_for_method`,
+            `all_providers_unavailable`, `provider_not_configured`.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      tags: [Payments]
+      operationId: listPayments
+      summary: List and search payments
+      parameters:
+        - { name: reference, in: query, schema: { type: string }, description: Your own order id. }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/PaymentStatus' } }
+        - { name: provider, in: query, schema: { type: string } }
+        - { name: method, in: query, schema: { type: string } }
+        - { name: created_from, in: query, schema: { type: string, format: date-time }, description: Inclusive. }
+        - { name: created_to, in: query, schema: { type: string, format: date-time }, description: Exclusive. }
+        - { name: customer_phone, in: query, schema: { type: string }, description: 'Exact match, international format (+221…).' }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of payments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentPage'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/payments/{id}:
+    get:
+      tags: [Payments]
+      operationId: getPayment
+      summary: Get a payment
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The payment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/payments/{id}/events:
+    get:
+      tags: [Payments]
+      operationId: listPaymentEvents
+      summary: Status history of a payment
+      description: Every status change and ignored late news, oldest first — what support needs to answer "what happened?".
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The history.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/StatusEvent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/payments/{id}/refunds:
+    post:
+      tags: [Refunds]
+      operationId: createRefund
+      summary: Refund a payment
+      description: |
+        Full or partial. The total of refunds that are not `failed` can never exceed the payment
+        amount. The refund is sent to the provider that collected the payment.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRefundRequest'
+            example:
+              amount: 2000
+              reason: damaged item
+      responses:
+        '201':
+          description: Refund created. `unknown` means the provider did not answer; Yoon will find out.
+          headers:
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: |
+            `code` is one of `payment_not_refundable`, `refund_exceeds_payment`,
+            `refund_not_supported` (the provider has no refund API — send a payout instead),
+            `provider_not_configured`.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      tags: [Refunds]
+      operationId: listPaymentRefunds
+      summary: Refunds of a payment
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Refunds, oldest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Refund' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/refunds:
+    get:
+      tags: [Refunds]
+      operationId: listRefunds
+      summary: List refunds
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/RefundStatus' } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of refunds.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundPage'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/refunds/{id}:
+    get:
+      tags: [Refunds]
+      operationId: getRefund
+      summary: Get a refund
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The refund.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/refunds/{id}/events:
+    get:
+      tags: [Refunds]
+      operationId: listRefundEvents
+      summary: Status history of a refund
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The history.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/StatusEvent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/payouts:
+    post:
+      tags: [Payouts]
+      operationId: createPayout
+      summary: Send a payout
+      description: |
+        Sent to exactly one provider, exactly once. If the provider's answer is lost the payout
+        is `unknown` and Yoon resolves it through the provider's status API — it is never
+        retried and never sent elsewhere, so it can never be paid twice.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePayoutRequest'
+            example:
+              amount: 10000
+              currency: XOF
+              country: SN
+              method: wave
+              recipient: { phone: '+221771234567' }
+              reference: withdrawal_77
+      responses:
+        '201':
+          description: Payout created.
+          headers:
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payout'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: No provider can send this payout (`no_provider_for_method`, `all_providers_unavailable`, `provider_not_configured`).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      tags: [Payouts]
+      operationId: listPayouts
+      summary: List payouts
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/PayoutStatus' } }
+        - { name: reference, in: query, schema: { type: string } }
+        - { name: needs_review, in: query, schema: { type: boolean }, description: Payouts whose outcome stayed unknown too long. }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of payouts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutPage'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/payouts/{id}:
+    get:
+      tags: [Payouts]
+      operationId: getPayout
+      summary: Get a payout
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The payout.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payout'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/payouts/{id}/events:
+    get:
+      tags: [Payouts]
+      operationId: listPayoutEvents
+      summary: Status history of a payout
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The history.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/StatusEvent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/balances:
+    get:
+      tags: [Ledger]
+      operationId: getBalances
+      summary: Balances per provider account
+      description: Yoon's view from its own ledger, not the provider's statement.
+      responses:
+        '200':
+          description: Balances.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [object, note, data]
+                properties:
+                  object: { type: string, const: balances }
+                  note: { type: string }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [account, provider, currency, amount]
+                      properties:
+                        account: { type: string, example: 'provider_balance:paydunya' }
+                        provider: { type: string }
+                        currency: { type: string }
+                        amount: { type: integer, format: int64 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/ledger/entries:
+    get:
+      tags: [Ledger]
+      operationId: listLedgerEntries
+      summary: Ledger entries
+      parameters:
+        - { name: provider, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: starting_after, in: query, schema: { type: integer, format: int64 }, description: Cursor from `next_cursor`. }
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of entries, newest first. Positive = debit, negative = credit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedgerEntryPage'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/exports/payments.csv:
+    get:
+      tags: [Exports]
+      operationId: exportPayments
+      summary: Export payments as CSV
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/exports/refunds.csv:
+    get:
+      tags: [Exports]
+      operationId: exportRefunds
+      summary: Export refunds as CSV
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/exports/payouts.csv:
+    get:
+      tags: [Exports]
+      operationId: exportPayouts
+      summary: Export payouts as CSV
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/exports/ledger.csv:
+    get:
+      tags: [Exports]
+      operationId: exportLedger
+      summary: Export ledger entries as CSV
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/providers:
+    get:
+      tags: [Meta]
+      operationId: listProviders
+      summary: Providers this application can use
+      responses:
+        '200':
+          description: Configured providers, by priority, with capabilities and availability.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id, priority, available, capabilities]
+                  properties:
+                    id: { type: string, example: paydunya }
+                    priority: { type: integer, description: Lower is preferred. }
+                    available: { type: boolean, description: False while the provider's circuit breaker is open. }
+                    capabilities:
+                      type: array
+                      items:
+                        type: object
+                        required: [operation, country, method, currency]
+                        properties:
+                          operation: { type: string, enum: [collect, refund, payout] }
+                          country: { type: string }
+                          method: { type: string }
+                          currency: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/about:
+    get:
+      tags: [Meta]
+      operationId: getAbout
+      summary: About this instance
+      description: Public. Version and where to get this instance's source code (AGPL-3.0).
+      security: []
+      responses:
+        '200':
+          description: Instance information.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, version, license, source_url]
+                properties:
+                  name: { type: string }
+                  version: { type: string }
+                  license: { type: string }
+                  source_url: { type: string, format: uri }
+
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: 'An application API key: `yk_…`. Create one with `yoon apps create <name>`.'
+
+  headers:
+    IdempotentReplayed:
+      description: Present and `true` when this response is a replay of an earlier request with the same key.
+      schema: { type: string, enum: ['true'] }
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request.
+      schema: { type: string, minLength: 1, maxLength: 255 }
+    StartingAfter:
+      name: starting_after
+      in: query
+      description: Cursor — the `next_cursor` of the previous page.
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    From:
+      name: from
+      in: query
+      description: Inclusive, ISO-8601.
+      schema: { type: string, format: date-time }
+    To:
+      name: to
+      in: query
+      description: Exclusive, ISO-8601.
+      schema: { type: string, format: date-time }
+
+  responses:
+    BadRequest:
+      description: Invalid request (`invalid_request`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Missing or invalid API key (`unauthorized`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: No such resource for this application (`resource_not_found`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    IdempotencyConflict:
+      description: |
+        `idempotency_in_progress` — the first request with this key is still running; retry after
+        `Retry-After` seconds. `idempotency_key_reused` — the key was used with a different body.
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Csv:
+      description: CSV (RFC 4180). Amounts in minor units, timestamps in UTC, phones masked.
+      content:
+        text/csv:
+          schema: { type: string }
+
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code:
+          type: string
+          description: Stable, machine-readable error code.
+
+    PaymentPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Payment' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    RefundPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Refund' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    PayoutPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Payout' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    LedgerEntryPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/LedgerEntry' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    NextCursor:
+      type: [string, 'null']
+      description: Pass as `starting_after` to get the next page; null on the last page.
+
+    LedgerEntry:
+      type: object
+      required: [id, posting_id, description, account, currency, amount, created_at]
+      description: Positive = debit, negative = credit.
+      properties:
+        id: { type: integer, format: int64 }
+        posting_id: { type: integer, format: int64 }
+        description: { type: string }
+        account: { type: string, example: 'provider_balance:paydunya' }
+        currency: { type: string }
+        amount: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+
+    PaymentStatus:
+      type: string
+      enum: [created, pending, succeeded, failed, expired]
+      description: |
+        `pending` — with the provider, waiting for the customer (or for the provider's answer).
+        `succeeded` is final. `failed` and `expired` can still become `succeeded` if the provider
+        later confirms the money arrived.
+
+    RefundStatus:
+      type: string
+      enum: [created, pending, unknown, refunded, failed]
+
+    PayoutStatus:
+      type: string
+      enum: [created, processing, unknown, paid, failed]
+
+    Failure:
+      type: [object, 'null']
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+
+    CreatePaymentRequest:
+      type: object
+      required: [amount, currency, country, method]
+      properties:
+        amount: { type: integer, format: int64, minimum: 1, description: Minor units. }
+        currency: { type: string, pattern: '^[A-Z]{3}$', example: XOF }
+        country: { type: string, pattern: '^[A-Z]{2}$', example: SN }
+        method: { type: string, maxLength: 32, example: wave, description: 'e.g. wave, orange_money, card' }
+        customer:
+          type: object
+          properties:
+            phone: { type: string, description: 'Local or international; validated for `country`.' }
+        reference: { type: string, maxLength: 255, description: Your own order id. }
+        description: { type: string, maxLength: 500 }
+        return_url: { type: string, format: uri, maxLength: 2048 }
+        provider: { type: string, description: 'Optional: pin a configured provider instead of routing.' }
+
+    Payment:
+      type: object
+      required: [id, object, status, amount, amount_refunded, currency, country, method, created_at, updated_at]
+      properties:
+        id: { type: string, example: pay_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: payment }
+        status: { $ref: '#/components/schemas/PaymentStatus' }
+        amount: { type: integer, format: int64 }
+        amount_refunded: { type: integer, format: int64 }
+        currency: { type: string }
+        country: { type: string }
+        method: { type: string }
+        reference: { type: [string, 'null'] }
+        description: { type: [string, 'null'] }
+        customer:
+          type: [object, 'null']
+          properties:
+            phone: { type: [string, 'null'], example: '+22177***67' }
+        provider: { type: [string, 'null'] }
+        provider_reference: { type: [string, 'null'] }
+        checkout_url: { type: [string, 'null'], description: Redirect the customer here, if set. }
+        instructions: { type: [string, 'null'], description: Push/USSD instruction to show the customer, if set. }
+        routing_reason: { type: [string, 'null'], description: Why this provider — and any rejections before it. }
+        failure: { $ref: '#/components/schemas/Failure' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreateRefundRequest:
+      type: object
+      properties:
+        amount: { type: integer, format: int64, minimum: 1, description: Omit to refund everything still refundable. }
+        reason: { type: string, maxLength: 500 }
+
+    Refund:
+      type: object
+      required: [id, object, payment_id, status, amount, currency, provider, created_at, updated_at]
+      properties:
+        id: { type: string, example: re_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: refund }
+        payment_id: { type: string }
+        status: { $ref: '#/components/schemas/RefundStatus' }
+        amount: { type: integer, format: int64 }
+        currency: { type: string }
+        reason: { type: [string, 'null'] }
+        provider: { type: string }
+        provider_reference: { type: [string, 'null'] }
+        failure: { $ref: '#/components/schemas/Failure' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreatePayoutRequest:
+      type: object
+      required: [amount, currency, country, method, recipient]
+      properties:
+        amount: { type: integer, format: int64, minimum: 1 }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        country: { type: string, pattern: '^[A-Z]{2}$' }
+        method: { type: string, maxLength: 32 }
+        recipient:
+          type: object
+          required: [phone]
+          properties:
+            phone: { type: string }
+        reference: { type: string, maxLength: 255 }
+        provider: { type: string, description: 'Optional: pin a configured provider.' }
+
+    Payout:
+      type: object
+      required: [id, object, status, amount, currency, country, method, recipient, provider, needs_review, created_at, updated_at]
+      properties:
+        id: { type: string, example: po_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: payout }
+        status: { $ref: '#/components/schemas/PayoutStatus' }
+        amount: { type: integer, format: int64 }
+        currency: { type: string }
+        country: { type: string }
+        method: { type: string }
+        reference: { type: [string, 'null'] }
+        recipient:
+          type: object
+          required: [phone]
+          properties:
+            phone: { type: string, example: '+22177***67' }
+        provider: { type: string }
+        provider_reference: { type: [string, 'null'] }
+        routing_reason: { type: [string, 'null'] }
+        needs_review: { type: boolean, description: The outcome stayed unknown too long; a human should check with the provider. }
+        failure: { $ref: '#/components/schemas/Failure' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    StatusEvent:
+      type: object
+      required: [to_status, decision, cause, created_at]
+      properties:
+        from_status: { type: [string, 'null'] }
+        to_status: { type: string }
+        decision:
+          type: string
+          enum: [apply, ignore]
+          description: '`ignore` — recorded but not applied (a duplicate, or late news such as a failure after success).'
+        cause: { type: string, enum: [api, provider_call, webhook, sweep, admin] }
+        raw_status: { type: [string, 'null'], description: The provider's own status value. }
+        detail: { type: [string, 'null'] }
+        created_at: { type: string, format: date-time }

@@ -12,6 +12,19 @@ spring:
     password: ${YOON_DB_PASSWORD}
   flyway:
     locations: classpath:db/migration
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: always
+
+yoon:
+  source-url: ${YOON_SOURCE_URL:https://github.com/yoonpay/yoon}
+  public-url: ${YOON_PUBLIC_URL:}
+  # Providers per application come from env vars, e.g.
+  # YOON_APPS_SHOP_PROVIDERS_PAYDUNYA_PRIORITY=1
+  # YOON_APPS_SHOP_PROVIDERS_PAYDUNYA_CREDENTIALS_MASTERKEY=...
+
+# API documentation: Swagger UI at /docs renders the hand-written contract (api/openapi.yaml,
+# served at /openapi.yaml). There is no spec generated from code.
 
 management:
   endpoints:

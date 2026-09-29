@@ -103,6 +103,17 @@ public final class FakeProvider implements PaymentProvider {
         down.set(isDown);
     }
 
+    /** Forgets scripts, stored operations, emitted webhooks and counters; comes back up. */
+    public void reset() {
+        script.clear();
+        webhooks.clear();
+        payments.clear();
+        refunds.clear();
+        payouts.clear();
+        down.set(false);
+        mutatingCalls.set(0);
+    }
+
     /** How many collect/refund/payout calls reached this provider (proves "never retried"). */
     public int mutatingCalls() {
         return mutatingCalls.get();

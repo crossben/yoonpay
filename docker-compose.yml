@@ -22,6 +22,7 @@ services:
       YOON_DB_URL: jdbc:postgresql://postgres:5432/yoon
       YOON_DB_USER: yoon
       YOON_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      YOON_PUBLIC_URL: ${YOON_PUBLIC_URL:-}
     ports:
       - "8080:8080"
 

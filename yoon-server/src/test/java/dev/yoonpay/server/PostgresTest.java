@@ -3,16 +3,23 @@ package dev.yoonpay.server;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.util.UUID;
 
 /**
- * Base for integration tests: one real Postgres for the whole run (started once, shared by
- * every test class through Spring's context cache), schema applied by Flyway.
+ * Base for integration tests: one real Postgres and one running server for the whole run
+ * (shared through Spring's context cache), schema applied by Flyway, FakeProviders wired in.
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+        "yoon.apps.shop.providers.fakeone.priority=1",
+        "yoon.apps.shop.providers.faketwo.priority=2",
+        "yoon.apps.shop.providers.fakenorefund.priority=3",
+        "yoon.apps.other.providers.fakeone.priority=1",
+})
+@Import(TestProviders.class)
 public abstract class PostgresTest {
 
     @ServiceConnection

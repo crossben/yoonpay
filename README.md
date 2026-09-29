@@ -7,8 +7,9 @@ One API in front of PayDunya, DexPay and NabooPay (more later): routing,
 verified webhooks, idempotency, a ledger and automatic reconciliation — written
 once, in Java, instead of in every project.
 
-> **Status: early development.** Not usable yet — there is no public API and no
-> real provider. What exists today is the core domain, proven by tests (below).
+> **Status: early development.** The HTTP API works end to end, but no real
+> provider is wired in yet (PayDunya, DexPay and NabooPay come next), and provider
+> webhooks and automatic reconciliation are still being built. Not for production.
 
 ## What works today
 
@@ -27,9 +28,22 @@ once, in Java, instead of in every project.
 - **FakeProvider** (`yoon-testkit`): a scriptable provider that accepts, rejects,
   hangs, goes down, times out after accepting, reports partial payments and sends
   duplicate, late or forged webhooks.
+- **HTTP API** with per-application API keys, documented at `/docs`:
+  - payments, full and partial refunds, payouts;
+  - **routing**: you send intent (amount, country, method); Yoon picks the
+    configured provider by capability, availability and priority, or the one you
+    pin;
+  - **failover only after a definite refusal** — never after a timeout — and
+    never for payouts;
+  - a circuit breaker per provider takes a failing provider out of routing;
+  - search, cursor pagination, status history of every payment/refund/payout,
+    balances and ledger entries, CSV exports for accounting;
+  - errors as `application/problem+json` with stable codes.
+- **Documentation that cannot drift**: tests fail if a route is missing from
+  `api/openapi.yaml` or if any response does not match it.
 
-Coming next: the public HTTP API with API keys and routing, then provider
-webhooks and automatic reconciliation, then PayDunya, DexPay and NabooPay.
+Coming next: provider webhooks and automatic reconciliation, then PayDunya,
+DexPay and NabooPay.
 
 ## What Yoon is not
 
@@ -46,10 +60,27 @@ webhooks and automatic reconciliation, then PayDunya, DexPay and NabooPay.
 Requirements: Docker. To build from source: JDK 25.
 
 ```sh
-cp .env.example .env        # set POSTGRES_PASSWORD
-docker compose up --build
-curl localhost:8080/actuator/health
+cp .env.example .env                               # set POSTGRES_PASSWORD
+docker compose up --build -d
+docker compose run --rm yoon apps create shop      # prints the API key once
 ```
+
+Then:
+
+- API documentation (Swagger UI): <http://localhost:8080/docs>
+- Health: `curl localhost:8080/actuator/health`
+- A first call:
+
+```sh
+curl -X POST localhost:8080/v1/payments \
+  -H "Authorization: Bearer yk_…" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{"amount":5000,"currency":"XOF","country":"SN","method":"wave","customer":{"phone":"+221771234567"}}'
+```
+
+Until a provider is configured for the application this answers `422
+no_provider_for_method` — that is the routing working.
 
 Build and test (needs a running Docker daemon — integration tests start a real Postgres):
 
@@ -64,6 +95,13 @@ Build and test (needs a running Docker daemon — integration tests start a real
 | `YOON_DB_URL` | yes | JDBC URL, e.g. `jdbc:postgresql://localhost:5432/yoon` |
 | `YOON_DB_USER` | yes | Database user |
 | `YOON_DB_PASSWORD` | yes | Database password |
+| `YOON_PUBLIC_URL` | for webhooks | Public HTTPS address of this instance; providers call back to `<url>/v1/hooks/…` |
+| `YOON_SOURCE_URL` | if modified | Where users get this instance's source code (AGPL-3.0). Defaults to the upstream repository; set it if you run a modified version |
+| `YOON_APPS_<APP>_PROVIDERS_<PROVIDER>_PRIORITY` | per provider | Enables a provider for an application; lower is preferred (default 100) |
+| `YOON_APPS_<APP>_PROVIDERS_<PROVIDER>_CREDENTIALS_<KEY>` | per provider | That application's merchant credentials for the provider. Never logged |
+
+`<APP>` is the application name given to `apps create`, upper-cased with `-`
+turned into `_`. Provider settings are read at startup: restart after changes.
 
 ## Licence
 
@@ -76,6 +114,8 @@ A commercial licence is available for companies that cannot use AGPL.
 | --- | --- |
 | `yoon-core` | Domain: money, state machines, ledger model, provider interface. Pure Java, no dependencies. |
 | `yoon-testkit` | `FakeProvider` and test helpers. |
-| `yoon-server` | The Spring Boot gateway: database, and soon the API, webhooks and scheduler. |
+| `yoon-server` | The Spring Boot gateway: HTTP API, database; webhooks and scheduler next. |
+| `api/openapi.yaml` | The API contract, written by hand; served at `/openapi.yaml` and rendered at `/docs`. |
+| `docs/adr/` | Architecture decisions and why they were made. |
 
 Contributors and AI agents: read [CLAUDE.md](CLAUDE.md).
