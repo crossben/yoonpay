@@ -1,0 +1,29 @@
+# Local run: cp .env.example .env && docker compose up --build
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: yoon
+      POSTGRES_USER: yoon
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yoon -d yoon"]
+      interval: 5s
+      retries: 10
+
+  yoon:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      YOON_DB_URL: jdbc:postgresql://postgres:5432/yoon
+      YOON_DB_USER: yoon
+      YOON_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

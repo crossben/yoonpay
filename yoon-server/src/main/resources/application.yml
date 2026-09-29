@@ -1,0 +1,24 @@
+# All configuration comes from environment variables (plan §3, distribution model).
+# Nothing sensitive has a default: Yoon fails fast at startup if one is missing.
+spring:
+  application:
+    name: yoon
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${YOON_DB_URL}
+    username: ${YOON_DB_USER}
+    password: ${YOON_DB_PASSWORD}
+  flyway:
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
