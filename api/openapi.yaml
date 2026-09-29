@@ -42,8 +42,14 @@ tags:
     description: Yoon's shadow ledger of your provider accounts.
   - name: Exports
     description: CSV exports for accounting.
+  - name: Events
+    description: What happened, as sent to your webhook URL.
   - name: Meta
     description: Instance and configuration information.
+  - name: Provider callbacks
+    description: Endpoints the payment providers call. Not for applications.
+  - name: Admin
+    description: 'Operator API for the whole instance. Requires `YOON_ADMIN_TOKEN`; disabled (404) without it.'
 
 paths:
   /v1/payments:
@@ -506,12 +512,259 @@ paths:
                   license: { type: string }
                   source_url: { type: string, format: uri }
 
+  /v1/events:
+    get:
+      tags: [Events]
+      operationId: listEvents
+      summary: List events
+      description: |
+        Every event Yoon generated for this application, with its delivery state. Use it to catch up
+        after downtime instead of relying on webhook delivery alone.
+      parameters:
+        - { name: type, in: query, schema: { $ref: '#/components/schemas/EventType' } }
+        - { name: delivery_status, in: query, schema: { $ref: '#/components/schemas/DeliveryStatus' } }
+        - { name: resource_id, in: query, schema: { type: string }, description: 'e.g. a payment id.' }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of events.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPage'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/events/{id}:
+    get:
+      tags: [Events]
+      operationId: getEvent
+      summary: Get an event
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The event.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/events/{id}/redeliver:
+    post:
+      tags: [Events]
+      operationId: redeliverEvent
+      summary: Deliver an event again
+      description: Queues the event for delivery to the webhook URL now, with a fresh set of attempts.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: Queued.
+          headers:
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`no_webhook_endpoint` — no webhook URL is configured for this application.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /v1/hooks/{provider}/{application_id}:
+    post:
+      tags: [Provider callbacks]
+      operationId: receiveProviderCallback
+      summary: Provider callback (for providers, not applications)
+      description: |
+        Give this URL to the provider (Yoon also sends it as the callback URL when `YOON_PUBLIC_URL`
+        is set). The body is stored raw and answered at once. Yoon then verifies the signature and
+        **re-confirms with the provider's status API** before changing anything: a callback is a
+        hint, never the truth. Not part of the client libraries.
+      security: []
+      parameters:
+        - { name: provider, in: path, required: true, schema: { type: string } }
+        - { name: application_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        description: Whatever the provider sends, up to 64 KiB.
+        content:
+          '*/*':
+            schema: {}
+      responses:
+        '200':
+          description: Stored for processing.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [received]
+                properties:
+                  received: { type: boolean }
+        '404':
+          description: Unknown application, or the provider is not configured for it.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '413':
+          description: Body over 64 KiB (`payload_too_large`).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/dead-letters:
+    get:
+      tags: [Admin]
+      operationId: adminListDeadLetters
+      summary: Events whose delivery gave up
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Dead events, all applications.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/dead-letters/{id}/replay:
+    post:
+      tags: [Admin]
+      operationId: adminReplayDeadLetter
+      summary: Deliver a dead event again
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '202':
+          description: Queued for delivery.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, delivery_status]
+                properties:
+                  id: { type: string }
+                  delivery_status: { type: string, const: pending }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '422':
+          description: '`not_dead` — the event is not dead.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/payouts:
+    get:
+      tags: [Admin]
+      operationId: adminListPayouts
+      summary: Payouts needing review
+      description: Payouts whose outcome stayed unknown past `YOON_SWEEP_PAYOUT_REVIEW_AFTER`, all applications.
+      security: [{ adminToken: [] }]
+      parameters:
+        - { name: needs_review, in: query, schema: { type: boolean, default: true } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of payouts.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PayoutPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/payouts/{id}/resolve:
+    post:
+      tags: [Admin]
+      operationId: adminResolvePayout
+      summary: Settle a payout by hand
+      description: |
+        After checking with the provider directly. Goes through the payout state machine, the
+        ledger and the application's events like any other change; the note is kept in the history.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, note]
+              properties:
+                status: { type: string, enum: [paid, failed] }
+                note: { type: string, maxLength: 500, example: 'Confirmed on the PayDunya dashboard, tx 88123' }
+      responses:
+        '200':
+          description: The resolved payout.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Payout' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '422':
+          description: '`already_final` or `illegal_transition`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+webhooks:
+  event:
+    post:
+      summary: Event sent to your application
+      description: |
+        Yoon POSTs every event to `YOON_APPS_<APP>_WEBHOOK_URL`. Answer any 2xx quickly; anything else
+        is retried with exponential backoff (30 s doubling, capped at 6 h) for up to 12 attempts,
+        then the event is dead (replayable by the operator; always listed at `GET /v1/events`).
+
+        **Verify every delivery** before acting on it:
+        1. Read `Yoon-Signature: t=<unix seconds>,v1=<hex>`.
+        2. Compute `HMAC-SHA256(secret, "<t>.<raw body>")` over the **raw** body bytes, hex-encoded,
+           and compare in constant time with `v1`.
+        3. Reject if `t` is more than 5 minutes from your clock (replay protection).
+
+        Delivery is at-least-once and **not ordered**: deduplicate on `id` and act on the state in
+        `data.object` (or re-fetch it), not on arrival order.
+      parameters:
+        - { name: Yoon-Signature, in: header, required: true, schema: { type: string } }
+        - { name: Yoon-Event-Id, in: header, required: true, schema: { type: string } }
+        - { name: Yoon-Event-Type, in: header, required: true, schema: { $ref: '#/components/schemas/EventType' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventPayload'
+      responses:
+        '200':
+          description: Any 2xx acknowledges the event.
+
 components:
   securitySchemes:
     apiKey:
       type: http
       scheme: bearer
       description: 'An application API key: `yk_…`. Create one with `yoon apps create <name>`.'
+    adminToken:
+      type: http
+      scheme: bearer
+      description: The operator token set in `YOON_ADMIN_TOKEN`.
 
   headers:
     IdempotentReplayed:
@@ -576,6 +829,11 @@ components:
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
+    AdminDisabled:
+      description: The admin API is disabled (no `YOON_ADMIN_TOKEN`), or the resource does not exist.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
     Csv:
       description: CSV (RFC 4180). Amounts in minor units, timestamps in UTC, phones masked.
       content:
@@ -627,6 +885,66 @@ components:
         data: { type: array, items: { $ref: '#/components/schemas/LedgerEntry' } }
         has_more: { type: boolean }
         next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    EventPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Event' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    EventType:
+      type: string
+      enum: [payment.succeeded, payment.failed, payment.expired, refund.succeeded, refund.failed,
+             payout.paid, payout.failed, payout.needs_review]
+
+    DeliveryStatus:
+      type: string
+      enum: [pending, delivered, dead, no_endpoint]
+      description: '`no_endpoint` — no webhook URL configured; the event is only available through the API.'
+
+    EventPayload:
+      type: object
+      required: [id, object, type, created_at, data]
+      description: The body POSTed to your webhook URL.
+      properties:
+        id: { type: string, example: evt_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d, description: Deduplicate on this. }
+        object: { type: string, const: event }
+        type: { $ref: '#/components/schemas/EventType' }
+        created_at: { type: string, format: date-time }
+        data:
+          type: object
+          required: [object]
+          properties:
+            object:
+              description: The payment, refund or payout as `GET` would return it at the time of the event.
+              oneOf:
+                - $ref: '#/components/schemas/Payment'
+                - $ref: '#/components/schemas/Refund'
+                - $ref: '#/components/schemas/Payout'
+
+    Event:
+      type: object
+      required: [id, object, type, resource_type, resource_id, created_at, delivery, payload]
+      properties:
+        id: { type: string }
+        object: { type: string, const: event }
+        type: { $ref: '#/components/schemas/EventType' }
+        resource_type: { type: string, enum: [payment, refund, payout] }
+        resource_id: { type: string }
+        created_at: { type: string, format: date-time }
+        delivery:
+          type: object
+          required: [status, attempts]
+          properties:
+            status: { $ref: '#/components/schemas/DeliveryStatus' }
+            attempts: { type: integer }
+            next_attempt_at: { type: [string, 'null'], format: date-time }
+            last_status_code: { type: [integer, 'null'] }
+            last_error: { type: [string, 'null'] }
+            delivered_at: { type: [string, 'null'], format: date-time }
+        payload: { $ref: '#/components/schemas/EventPayload' }
 
     NextCursor:
       type: [string, 'null']

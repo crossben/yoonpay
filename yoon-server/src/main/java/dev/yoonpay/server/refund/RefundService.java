@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Currency;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,14 +33,16 @@ public class RefundService {
 
     private final PaymentRepository payments;
     private final RefundRepository refunds;
+    private final RefundTransitions transitions;
     private final StatusEvents events;
     private final ProviderRegistry providers;
     private final TransactionTemplate tx;
 
-    public RefundService(PaymentRepository payments, RefundRepository refunds, StatusEvents events,
-                         ProviderRegistry providers, TransactionTemplate tx) {
+    public RefundService(PaymentRepository payments, RefundRepository refunds, RefundTransitions transitions,
+                         StatusEvents events, ProviderRegistry providers, TransactionTemplate tx) {
         this.payments = payments;
         this.refunds = refunds;
+        this.transitions = transitions;
         this.events = events;
         this.providers = providers;
         this.tx = tx;
@@ -98,14 +99,6 @@ public class RefundService {
     }
 
     private void move(AppPrincipal app, String id, RefundStatus to, String detail, Map<String, Object> fields) {
-        tx.executeWithoutResult(s -> {
-            RefundRecord current = refunds.lock(app.id(), id).orElseThrow();
-            RefundStatus from = RefundStatus.valueOf(current.status());
-            Decision decision = from.decide(to);
-            events.record(app.id(), "refund", id, from, to, decision, Cause.provider_call, null, detail);
-            if (decision == Decision.APPLY) {
-                refunds.update(id, to.name(), new HashMap<>(fields));
-            }
-        });
+        transitions.apply(app, id, to, Cause.provider_call, null, detail, fields);
     }
 }

@@ -15,13 +15,14 @@ import java.util.Set;
 
 /**
  * Authenticates {@code /v1/**} with {@code Authorization: Bearer yk_…}. Public: {@code /v1/about}.
- * Inbound provider webhooks (later) authenticate by signature, not by key.
+ * Inbound provider webhooks ({@code /v1/hooks/**}) are verified by signature, not by key.
  */
 @Component
 public class ApiKeyFilter extends OncePerRequestFilter {
 
     public static final String ATTRIBUTE = AppPrincipal.class.getName();
     private static final Set<String> PUBLIC = Set.of("/v1/about");
+    private static final String HOOKS = "/v1/hooks/";
 
     private final ApiKeyService keys;
 
@@ -32,7 +33,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !path.startsWith("/v1/") || PUBLIC.contains(path);
+        return !path.startsWith("/v1/") || PUBLIC.contains(path) || path.startsWith(HOOKS);
     }
 
     @Override

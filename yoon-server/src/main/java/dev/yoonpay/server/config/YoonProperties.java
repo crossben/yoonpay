@@ -24,9 +24,27 @@ public record YoonProperties(Map<String, App> apps, URI sourceUrl, URI publicUrl
         publicUrl = publicUrl == null || publicUrl.toString().isBlank() ? null : publicUrl;
     }
 
-    public record App(Map<String, Provider> providers) {
+    /** @param webhook where Yoon sends this application's events; null: events are only listed via the API */
+    public record App(Map<String, Provider> providers, Webhook webhook) {
         public App {
             providers = providers == null ? Map.of() : Map.copyOf(providers);
+        }
+    }
+
+    /**
+     * {@code YOON_APPS_<APP>_WEBHOOK_URL} and {@code YOON_APPS_<APP>_WEBHOOK_SECRET} (at least 32
+     * characters; the application verifies Yoon's signatures with it).
+     */
+    public record Webhook(URI url, String secret) {
+        public Webhook {
+            if (url != null && (secret == null || secret.length() < 32)) {
+                throw new IllegalArgumentException("A webhook secret of at least 32 characters is required with a webhook URL");
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "Webhook[url=" + url + ", secret=(hidden)]";
         }
     }
 
@@ -44,6 +62,6 @@ public record YoonProperties(Map<String, App> apps, URI sourceUrl, URI publicUrl
     }
 
     public App app(String name) {
-        return apps.getOrDefault(name, new App(Map.of()));
+        return apps.getOrDefault(name, new App(Map.of(), null));
     }
 }

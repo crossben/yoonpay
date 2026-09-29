@@ -72,6 +72,7 @@ public abstract class ApiTest extends PostgresTest {
 
     @BeforeEach
     void resetFakes() {
+        RECEIVER.reset();
         for (var fake : List.of(TestProviders.FAKE_ONE, TestProviders.FAKE_TWO, TestProviders.FAKE_NO_REFUND)) {
             fake.reset();
             for (String app : List.of("shop", "other")) {
@@ -106,13 +107,35 @@ public abstract class ApiTest extends PostgresTest {
         return send(app, "POST", path, body, idempotencyKey);
     }
 
+    /** POSTs raw bytes with the given headers and no API key — as a provider calls back. */
+    protected Response postRaw(String path, java.util.Map<String, java.util.List<String>> headers, byte[] body) {
+        try {
+            HttpRequest.Builder b = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(body));
+            headers.forEach((k, vs) -> vs.forEach(v -> b.header(k, v)));
+            HttpResponse<String> r = http.send(b.build(), HttpResponse.BodyHandlers.ofString());
+            String contentType = r.headers().firstValue("Content-Type").orElse("");
+            JsonNode node = contentType.contains("json") && !r.body().isEmpty() ? json.readTree(r.body()) : null;
+            return new Response(r.statusCode(), r.headers().map(), r.body(), node);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Calls the admin API with the test operator token. */
+    protected Response admin(String method, String path, Object body) {
+        return send("admin:" + ADMIN_TOKEN, method, path, body, null);
+    }
+
     protected Response send(String app, String method, String path, Object body, String idempotencyKey) {
         try {
             String payload = body == null ? null : (body instanceof String s ? s : json.writeValueAsString(body));
             HttpRequest.Builder b = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
                     .method(method, payload == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(payload));
             if (app != null) {
-                b.header("Authorization", "Bearer " + (app.startsWith("yk_") || app.equals("bogus") ? app : key(app)));
+                String token = app.startsWith("admin:") ? app.substring(6)
+                        : app.startsWith("yk_") || app.equals("bogus") ? app : key(app);
+                b.header("Authorization", "Bearer " + token);
             }
             if (payload != null) {
                 b.header("Content-Type", "application/json");

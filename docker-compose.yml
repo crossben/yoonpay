@@ -23,6 +23,7 @@ services:
       YOON_DB_USER: yoon
       YOON_DB_PASSWORD: ${POSTGRES_PASSWORD}
       YOON_PUBLIC_URL: ${YOON_PUBLIC_URL:-}
+      YOON_ADMIN_TOKEN: ${YOON_ADMIN_TOKEN:-}
     ports:
       - "8080:8080"
 

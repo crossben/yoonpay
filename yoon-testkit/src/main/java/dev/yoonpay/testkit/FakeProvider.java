@@ -29,6 +29,7 @@ import java.util.Currency;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,6 +124,12 @@ public final class FakeProvider implements PaymentProvider {
     public void settle(ProviderReference ref, PaymentStatus status) {
         payments.computeIfPresent(ref.value(), (k, r) ->
                 new Record<>(status, raw(status), r.requested(), status == PaymentStatus.SUCCEEDED ? r.requested() : null));
+    }
+
+    /** Provider-side truth with an explicit paid amount (e.g. a provider reporting a different amount). */
+    public void settle(ProviderReference ref, PaymentStatus status, long paidAmount) {
+        payments.computeIfPresent(ref.value(), (k, r) ->
+                new Record<>(status, raw(status), r.requested(), new Money(paidAmount, r.requested().currency())));
     }
 
     /** The customer paid, but only {@code paidAmount} (e.g. NabooPay {@code part_paid}). */
@@ -230,6 +237,20 @@ public final class FakeProvider implements PaymentProvider {
     @Override
     public StatusResult<PayoutStatus> payoutStatus(ProviderReference payout) {
         return query(payouts, payout);
+    }
+
+    @Override
+    public Optional<ProviderReference> lookup(Operation operation, String attemptReference) {
+        if (down.get()) {
+            return Optional.empty();
+        }
+        ProviderReference ref = referenceFor(attemptReference);
+        Map<String, ? extends Record<?>> store = switch (operation) {
+            case COLLECT -> payments;
+            case REFUND -> refunds;
+            case PAYOUT -> payouts;
+        };
+        return store.containsKey(ref.value()) ? Optional.of(ref) : Optional.empty();
     }
 
     @Override

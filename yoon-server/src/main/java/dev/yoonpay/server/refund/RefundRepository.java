@@ -45,6 +45,15 @@ public class RefundRepository {
                 .param("app", app).param("id", id).query(RefundRecord.class).optional();
     }
 
+    public void setProviderReference(String id, String providerReference) {
+        jdbc.sql("UPDATE refunds SET provider_reference = :ref WHERE id = :id AND provider_reference IS NULL")
+                .param("id", id).param("ref", providerReference).update();
+    }
+
+    public void countStatusCheck(String id) {
+        jdbc.sql("UPDATE refunds SET status_checks = status_checks + 1 WHERE id = :id").param("id", id).update();
+    }
+
     public void update(String id, String status, Map<String, Object> fields) {
         StringBuilder sql = new StringBuilder("UPDATE refunds SET status = :status, updated_at = now()");
         fields.keySet().forEach(k -> sql.append(", ").append(k).append(" = :").append(k));

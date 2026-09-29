@@ -42,6 +42,15 @@ public class PayoutRepository {
                 .param("app", app).param("id", id).query(PayoutRecord.class).optional();
     }
 
+    public void setProviderReference(String id, String providerReference) {
+        jdbc.sql("UPDATE payouts SET provider_reference = :ref WHERE id = :id AND provider_reference IS NULL")
+                .param("id", id).param("ref", providerReference).update();
+    }
+
+    public void countStatusCheck(String id) {
+        jdbc.sql("UPDATE payouts SET status_checks = status_checks + 1 WHERE id = :id").param("id", id).update();
+    }
+
     public void update(String id, String status, Map<String, Object> fields) {
         StringBuilder sql = new StringBuilder("UPDATE payouts SET status = :status, updated_at = now()");
         fields.keySet().forEach(k -> sql.append(", ").append(k).append(" = :").append(k));

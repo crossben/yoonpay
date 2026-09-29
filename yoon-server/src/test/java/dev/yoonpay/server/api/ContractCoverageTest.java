@@ -15,7 +15,7 @@ import java.util.TreeSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Every /v1 route the server exposes must be documented in api/openapi.yaml, and every
+ * Every /v1 and /admin/v1 route the server exposes must be documented in api/openapi.yaml, and every
  * documented route must exist. Adding an endpoint without documenting it fails the build.
  */
 class ContractCoverageTest extends PostgresTest {
@@ -29,8 +29,8 @@ class ContractCoverageTest extends PostgresTest {
         Set<String> implemented = new TreeSet<>();
         mappings.getHandlerMethods().keySet().forEach(info -> {
             for (String path : info.getPatternValues()) {
-                if (path.startsWith("/v1/")) {
-                    info.getMethodsCondition().getMethods().forEach(m -> implemented.add(m.name() + " " + path));
+                if (path.startsWith("/v1/") || path.startsWith("/admin/v1/")) {
+                    info.getMethodsCondition().getMethods().forEach(m -> implemented.add(m.name() + " " + normalize(path)));
                 }
             }
         });
@@ -38,9 +38,14 @@ class ContractCoverageTest extends PostgresTest {
         OpenAPI spec = new OpenAPIV3Parser().read(Path.of("..", "api", "openapi.yaml").toAbsolutePath().toString());
         Set<String> documented = new TreeSet<>();
         spec.getPaths().forEach((path, item) ->
-                item.readOperationsMap().keySet().forEach(m -> documented.add(m.name() + " " + path)));
+                item.readOperationsMap().keySet().forEach(m -> documented.add(m.name() + " " + normalize(path))));
 
         assertThat(implemented).as("routes in code").isNotEmpty();
         assertThat(documented).as("api/openapi.yaml vs controllers").isEqualTo(implemented);
+    }
+
+    /** Path variables compare by position, not name ({@code {applicationId}} = {@code {application_id}}). */
+    private static String normalize(String path) {
+        return path.replaceAll("\\{[^}]+}", "{}");
     }
 }

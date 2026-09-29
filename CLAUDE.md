@@ -30,7 +30,7 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | --- | --- | --- |
 | `yoon-core` | Money, state machines, shadow-ledger model, provider SPI | the JDK only |
 | `yoon-testkit` | `FakeProvider` — scriptable provider for tests | `yoon-core` |
-| `yoon-server` | Spring Boot 4 app: HTTP API, persistence; webhooks and scheduler next | core; testkit in test scope |
+| `yoon-server` | Spring Boot 4 app: HTTP API, persistence, provider callbacks, outbox, sweeps | core; testkit in test scope |
 
 Package root: `dev.yoonpay`. Architecture decisions: `docs/adr/` (never rewrite
 an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main/resources/db/migration` (Flyway, forward-only — never edit an applied migration, add a new one).
@@ -96,11 +96,31 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - Payments fail over to the next provider only after `Rejected`; `Unknown`
   keeps the payment `PENDING` on that provider. Refunds go to the collecting
   provider. Payouts: one provider, one call, never failed over.
-- Provider calls run outside DB transactions; each status change is a short
-  transaction that locks the row, asks the state machine and records a
-  `status_events` row.
+- Provider calls run outside DB transactions.
+- **Every status change goes through `PaymentTransitions` / `RefundTransitions` /
+  `PayoutTransitions`** — never update a status column directly. They lock the
+  row, ask the state machine, record `status_events`, apply, post to the ledger
+  and write the outbound event, in one transaction. Ledger postings and outbound
+  events are written nowhere else.
 - Every mutating call goes through `ProviderRegistry.call` (circuit breaker per
   application and provider).
+
+### Webhooks, settlement, reconciliation (`webhook`, `settlement`, `outbox`)
+
+- Inbound callbacks are stored raw and answered 200; `InboundWebhookProcessor`
+  verifies the signature, looks the record up **within the application in the
+  URL**, and calls `Settlement`. Never act on a callback's claimed status.
+- `Settlement` is the one settle path for webhooks and sweeps: it asks the
+  provider's status API with the stored reference (recovering it through
+  `lookup` if the create answer was lost), refuses mismatched amounts, and
+  applies through the transitions classes.
+- `Reconciler` sweeps run under ShedLock; `Scheduler` is off in tests
+  (`yoon.scheduling.enabled=false`) — tests call the worker/sweep methods and
+  age rows with SQL instead of sleeping.
+- Queue workers claim rows with a lease (`FOR UPDATE SKIP LOCKED`).
+- Outbound events: `Outbox.emit` only inside a transitions transaction
+  (`Propagation.MANDATORY`). Signature: `WebhookSignature`.
+- Anything a human must look at goes through `Alerts.raise` (log + counter).
 
 ### Idempotency (`IdempotencyStore`)
 
@@ -116,7 +136,9 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - API tests extend `dev.yoonpay.server.api.ApiTest`: real HTTP against the
   running server, apps `shop` and `other` with API keys, three fake providers
   (`TestProviders`: `fakeone`, `faketwo`, `fakenorefund`) reset before each test.
-  Every response is checked against `api/openapi.yaml`.
+  Every response is checked against `api/openapi.yaml`. `RECEIVER` plays the
+  `shop` app's webhook endpoint; `admin(…)` calls the operator API;
+  `postRaw(…)` sends provider callbacks.
 - Provider behaviour is tested with `FakeProvider`: script `Behaviour`s (accept,
   reject, down, hang, timeout-after-accept), settle provider-side truth, emit
   genuine, duplicate, late or forged webhooks.

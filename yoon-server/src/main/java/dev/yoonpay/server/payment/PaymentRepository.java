@@ -72,6 +72,34 @@ public class PaymentRepository {
         spec.update();
     }
 
+    /** Records a reference found after the fact (lost answer recovered through the provider's lookup). */
+    public void setProviderReference(String id, String providerReference) {
+        jdbc.sql("UPDATE payments SET provider_reference = :ref WHERE id = :id AND provider_reference IS NULL")
+                .param("id", id).param("ref", providerReference).update();
+    }
+
+    public void countStatusCheck(String id) {
+        jdbc.sql("UPDATE payments SET status_checks = status_checks + 1 WHERE id = :id").param("id", id).update();
+    }
+
+    public void markLateCheckDone(String id) {
+        jdbc.sql("UPDATE payments SET late_check_done = true WHERE id = :id").param("id", id).update();
+    }
+
+    /** Attempts whose outcome was never seen (unknown, or interrupted before the answer was stored), newest first. */
+    public List<String> unresolvedAttempts(String paymentId) {
+        return jdbc.sql("""
+                        SELECT id FROM payment_attempts
+                        WHERE payment_id = :p AND (outcome = 'UNKNOWN' OR outcome IS NULL)
+                        ORDER BY id DESC""")
+                .param("p", paymentId).query(String.class).list();
+    }
+
+    public boolean hasAttempts(String paymentId) {
+        return jdbc.sql("SELECT count(*) FROM payment_attempts WHERE payment_id = :p")
+                .param("p", paymentId).query(Integer.class).single() > 0;
+    }
+
     public void insertAttempt(String attemptId, String paymentId, String provider) {
         jdbc.sql("INSERT INTO payment_attempts (id, payment_id, provider) VALUES (:id, :payment, :provider)")
                 .param("id", attemptId).param("payment", paymentId).param("provider", provider).update();

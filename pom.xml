@@ -37,6 +37,7 @@
         <archunit.version>1.5.1</archunit.version>
         <resilience4j.version>2.4.0</resilience4j.version>
         <libphonenumber.version>9.0.40</libphonenumber.version>
+        <shedlock.version>7.10.1</shedlock.version>
         <swagger-ui.version>5.32.15</swagger-ui.version>
         <swagger-request-validator.version>3.0.0</swagger-request-validator.version>
     </properties>

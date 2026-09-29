@@ -25,5 +25,6 @@ public record PaymentRecord(
         String failureMessage,
         long amountRefunded,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        int statusChecks) {
 }

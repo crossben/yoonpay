@@ -7,9 +7,10 @@ One API in front of PayDunya, DexPay and NabooPay (more later): routing,
 verified webhooks, idempotency, a ledger and automatic reconciliation — written
 once, in Java, instead of in every project.
 
-> **Status: early development.** The HTTP API works end to end, but no real
-> provider is wired in yet (PayDunya, DexPay and NabooPay come next), and provider
-> webhooks and automatic reconciliation are still being built. Not for production.
+> **Status: early development.** The gateway works end to end against a fake
+> provider — API, provider callbacks, events to your app, reconciliation — but no
+> real provider is wired in yet (PayDunya, DexPay and NabooPay come next). Not for
+> production.
 
 ## What works today
 
@@ -41,9 +42,24 @@ once, in Java, instead of in every project.
   - errors as `application/problem+json` with stable codes.
 - **Documentation that cannot drift**: tests fail if a route is missing from
   `api/openapi.yaml` or if any response does not match it.
+- **Provider callbacks treated as hints**: stored raw, signature checked, then
+  **re-confirmed with the provider's status API** before anything changes.
+  Tested harmless: replayed, duplicated, late, forged, lying and cross-application
+  callbacks. A success is applied only if the confirmed amount matches.
+- **Events to your application** (`payment.succeeded`, `payout.paid`, …): written
+  in the same transaction as the change, signed (HMAC-SHA256 with timestamp),
+  retried with backoff, then dead-lettered and replayable. Also listed at
+  `GET /v1/events` for catching up.
+- **Automatic reconciliation**: stuck payments, refunds and payouts are resolved
+  through the provider's status API without human action; unpaid payments expire;
+  a success that arrives after expiry is still recovered; a payout whose outcome
+  stays unknown is flagged for a human instead of guessed.
+- **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
+  payouts needing review, resolved through the same state machine.
+- **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
+  mismatch, late success, payout needs review, dead event…).
 
-Coming next: provider webhooks and automatic reconciliation, then PayDunya,
-DexPay and NabooPay.
+Coming next: PayDunya, DexPay and NabooPay adapters.
 
 ## What Yoon is not
 
@@ -95,13 +111,28 @@ Build and test (needs a running Docker daemon — integration tests start a real
 | `YOON_DB_URL` | yes | JDBC URL, e.g. `jdbc:postgresql://localhost:5432/yoon` |
 | `YOON_DB_USER` | yes | Database user |
 | `YOON_DB_PASSWORD` | yes | Database password |
-| `YOON_PUBLIC_URL` | for webhooks | Public HTTPS address of this instance; providers call back to `<url>/v1/hooks/…` |
+| `YOON_PUBLIC_URL` | for webhooks | Public HTTPS address of this instance; providers call back to `<url>/v1/hooks/<provider>/<application id>` |
+| `YOON_APPS_<APP>_WEBHOOK_URL` | optional | Where Yoon POSTs this application's events. Without it, events are only listed at `GET /v1/events` |
+| `YOON_APPS_<APP>_WEBHOOK_SECRET` | with the URL | At least 32 characters; your app verifies `Yoon-Signature` with it |
+| `YOON_ADMIN_TOKEN` | optional | Enables the operator API `/admin/v1` (at least 32 characters) |
+| `YOON_SWEEP_PAYMENT_TTL` | no | Unpaid payments expire after this (default `30m`) |
+| `YOON_SWEEP_PAYOUT_REVIEW_AFTER` | no | Open payouts are flagged for review after this (default `24h`) |
+| `YOON_SWEEP_PENDING_AFTER` | no | Wait before the sweep asks a provider (default `1m`) |
 | `YOON_SOURCE_URL` | if modified | Where users get this instance's source code (AGPL-3.0). Defaults to the upstream repository; set it if you run a modified version |
 | `YOON_APPS_<APP>_PROVIDERS_<PROVIDER>_PRIORITY` | per provider | Enables a provider for an application; lower is preferred (default 100) |
 | `YOON_APPS_<APP>_PROVIDERS_<PROVIDER>_CREDENTIALS_<KEY>` | per provider | That application's merchant credentials for the provider. Never logged |
 
 `<APP>` is the application name given to `apps create`, upper-cased with `-`
-turned into `_`. Provider settings are read at startup: restart after changes.
+turned into `_`. Provider and webhook settings are read at startup: restart after
+changes.
+
+### Verifying Yoon's webhooks in your app
+
+Every delivery carries `Yoon-Signature: t=<unix seconds>,v1=<hex>`. Compute
+`HMAC-SHA256(secret, "<t>.<raw body>")` over the **raw** body, compare it in
+constant time with `v1`, and reject if `t` is more than 5 minutes old. Delivery
+is at-least-once and unordered: deduplicate on the event `id`. The full
+description is in the `webhooks` section of `api/openapi.yaml` (and at `/docs`).
 
 ## Licence
 
@@ -114,7 +145,7 @@ A commercial licence is available for companies that cannot use AGPL.
 | --- | --- |
 | `yoon-core` | Domain: money, state machines, ledger model, provider interface. Pure Java, no dependencies. |
 | `yoon-testkit` | `FakeProvider` and test helpers. |
-| `yoon-server` | The Spring Boot gateway: HTTP API, database; webhooks and scheduler next. |
+| `yoon-server` | The Spring Boot gateway: HTTP API, provider callbacks, outbound events, reconciliation. |
 | `api/openapi.yaml` | The API contract, written by hand; served at `/openapi.yaml` and rendered at `/docs`. |
 | `docs/adr/` | Architecture decisions and why they were made. |
 

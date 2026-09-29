@@ -24,7 +24,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Currency;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,15 +40,17 @@ import java.util.Map;
 public class PaymentService {
 
     private final PaymentRepository payments;
+    private final PaymentTransitions transitions;
     private final StatusEvents events;
     private final ProviderRegistry providers;
     private final Router router;
     private final TransactionTemplate tx;
     private final YoonProperties properties;
 
-    public PaymentService(PaymentRepository payments, StatusEvents events, ProviderRegistry providers,
-                          Router router, TransactionTemplate tx, YoonProperties properties) {
+    public PaymentService(PaymentRepository payments, PaymentTransitions transitions, StatusEvents events,
+                          ProviderRegistry providers, Router router, TransactionTemplate tx, YoonProperties properties) {
         this.payments = payments;
+        this.transitions = transitions;
         this.events = events;
         this.providers = providers;
         this.router = router;
@@ -74,7 +75,7 @@ public class PaymentService {
         tx.executeWithoutResult(s -> {
             payments.insert(new PaymentRecord(id, app.id(), PaymentStatus.CREATED.name(), req.amount(),
                     currency.getCurrencyCode(), req.country(), req.method(), req.reference(), req.description(),
-                    phone, req.returnUrl(), null, null, null, null, null, null, null, 0, null, null));
+                    phone, req.returnUrl(), null, null, null, null, null, null, null, 0, null, null, 0));
             events.record(app.id(), "payment", id, null, PaymentStatus.CREATED, Decision.APPLY, Cause.api, null, null);
         });
 
@@ -127,19 +128,8 @@ public class PaymentService {
         return payments.find(app.id(), id).orElseThrow();
     }
 
-    /** Lock, ask the state machine, record the event, apply. */
     private void move(AppPrincipal app, String id, PaymentStatus to, String raw, String detail, Map<String, Object> fields) {
-        tx.executeWithoutResult(s -> {
-            PaymentRecord current = payments.lock(app.id(), id).orElseThrow();
-            PaymentStatus from = PaymentStatus.valueOf(current.status());
-            Decision decision = from.decide(to);
-            events.record(app.id(), "payment", id, from, to, decision, Cause.provider_call, raw, detail);
-            if (decision == Decision.APPLY) {
-                Map<String, Object> clean = new HashMap<>(fields);
-                clean.replaceAll((k, v) -> "".equals(v) ? null : v);
-                payments.update(id, to.name(), clean);
-            }
-        });
+        transitions.apply(app, id, to, Cause.provider_call, raw, detail, fields);
     }
 
     private URI callbackUrl(AppPrincipal app, ProviderId provider) {
