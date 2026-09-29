@@ -28,6 +28,7 @@
 
     <modules>
         <module>yoon-core</module>
+        <module>yoon-testkit</module>
         <module>yoon-server</module>
     </modules>
 
@@ -41,6 +42,11 @@
             <dependency>
                 <groupId>dev.yoonpay</groupId>
                 <artifactId>yoon-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.yoonpay</groupId>
+                <artifactId>yoon-testkit</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

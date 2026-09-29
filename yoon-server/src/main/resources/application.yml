@@ -1,4 +1,4 @@
-# All configuration comes from environment variables (plan §3, distribution model).
+# All configuration comes from environment variables.
 # Nothing sensitive has a default: Yoon fails fast at startup if one is missing.
 spring:
   application:
