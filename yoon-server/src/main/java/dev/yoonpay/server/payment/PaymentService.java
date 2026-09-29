@@ -105,10 +105,12 @@ public class PaymentService {
                 }
                 case CallOutcome.Unknown u -> {
                     // Possibly accepted: never try another provider (double charge risk).
-                    payments.completeAttempt(attempt, "UNKNOWN", null, null, u.cause());
+                    String ref = u.reference() == null ? "" : u.reference().value();
+                    payments.completeAttempt(attempt, "UNKNOWN", u.reference() == null ? null : ref, null, u.cause());
                     notes.add("outcome unknown at " + providerId + " (" + u.cause() + "); awaiting provider status, no failover");
                     move(app, id, PaymentStatus.PENDING, null, "provider outcome unknown: " + u.cause(), Map.of(
                             "provider", providerId.value(),
+                            "provider_reference", ref,
                             "routing_reason", String.join("; ", notes)));
                     return payments.find(app.id(), id).orElseThrow();
                 }

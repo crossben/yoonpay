@@ -7,10 +7,9 @@ One API in front of PayDunya, DexPay and NabooPay (more later): routing,
 verified webhooks, idempotency, a ledger and automatic reconciliation — written
 once, in Java, instead of in every project.
 
-> **Status: early development.** The gateway works end to end against a fake
-> provider — API, provider callbacks, events to your app, reconciliation — but no
-> real provider is wired in yet (PayDunya, DexPay and NabooPay come next). Not for
-> production.
+> **Status: early development.** The gateway and its PayDunya, DexPay and
+> NabooPay adapters are built and tested against simulated provider APIs, but
+> have **not yet been run against the providers' sandboxes**. Not for production.
 
 ## What works today
 
@@ -59,7 +58,19 @@ once, in Java, instead of in every project.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
   mismatch, late success, payout needs review, dead event…).
 
-Coming next: PayDunya, DexPay and NabooPay adapters.
+## Providers
+
+| Provider | Collect (Senegal, XOF) | Payout | Refund | Details |
+| --- | --- | --- | --- | --- |
+| PayDunya | Wave, Orange Money, Free Money, card | Wave, Orange Money, Free Money | — | [docs/providers/paydunya.md](docs/providers/paydunya.md) |
+| DexPay | Wave, Orange Money, Free Money, card | Wave, Orange Money | — | [docs/providers/dexpay.md](docs/providers/dexpay.md) |
+| NabooPay | Wave, Orange Money, Free Money, card | — | — | [docs/providers/naboopay.md](docs/providers/naboopay.md) |
+
+None of the three offers a refund API: refund a customer by sending a payout.
+Each page lists the credentials to set, how the provider's statuses map to
+Yoon's, and the provider's quirks.
+
+Coming next: client libraries (PHP/Laravel, Java) and an example shop.
 
 ## What Yoon is not
 
@@ -145,6 +156,7 @@ A commercial licence is available for companies that cannot use AGPL.
 | --- | --- |
 | `yoon-core` | Domain: money, state machines, ledger model, provider interface. Pure Java, no dependencies. |
 | `yoon-testkit` | `FakeProvider` and test helpers. |
+| `yoon-providers/` | One module per provider (PayDunya, DexPay, NabooPay) plus shared HTTP support. No Spring. |
 | `yoon-server` | The Spring Boot gateway: HTTP API, provider callbacks, outbound events, reconciliation. |
 | `api/openapi.yaml` | The API contract, written by hand; served at `/openapi.yaml` and rendered at `/docs`. |
 | `docs/adr/` | Architecture decisions and why they were made. |

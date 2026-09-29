@@ -20,6 +20,18 @@
             <artifactId>yoon-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>dev.yoonpay</groupId>
+            <artifactId>yoon-provider-paydunya</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.yoonpay</groupId>
+            <artifactId>yoon-provider-dexpay</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.yoonpay</groupId>
+            <artifactId>yoon-provider-naboopay</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
@@ -92,6 +104,17 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>${wiremock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

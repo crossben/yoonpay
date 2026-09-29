@@ -91,7 +91,8 @@ public class RefundService {
             case CallOutcome.Accepted a -> move(app, refund.id(), RefundStatus.PENDING, "accepted by provider",
                     Map.of("provider_reference", a.reference().value()));
             case CallOutcome.Unknown u -> move(app, refund.id(), RefundStatus.UNKNOWN,
-                    "provider outcome unknown: " + u.cause(), Map.of());
+                    "provider outcome unknown: " + u.cause(),
+                    u.reference() == null ? Map.of() : Map.of("provider_reference", u.reference().value()));
             case CallOutcome.Rejected r -> move(app, refund.id(), RefundStatus.FAILED, "rejected by provider",
                     Map.of("failure_code", r.code().toLowerCase(), "failure_message", r.message()));
         }

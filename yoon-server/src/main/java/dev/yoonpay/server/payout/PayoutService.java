@@ -79,7 +79,8 @@ public class PayoutService {
             case CallOutcome.Accepted a -> transitions.apply(app, payout.id(), PayoutStatus.PROCESSING, Cause.provider_call,
                     null, "accepted by provider", Map.of("provider_reference", a.reference().value()));
             case CallOutcome.Unknown u -> transitions.apply(app, payout.id(), PayoutStatus.UNKNOWN, Cause.provider_call,
-                    null, "provider outcome unknown: " + u.cause() + "; never retried", Map.of());
+                    null, "provider outcome unknown: " + u.cause() + "; never retried",
+                    u.reference() == null ? Map.of() : Map.of("provider_reference", u.reference().value()));
             case CallOutcome.Rejected r -> transitions.apply(app, payout.id(), PayoutStatus.FAILED, Cause.provider_call,
                     null, "rejected by provider", Map.of("failure_code", r.code().toLowerCase(), "failure_message", r.message()));
         }

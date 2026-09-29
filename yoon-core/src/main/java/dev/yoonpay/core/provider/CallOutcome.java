@@ -27,7 +27,16 @@ public sealed interface CallOutcome {
     record Rejected(String code, String message) implements CallOutcome {
     }
 
-    /** Possibly accepted. Resolve through the status API; never retry, never fail over. */
-    record Unknown(String cause) implements CallOutcome {
+    /**
+     * Possibly accepted. Resolve through the status API; never retry, never fail over.
+     *
+     * @param reference the provider's reference when the adapter already knows it (e.g. from an
+     *                  earlier step, or because the provider keys on Yoon's own reference); null
+     *                  otherwise — reconciliation then recovers it through {@code lookup}
+     */
+    record Unknown(String cause, ProviderReference reference) implements CallOutcome {
+        public Unknown(String cause) {
+            this(cause, null);
+        }
     }
 }

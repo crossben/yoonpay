@@ -30,6 +30,8 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | --- | --- | --- |
 | `yoon-core` | Money, state machines, shadow-ledger model, provider SPI | the JDK only |
 | `yoon-testkit` | `FakeProvider` — scriptable provider for tests | `yoon-core` |
+| `yoon-providers/yoon-provider-support` | `ProviderHttp` (outcome classification), JSON, signatures, credentials | core, Jackson |
+| `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
 | `yoon-server` | Spring Boot 4 app: HTTP API, persistence, provider callbacks, outbox, sweeps | core; testkit in test scope |
 
 Package root: `dev.yoonpay`. Architecture decisions: `docs/adr/` (never rewrite
@@ -44,8 +46,9 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   `double`/`float` anywhere, including JSON. XOF has no minor unit: 5 000 XOF = `5000`.
 - Data access: Spring Data JDBC and `JdbcClient`. **No JPA.** Writes must be explicit.
 - **No Lombok.** Use records.
-- **No provider SDKs.** Provider modules call the provider over HTTP with
-  `RestClient`, timeouts on every call.
+- **No provider SDKs.** Provider modules call the provider through `ProviderHttp`
+  (JDK `HttpClient`), which classifies `NotSent` / `Lost` / `Answered` and never
+  retries.
 - Configuration only from environment variables; nothing sensitive has a default.
 
 ### Money safety (`dev.yoonpay.core.lifecycle`, `dev.yoonpay.core.provider.CallOutcome`)
@@ -128,6 +131,25 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   Same key + same body → replay; different body → mismatch (409); still running
   → in progress (409 + Retry-After). A key stuck IN_PROGRESS is never re-executed.
 
+### Provider adapters (`yoon-providers/`)
+
+- Map every mutating call to `Accepted` / `Rejected` / `Unknown`: `NotSent` →
+  `Rejected("PROVIDER_UNAVAILABLE")`; `Lost` or 5xx → `Unknown` (with the
+  reference if known); a 2xx you cannot read → `Unknown`; a definite refusal →
+  `Rejected`. A step that moves no money (e.g. PayDunya `get-invoice`) may be
+  `Rejected` on any failure.
+- Status mapping lives in one `*Status` class; unknown raw values map to `null`
+  (never guessed). A parameterised table test lists every raw value, and
+  `docs/providers/<id>.md` shows the same table — keep them in sync.
+- Declare only capabilities the provider really has; never fake refunds.
+- `verify` checks the signature over the raw bytes and extracts the reference;
+  it never decides a status.
+- WireMock tests cover: happy path with request assertions, refusal, 5xx,
+  timeout, refused connection, every callback variant.
+- Adding a provider = one module + factory bean in `ProvidersConfiguration` +
+  docs page + status table test + WireMock tests. If core must change, the SPI
+  is wrong: fix it and write an ADR.
+
 ## Testing
 
 - Integration tests extend `dev.yoonpay.server.PostgresTest` (one shared Postgres
@@ -138,7 +160,8 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   (`TestProviders`: `fakeone`, `faketwo`, `fakenorefund`) reset before each test.
   Every response is checked against `api/openapi.yaml`. `RECEIVER` plays the
   `shop` app's webhook endpoint; `admin(…)` calls the operator API;
-  `postRaw(…)` sends provider callbacks.
+  `postRaw(…)` sends provider callbacks. The `live` app uses the real DexPay
+  adapter against the `DEXPAY` WireMock server (`LiveProviderTest`).
 - Provider behaviour is tested with `FakeProvider`: script `Behaviour`s (accept,
   reject, down, hang, timeout-after-accept), settle provider-side truth, emit
   genuine, duplicate, late or forged webhooks.
