@@ -17,7 +17,7 @@
     <packaging>pom</packaging>
     <name>Yoon</name>
     <description>Self-hosted, open-source payment gateway for African payment providers</description>
-    <url>https://github.com/yoonpay/yoon</url>
+    <url>https://github.com/crossben/yoonpay</url>
 
     <licenses>
         <license>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Yoon">
+  <title>Yoon</title>
+  <!-- App icon / favicon: the forking road on a terracotta tile, legible down to 16 px. -->
+  <rect width="64" height="64" rx="14" fill="#B5532E"/>
+  <path d="M32 54 V36 M32 36 C32 26 22 22 16 10 M32 36 C32 26 42 22 48 10"
+        fill="none" stroke="#F6EFE4" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -20,7 +20,7 @@ public record YoonProperties(Map<String, App> apps, URI sourceUrl, URI publicUrl
 
     public YoonProperties {
         apps = apps == null ? Map.of() : Map.copyOf(apps);
-        sourceUrl = sourceUrl == null ? URI.create("https://github.com/yoonpay/yoon") : sourceUrl;
+        sourceUrl = sourceUrl == null ? URI.create("https://github.com/crossben/yoonpay") : sourceUrl;
         publicUrl = publicUrl == null || publicUrl.toString().isBlank() ? null : publicUrl;
     }
 

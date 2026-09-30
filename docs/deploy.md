@@ -12,7 +12,7 @@ One small Linux server runs Yoon, Postgres, HTTPS (Caddy) and nightly backups. E
 ## Install
 
 ```sh
-git clone https://github.com/yoonpay/yoon.git && cd yoon/deploy
+git clone https://github.com/crossben/yoonpay.git && cd yoonpay/deploy
 cp .env.example .env
 ```
 
@@ -21,7 +21,7 @@ Edit `.env`:
 - `YOON_DOMAIN` and `YOON_PUBLIC_URL` — your domain. Providers call back to
   `https://<domain>/v1/hooks/…`, so it must be reachable over HTTPS.
 - `POSTGRES_PASSWORD`, `YOON_ADMIN_TOKEN` — long random values (`openssl rand -hex 32`).
-- `YOON_IMAGE` — pin a version, e.g. `ghcr.io/yoonpay/yoon:0.1`.
+- `YOON_IMAGE` — pin a version, e.g. `ghcr.io/crossben/yoon:0.1`.
 
 ```sh
 docker compose up -d

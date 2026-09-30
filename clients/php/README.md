@@ -1,6 +1,6 @@
 # yoonpay/yoon-php
 
-PHP and Laravel client for [Yoon](https://github.com/yoonpay/yoon), a self-hosted payment
+PHP and Laravel client for [Yoon](https://github.com/crossben/yoonpay), a self-hosted payment
 gateway for African payment providers. Apache-2.0.
 
 Requires PHP 8.2+. Works with Guzzle 7 and 8 (Laravel 10 to 13).

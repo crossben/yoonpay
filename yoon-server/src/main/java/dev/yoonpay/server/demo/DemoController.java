@@ -96,6 +96,7 @@ public class DemoController {
         String page = """
                 <!doctype html><html lang="en"><head><meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1"><title>Yoon demo checkout</title>
+                <link rel="icon" href="/favicon.svg" type="image/svg+xml">
                 <style>
                 body{font-family:system-ui,sans-serif;background:#f4f2ee;color:#1d1b18;display:grid;place-items:center;min-height:100vh;margin:0}
                 main{background:#fff;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 2px 12px #0001;max-width:22rem;width:calc(100%% - 32px)}

@@ -3,7 +3,9 @@ name: Release
 # Push a tag like v0.1.0. Builds, tests, publishes a signed multi-arch image to GHCR and
 # Docker Hub, and creates the GitHub release with an SBOM.
 #
-# Repository secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN (Docker Hub access token).
+# Repository secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN (Docker Hub access token),
+# PHP_MIRROR_DEPLOY_KEY (SSH key with write access to <owner>/yoon-php, for Packagist).
+# Images: ghcr.io/<repository owner>/yoon and docker.io/<DOCKERHUB_USERNAME>/yoon.
 on:
   push:
     tags: ['v*.*.*']
@@ -47,8 +49,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/yoonpay/yoon
-            docker.io/yoonpay/yoon
+            ghcr.io/${{ github.repository_owner }}/yoon
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/yoon
           # 0.1.0, 0.1 and latest
           tags: |
             type=semver,pattern={{version}}
@@ -69,9 +71,35 @@ jobs:
       - name: Sign the image (keyless, by digest)
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
+          GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/yoon
+          HUB_IMAGE: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/yoon
         run: |
-          cosign sign --yes "ghcr.io/yoonpay/yoon@${DIGEST}"
-          cosign sign --yes "docker.io/yoonpay/yoon@${DIGEST}"
+          cosign sign --yes "${GHCR_IMAGE}@${DIGEST}"
+          cosign sign --yes "${HUB_IMAGE}@${DIGEST}"
+
+  php-mirror:
+    # Packagist needs composer.json at a repository root: mirror clients/php into
+    # <owner>/yoon-php and tag it; Packagist's GitHub integration publishes the version.
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push clients/php to the mirror repository
+        env:
+          DEPLOY_KEY: ${{ secrets.PHP_MIRROR_DEPLOY_KEY }}
+          MIRROR: git@github.com:${{ github.repository_owner }}/yoon-php.git
+          TAG: ${{ github.ref_name }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/mirror_key && chmod 600 ~/.ssh/mirror_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror_key -o IdentitiesOnly=yes"
+          git subtree split --prefix clients/php -b php-split
+          # The mirror is read-only: its history is always the split of this repository.
+          git push --force "$MIRROR" php-split:main
+          git push "$MIRROR" "php-split:refs/tags/$TAG"
 
   github-release:
     needs: image
@@ -97,10 +125,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
           DIGEST: ${{ needs.image.outputs.digest }}
+          GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/yoon
         run: |
           {
             cat notes.md
             echo
-            echo "Image: \`ghcr.io/yoonpay/yoon:${TAG#v}\` (also on Docker Hub), digest \`${DIGEST}\`, signed with cosign (keyless)."
+            echo "Image: \`${GHCR_IMAGE}:${TAG#v}\` (also on Docker Hub), digest \`${DIGEST}\`, signed with cosign (keyless)."
           } > body.md
           gh release create "$TAG" --title "Yoon $TAG" --notes-file body.md target/yoon-sbom.json

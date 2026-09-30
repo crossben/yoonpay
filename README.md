@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img src="docs/assets/logo.svg" alt="Yoon" width="280">
+  </picture>
+</p>
+
 # Yoon
 
 > *Yoon* (Wolof): the way, the road. Yoon picks the way a payment travels.
@@ -77,7 +84,7 @@ Yoon's, and the provider's quirks.
 | | Package | |
 | --- | --- | --- |
 | PHP / Laravel | `yoonpay/yoon-php` | [clients/php](clients/php) — facade, `yoon.webhook` middleware; Laravel 10–13 |
-| Java | `dev.yoonpay:yoon-java` | [clients/java](clients/java) — Java 17+ |
+| Java | `io.github.crossben:yoon-java` | [clients/java](clients/java) — Java 17+ |
 
 Both are generated from `api/openapi.yaml` (never edited by hand; CI fails if they drift), with
 a thin hand-written layer: idempotency-key-first helpers, one exception type carrying Yoon's
@@ -97,7 +104,7 @@ Pay or Decline, and a signed callback travels the real pipeline. No money moves.
 - **[Runbook](docs/runbook.md)** — upgrades, key rotation, payouts needing review, dead letters,
   restoring a backup.
 - **[Security checklist](docs/security-checklist.md)** — before handling real money.
-- **Image:** `ghcr.io/yoonpay/yoon` and `docker.io/yoonpay/yoon` (amd64, arm64), signed with
+- **Image:** `ghcr.io/crossben/yoon` and on Docker Hub (amd64, arm64), signed with
   cosign, with an SBOM, published by the release workflow on every `v*` tag.
 
 **Load test** ([details](docs/load-test.md)): one instance on a laptop (i7-11800H, Docker
@@ -189,6 +196,7 @@ description is in the `webhooks` section of `api/openapi.yaml` (and at `/docs`).
 ### Operator command line
 
 ```sh
+# from the repository root (or deploy/ in production)
 docker compose run --rm yoon apps create <name>      # new application + API key (shown once)
 docker compose run --rm yoon apps list               # applications and key prefixes
 docker compose run --rm yoon apps add-key <name>     # rotate: issue another key

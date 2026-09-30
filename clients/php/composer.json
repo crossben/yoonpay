@@ -4,7 +4,7 @@
     "type": "library",
     "license": "Apache-2.0",
     "keywords": ["payments", "paydunya", "dexpay", "naboopay", "wave", "orange-money", "laravel", "senegal"],
-    "homepage": "https://github.com/yoonpay/yoon",
+    "homepage": "https://github.com/crossben/yoonpay",
     "require": {
         "php": "^8.2",
         "ext-json": "*",

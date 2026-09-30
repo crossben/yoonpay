@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 234 84" role="img" aria-label="Yoon">
+  <title>Yoon</title>
+  <!-- The Y is a road forking in two: Yoon picks the way a payment travels. -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40 72 V48 M40 48 C40 34 26 28 18 12 M40 48 C40 34 54 28 62 12" stroke="#B5532E" stroke-width="17"/>
+    <path d="M40 71 V48 M40 48 C40 34 26 28 18 13 M40 48 C40 34 54 28 62 13" stroke="#F6EFE4" stroke-width="2.5" stroke-dasharray="5 6"/>
+    <g stroke="#1D1B18" stroke-width="10" transform="translate(-6 0)">
+      <circle cx="102" cy="54" r="17"/>
+      <circle cx="150" cy="54" r="17"/>
+      <path d="M186 72 V38 M186 55 C186 43 193 37 204 37 C215 37 222 43 222 55 V72"/>
+    </g>
+  </g>
+</svg>

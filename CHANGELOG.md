@@ -22,7 +22,7 @@ First release.
 - PayDunya (collect, payout), DexPay (collect, payout), NabooPay (collect), and a demo provider.
 
 ### Clients
-- `yoonpay/yoon-php` (PHP 8.2+, Laravel 10–13) and `dev.yoonpay:yoon-java` (Java 17+), generated
+- `yoonpay/yoon-php` (PHP 8.2+, Laravel 10–13) and `io.github.crossben:yoon-java` (Java 17+), generated
   from the API contract.
 
 ### Operations

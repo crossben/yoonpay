@@ -5,12 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Deliberately standalone: an Apache-2.0 library for applications, not part of the AGPL server build. -->
-    <groupId>dev.yoonpay</groupId>
+    <!-- Published to Maven Central under the GitHub-verified namespace (ADR-0018). -->
+    <groupId>io.github.crossben</groupId>
     <artifactId>yoon-java</artifactId>
     <version>0.1.0</version>
     <name>Yoon Java client</name>
     <description>Java client for Yoon, the self-hosted payment gateway for African payment providers.</description>
-    <url>https://github.com/yoonpay/yoon</url>
+    <url>https://github.com/crossben/yoonpay</url>
 
     <licenses>
         <license>
@@ -18,6 +19,20 @@
             <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <id>crossben</id>
+            <name>Ben Hattab</name>
+            <url>https://github.com/crossben</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/crossben/yoonpay</url>
+        <connection>scm:git:https://github.com/crossben/yoonpay.git</connection>
+        <developerConnection>scm:git:git@github.com:crossben/yoonpay.git</developerConnection>
+    </scm>
 
     <properties>
         <!-- Java 17 so applications on the previous LTS can use it. -->
@@ -103,4 +118,72 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- mvn -P release deploy: sources, javadoc, GPG signatures, upload to Maven Central. -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.12.0</version>
+                        <configuration>
+                            <!-- Generated code carries generator-style comments; don't fail on them. -->
+                            <doclint>none</doclint>
+                            <quiet>true</quiet>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.8</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.11.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <!-- settings.xml server id holding the Central Portal user token. -->
+                            <publishingServerId>central</publishingServerId>
+                            <!-- Upload, then press Publish on central.sonatype.com after checking. -->
+                            <autoPublish>false</autoPublish>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

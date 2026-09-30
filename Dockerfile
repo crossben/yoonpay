@@ -9,7 +9,7 @@ FROM eclipse-temurin:25-jre
 ARG VERSION=dev
 LABEL org.opencontainers.image.title="Yoon" \
       org.opencontainers.image.description="Self-hosted payment gateway for African payment providers" \
-      org.opencontainers.image.source="https://github.com/yoonpay/yoon" \
+      org.opencontainers.image.source="https://github.com/crossben/yoonpay" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.version="${VERSION}"
 

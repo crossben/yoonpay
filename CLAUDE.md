@@ -3,6 +3,9 @@
 Guidance for AI coding agents working on Yoon, a self-hosted, open-source payment
 gateway for African payment providers (PayDunya, DexPay, NabooPay first).
 
+This repository is the gateway. The website (yoonpay.benhattab.pro) is a separate repository,
+checked out next to this one as `../website/`; its rules are in `../website/PLAN.md`.
+
 ## Working rules
 
 - **Never `git commit` or `git push`.** The owner commits. Finish a piece of
