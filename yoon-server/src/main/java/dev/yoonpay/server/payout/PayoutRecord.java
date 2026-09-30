@@ -21,5 +21,6 @@ public record PayoutRecord(
         String failureCode,
         String failureMessage,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        String recipientPiAlias) {
 }

@@ -22,13 +22,13 @@ public class PayoutRepository {
     public void insert(PayoutRecord p) {
         jdbc.sql("""
                         INSERT INTO payouts (id, application_id, status, amount, currency, country, method, reference,
-                                             recipient_phone, provider, routing_reason)
+                                             recipient_phone, provider, routing_reason, recipient_pi_alias)
                         VALUES (:id, :app, :status, :amount, :currency, :country, :method, :reference,
-                                :phone, :provider, :routing)""")
+                                :phone, :provider, :routing, :alias)""")
                 .param("id", p.id()).param("app", p.applicationId()).param("status", p.status())
                 .param("amount", p.amount()).param("currency", p.currency()).param("country", p.country())
                 .param("method", p.method()).param("reference", p.reference()).param("phone", p.recipientPhone())
-                .param("provider", p.provider()).param("routing", p.routingReason())
+                .param("provider", p.provider()).param("routing", p.routingReason()).param("alias", p.recipientPiAlias())
                 .update();
     }
 

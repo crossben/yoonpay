@@ -1002,6 +1002,7 @@ components:
           type: object
           properties:
             phone: { type: string, description: 'Local or international; validated for `country`.' }
+            pi_alias: { type: string, maxLength: 64, description: "The customer's PI-SPI payment alias. Required by the `pispi` provider." }
         reference: { type: string, maxLength: 255, description: Your own order id. }
         description: { type: string, maxLength: 500 }
         return_url: { type: string, format: uri, maxLength: 2048 }
@@ -1067,9 +1068,10 @@ components:
         method: { type: string, maxLength: 32 }
         recipient:
           type: object
-          required: [phone]
+          description: 'A phone, or a PI-SPI payment alias (`pispi` provider): at least one.'
           properties:
             phone: { type: string }
+            pi_alias: { type: string, maxLength: 64, description: "The recipient's PI-SPI payment alias. Required by the `pispi` provider." }
         reference: { type: string, maxLength: 255 }
         provider: { type: string, description: 'Optional: pin a configured provider.' }
 
@@ -1089,7 +1091,7 @@ components:
           type: object
           required: [phone]
           properties:
-            phone: { type: string, example: '+22177***67' }
+            phone: { type: [string, 'null'], example: '+22177***67', description: Masked. Null when the payout went to a PI-SPI alias. }
         provider: { type: string }
         provider_reference: { type: [string, 'null'] }
         routing_reason: { type: [string, 'null'] }

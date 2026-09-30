@@ -5,6 +5,21 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Providers
+- New provider **PI-SPI** (`pispi`, BCEAO instant payments, via the merchant's institution's API
+  Business): payment requests to a customer's PI alias, payouts to a PI alias, full-amount
+  refunds (returns of funds), OAuth2 client credentials and mutual TLS. Not yet run against the
+  PI-SPI sandbox. See `docs/providers/pispi.md` and ADR-0019.
+- `ProviderHttp` supports mutual TLS (client certificate from PEM), `PUT` and form posts.
+- DexPay and PayDunya refuse a payout without a phone number (`phone_required`).
+
+### API
+- `customer.pi_alias` on `POST /v1/payments` and `recipient.pi_alias` on `POST /v1/payouts`.
+  `recipient.phone` is now optional (one of the two is required).
+- **Upgrade note:** in payout responses `recipient.phone` is `null` for a payout sent to a PI
+  alias. Payouts sent to a phone are unchanged.
+- Migration `V5__pi_alias`: alias columns; `payouts.recipient_phone` becomes nullable.
+
 ### Clients
 - New JavaScript/TypeScript client `@yoonpay/yoon` (`clients/js`): generated from the API
   contract, Node ≥ 20 (also Bun, Deno and edge runtimes), with idempotency-key-first helpers,

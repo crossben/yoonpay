@@ -39,32 +39,32 @@ import dev.yoonpay.client.generated.ApiClient;
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class PayoutRecipient {
   public static final String JSON_PROPERTY_PHONE = "phone";
-  @jakarta.annotation.Nonnull
+  @jakarta.annotation.Nullable
   private String phone;
 
   public PayoutRecipient() { 
   }
 
-  public PayoutRecipient phone(@jakarta.annotation.Nonnull String phone) {
+  public PayoutRecipient phone(@jakarta.annotation.Nullable String phone) {
     this.phone = phone;
     return this;
   }
 
   /**
-   * Get phone
+   * Masked. Null when the payout went to a PI-SPI alias.
    * @return phone
    */
-  @jakarta.annotation.Nonnull
-  @JsonProperty(value = JSON_PROPERTY_PHONE, required = true)
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_PHONE, required = false)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
   public String getPhone() {
     return phone;
   }
 
 
-  @JsonProperty(value = JSON_PROPERTY_PHONE, required = true)
+  @JsonProperty(value = JSON_PROPERTY_PHONE, required = false)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setPhone(@jakarta.annotation.Nonnull String phone) {
+  public void setPhone(@jakarta.annotation.Nullable String phone) {
     this.phone = phone;
   }
 

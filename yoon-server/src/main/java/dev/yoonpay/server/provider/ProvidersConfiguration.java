@@ -3,6 +3,7 @@ package dev.yoonpay.server.provider;
 import dev.yoonpay.provider.dexpay.DexPayFactory;
 import dev.yoonpay.provider.naboopay.NabooPayFactory;
 import dev.yoonpay.provider.paydunya.PayDunyaFactory;
+import dev.yoonpay.provider.pispi.PiSpiFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,5 +27,10 @@ public class ProvidersConfiguration {
     @Bean
     NabooPayFactory naboopay() {
         return new NabooPayFactory();
+    }
+
+    @Bean
+    PiSpiFactory pispi() {
+        return new PiSpiFactory();
     }
 }

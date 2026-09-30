@@ -166,6 +166,9 @@ public final class PayDunyaProvider implements PaymentProvider {
 
     @Override
     public CallOutcome payout(PayoutRequest request) {
+        if (request.recipientPhone() == null) {
+            return new CallOutcome.Rejected("PHONE_REQUIRED", "PayDunya pays out to a phone number (recipient.phone)");
+        }
         String mode = WITHDRAW_MODES.get(request.method());
         if (mode == null || !request.country().equals("SN")) {
             return new CallOutcome.Rejected("METHOD_NOT_SUPPORTED", "PayDunya cannot pay out by " + request.method() + " in " + request.country());

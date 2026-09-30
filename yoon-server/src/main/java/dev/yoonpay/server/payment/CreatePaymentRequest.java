@@ -19,6 +19,7 @@ public record CreatePaymentRequest(
         @Size(max = 2048) String returnUrl,
         @Size(max = 32) String provider) {
 
-    public record Customer(@Size(max = 32) String phone) {
+    /** @param piAlias the customer's PI-SPI payment alias (provider {@code pispi}) */
+    public record Customer(@Size(max = 32) String phone, @Size(max = 64) String piAlias) {
     }
 }

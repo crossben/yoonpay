@@ -32,6 +32,25 @@ Change the value in `.env`, then `docker compose up -d`. For a webhook secret, u
 application first if it accepts only one secret: deliveries fail (and are retried) until both
 sides agree.
 
+## Register the PI-SPI webhook
+
+PI-SPI does not take a callback URL per request: register one webhook per application, once, with
+your institution's API Business (with your OAuth2 token, API key and client certificate):
+
+```sh
+curl --cert client.crt --key client.key \
+  -H "Authorization: Bearer $TOKEN" -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
+  -d '{"callbackUrl":"https://<YOON_PUBLIC_URL>/v1/hooks/pispi/<application id>",
+       "events":["RTP_REJETE","PAIEMENT_RECU","PAIEMENT_ENVOYE","PAIEMENT_REJETE",
+                 "RETOUR_ENVOYE","RETOUR_REJETE"]}' \
+  "$BASE_URL/webhooks"
+```
+
+The answer contains a `secret`: set it as `YOON_APPS_<APP>_PROVIDERS_PISPI_CREDENTIALS_WEBHOOK_SECRET`
+and `docker compose up -d`. To rotate it, `POST $BASE_URL/webhooks/<id>/secrets` with a
+`dateExpiration`, then update the variable. Missed callbacks are harmless: the sweeps ask the
+status API anyway.
+
 ## Rotate the admin token
 
 Change `YOON_ADMIN_TOKEN` in `.env`, `docker compose up -d`.

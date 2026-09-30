@@ -36,6 +36,16 @@ class PaymentApiTest extends ApiTest {
     }
 
     @Test
+    void the_customer_pi_alias_reaches_the_provider() {
+        Response r = post("shop", "/v1/payments", Map.of("amount", 5000, "currency", "XOF", "country", "SN",
+                "method", "wave", "customer", Map.of("pi_alias", "c0ffee00-0000-4000-8000-000000000001")));
+
+        assertThat(r.status()).isEqualTo(201);
+        assertThat(FAKE_ONE.lastCollect().customerAlias()).isEqualTo("c0ffee00-0000-4000-8000-000000000001");
+        assertThat(FAKE_ONE.lastCollect().customerPhone()).isNull();
+    }
+
+    @Test
     void a_retry_with_the_same_key_replays_the_original_response_without_calling_the_provider_again() {
         var body = payment("wave");
 

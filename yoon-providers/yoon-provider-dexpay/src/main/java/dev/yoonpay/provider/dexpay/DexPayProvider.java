@@ -171,6 +171,9 @@ public final class DexPayProvider implements PaymentProvider {
 
     @Override
     public CallOutcome payout(PayoutRequest request) {
+        if (request.recipientPhone() == null) {
+            return new CallOutcome.Rejected("PHONE_REQUIRED", "DexPay pays out to a phone number (recipient.phone)");
+        }
         String operator = operators.get(request.method());
         if (operator == null || !request.country().equals("SN")) {
             return new CallOutcome.Rejected("METHOD_NOT_SUPPORTED", "DexPay payout operator unknown for " + request.method() + " in " + request.country());

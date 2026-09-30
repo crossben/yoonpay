@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Guidance for AI coding agents working on Yoon, a self-hosted, open-source payment
-gateway for African payment providers (PayDunya, DexPay, NabooPay first).
+gateway for African payment providers (PayDunya, DexPay, NabooPay, PI-SPI).
 
 This repository is the gateway. The website (yoonpay.benhattab.pro) is a separate repository,
 checked out next to this one as `../website/`; its rules are in `../website/PLAN.md`.
@@ -33,8 +33,8 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | --- | --- | --- |
 | `yoon-core` | Money, state machines, shadow-ledger model, provider SPI | the JDK only |
 | `yoon-testkit` | `FakeProvider` — scriptable provider for tests | `yoon-core` |
-| `yoon-providers/yoon-provider-support` | `ProviderHttp` (outcome classification), JSON, signatures, credentials | core, Jackson |
-| `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
+| `yoon-providers/yoon-provider-support` | `ProviderHttp` (outcome classification, optional mutual TLS), `Tls` (PEM → SSLContext), JSON, signatures, credentials | core, Jackson |
+| `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay,pispi}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
 | `yoon-providers/yoon-provider-demo` | Demo provider (`YOON_DEMO_ENABLED`), page in `server/demo` | same |
 | `clients/php`, `clients/java`, `clients/js` | Apache-2.0 clients: `generated/` + thin hand-written layer | standalone builds |
 | `examples/laravel-shop` | Laravel 13 app using `clients/php` | — |
@@ -148,6 +148,8 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   (never guessed). A parameterised table test lists every raw value, and
   `docs/providers/<id>.md` shows the same table — keep them in sync.
 - Declare only capabilities the provider really has; never fake refunds.
+- PI-SPI identifies people by PI alias (`CollectRequest.customerAlias`, `PayoutRequest.recipientAlias`),
+  not phone; phone-only adapters refuse a payout without a phone (`PHONE_REQUIRED`).
 - `verify` checks the signature over the raw bytes and extracts the reference;
   it never decides a status.
 - WireMock tests cover: happy path with request assertions, refusal, 5xx,

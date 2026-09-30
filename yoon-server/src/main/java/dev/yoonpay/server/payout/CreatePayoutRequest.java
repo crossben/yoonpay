@@ -16,6 +16,7 @@ public record CreatePayoutRequest(
         @Size(max = 255) String reference,
         @Size(max = 32) String provider) {
 
-    public record Recipient(@NotBlank @Size(max = 32) String phone) {
+    /** A phone, or a PI-SPI payment alias (provider {@code pispi}): at least one. */
+    public record Recipient(@Size(max = 32) String phone, @Size(max = 64) String piAlias) {
     }
 }

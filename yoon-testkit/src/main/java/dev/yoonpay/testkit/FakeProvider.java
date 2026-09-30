@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,6 +63,8 @@ public final class FakeProvider implements PaymentProvider {
     private final Queue<InboundWebhook> webhooks = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean down = new AtomicBoolean();
     private final AtomicInteger mutatingCalls = new AtomicInteger();
+    private final AtomicReference<CollectRequest> lastCollect = new AtomicReference<>();
+    private final AtomicReference<PayoutRequest> lastPayout = new AtomicReference<>();
 
     private final Map<String, Record<PaymentStatus>> payments = new ConcurrentHashMap<>();
     private final Map<String, Record<RefundStatus>> refunds = new ConcurrentHashMap<>();
@@ -113,6 +116,18 @@ public final class FakeProvider implements PaymentProvider {
         payouts.clear();
         down.set(false);
         mutatingCalls.set(0);
+        lastCollect.set(null);
+        lastPayout.set(null);
+    }
+
+    /** The last collect request this provider received, or null. */
+    public CollectRequest lastCollect() {
+        return lastCollect.get();
+    }
+
+    /** The last payout request this provider received, or null. */
+    public PayoutRequest lastPayout() {
+        return lastPayout.get();
     }
 
     /** How many collect/refund/payout calls reached this provider (proves "never retried"). */
@@ -210,6 +225,7 @@ public final class FakeProvider implements PaymentProvider {
 
     @Override
     public CallOutcome collect(CollectRequest request) {
+        lastCollect.set(request);
         return mutate(request.attemptReference(), request.amount(), payments, PaymentStatus.PENDING,
                 URI.create("https://fake.example/checkout/" + request.attemptReference()));
     }
@@ -231,6 +247,7 @@ public final class FakeProvider implements PaymentProvider {
 
     @Override
     public CallOutcome payout(PayoutRequest request) {
+        lastPayout.set(request);
         return mutate(request.attemptReference(), request.amount(), payouts, PayoutStatus.PROCESSING, null);
     }
 

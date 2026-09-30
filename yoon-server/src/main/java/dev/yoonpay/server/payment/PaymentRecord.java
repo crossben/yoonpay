@@ -26,5 +26,6 @@ public record PaymentRecord(
         long amountRefunded,
         Instant createdAt,
         Instant updatedAt,
-        int statusChecks) {
+        int statusChecks,
+        String customerPiAlias) {
 }

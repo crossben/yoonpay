@@ -30,9 +30,9 @@ public class PaymentRepository {
     public void insert(PaymentRecord p) {
         jdbc.sql("""
                         INSERT INTO payments (id, application_id, status, amount, currency, country, method, reference,
-                                              description, customer_phone, return_url)
+                                              description, customer_phone, return_url, customer_pi_alias)
                         VALUES (:id, :app, :status, :amount, :currency, :country, :method, :reference,
-                                :description, :phone, :returnUrl)""")
+                                :description, :phone, :returnUrl, :alias)""")
                 .param("id", p.id())
                 .param("app", p.applicationId())
                 .param("status", p.status())
@@ -44,6 +44,7 @@ public class PaymentRepository {
                 .param("description", p.description())
                 .param("phone", p.customerPhone())
                 .param("returnUrl", p.returnUrl())
+                .param("alias", p.customerPiAlias())
                 .update();
     }
 

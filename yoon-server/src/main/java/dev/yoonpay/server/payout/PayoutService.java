@@ -52,7 +52,13 @@ public class PayoutService {
 
     public PayoutRecord create(AppPrincipal app, CreatePayoutRequest req) {
         Currency currency = currency(req.currency());
-        String phone = Phones.normalize(req.recipient().phone(), req.country());
+        String alias = req.recipient().piAlias() == null || req.recipient().piAlias().isBlank()
+                ? null : req.recipient().piAlias().trim();
+        if (alias == null && (req.recipient().phone() == null || req.recipient().phone().isBlank())) {
+            throw ApiProblem.invalid("recipient.phone or recipient.pi_alias is required");
+        }
+        String phone = req.recipient().phone() == null || req.recipient().phone().isBlank()
+                ? null : Phones.normalize(req.recipient().phone(), req.country());
 
         var decision = router.route(new RouteRequest(Operation.PAYOUT, req.country(), req.method(), currency,
                 req.provider() == null ? null : providerId(req.provider())), providers.candidates(app));
@@ -65,14 +71,14 @@ public class PayoutService {
 
         PayoutRecord payout = new PayoutRecord(Ids.payout(), app.id(), PayoutStatus.CREATED.name(), req.amount(),
                 currency.getCurrencyCode(), req.country(), req.method(), req.reference(), phone, providerId.value(),
-                null, route.reason() + "; payouts never fail over", false, null, null, null, null);
+                null, route.reason() + "; payouts never fail over", false, null, null, null, null, alias);
         tx.executeWithoutResult(s -> {
             payouts.insert(payout);
             events.record(app.id(), "payout", payout.id(), null, PayoutStatus.CREATED, Decision.APPLY, Cause.api, null, null);
         });
 
         Money amount = new Money(req.amount(), currency);
-        PayoutRequest call = new PayoutRequest(payout.id(), amount, req.country(), req.method(), phone, null);
+        PayoutRequest call = new PayoutRequest(payout.id(), amount, req.country(), req.method(), phone, null, alias);
         CallOutcome outcome = providers.call(app, providerId.value(), Operation.PAYOUT, () -> provider.payout(call));
 
         switch (outcome) {

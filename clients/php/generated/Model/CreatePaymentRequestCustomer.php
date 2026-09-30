@@ -57,7 +57,8 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
       * @var string[]
       */
     protected static $openAPITypes = [
-        'phone' => 'string'
+        'phone' => 'string',
+        'pi_alias' => 'string'
     ];
 
     /**
@@ -68,7 +69,8 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
       * @psalm-var array<string, string|null>
       */
     protected static $openAPIFormats = [
-        'phone' => null
+        'phone' => null,
+        'pi_alias' => null
     ];
 
     /**
@@ -77,7 +79,8 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
       * @var boolean[]
       */
     protected static array $openAPINullables = [
-        'phone' => false
+        'phone' => false,
+        'pi_alias' => false
     ];
 
     /**
@@ -166,7 +169,8 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
      * @var string[]
      */
     protected static $attributeMap = [
-        'phone' => 'phone'
+        'phone' => 'phone',
+        'pi_alias' => 'pi_alias'
     ];
 
     /**
@@ -175,7 +179,8 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
      * @var string[]
      */
     protected static $setters = [
-        'phone' => 'setPhone'
+        'phone' => 'setPhone',
+        'pi_alias' => 'setPiAlias'
     ];
 
     /**
@@ -184,7 +189,8 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
      * @var string[]
      */
     protected static $getters = [
-        'phone' => 'getPhone'
+        'phone' => 'getPhone',
+        'pi_alias' => 'getPiAlias'
     ];
 
     /**
@@ -245,6 +251,7 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
     public function __construct(?array $data = null)
     {
         $this->setIfExists('phone', $data ?? [], null);
+        $this->setIfExists('pi_alias', $data ?? [], null);
     }
 
     /**
@@ -273,6 +280,10 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
     public function listInvalidProperties()
     {
         $invalidProperties = [];
+
+        if (!is_null($this->container['pi_alias']) && (mb_strlen($this->container['pi_alias']) > 64)) {
+            $invalidProperties[] = "invalid value for 'pi_alias', the character length must be smaller than or equal to 64.";
+        }
 
         return $invalidProperties;
     }
@@ -312,6 +323,37 @@ class CreatePaymentRequestCustomer implements ModelInterface, ArrayAccess, \Json
             throw new \InvalidArgumentException('non-nullable phone cannot be null');
         }
         $this->container['phone'] = $phone;
+
+        return $this;
+    }
+
+    /**
+     * Gets pi_alias
+     *
+     * @return string|null
+     */
+    public function getPiAlias()
+    {
+        return $this->container['pi_alias'];
+    }
+
+    /**
+     * Sets pi_alias
+     *
+     * @param string|null $pi_alias The customer's PI-SPI payment alias. Required by the `pispi` provider.
+     *
+     * @return self
+     */
+    public function setPiAlias($pi_alias)
+    {
+        if (is_null($pi_alias)) {
+            throw new \InvalidArgumentException('non-nullable pi_alias cannot be null');
+        }
+        if ((mb_strlen($pi_alias) > 64)) {
+            throw new \InvalidArgumentException('invalid length for $pi_alias when calling CreatePaymentRequestCustomer., must be smaller than or equal to 64.');
+        }
+
+        $this->container['pi_alias'] = $pi_alias;
 
         return $this;
     }

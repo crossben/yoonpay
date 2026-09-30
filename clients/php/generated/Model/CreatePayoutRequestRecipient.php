@@ -35,6 +35,7 @@ use \Yoon\Generated\ObjectSerializer;
  * CreatePayoutRequestRecipient Class Doc Comment
  *
  * @category Class
+ * @description A phone, or a PI-SPI payment alias (&#x60;pispi&#x60; provider): at least one.
  * @package  Yoon\Generated
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
@@ -57,7 +58,8 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
       * @var string[]
       */
     protected static $openAPITypes = [
-        'phone' => 'string'
+        'phone' => 'string',
+        'pi_alias' => 'string'
     ];
 
     /**
@@ -68,7 +70,8 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
       * @psalm-var array<string, string|null>
       */
     protected static $openAPIFormats = [
-        'phone' => null
+        'phone' => null,
+        'pi_alias' => null
     ];
 
     /**
@@ -77,7 +80,8 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
       * @var boolean[]
       */
     protected static array $openAPINullables = [
-        'phone' => false
+        'phone' => false,
+        'pi_alias' => false
     ];
 
     /**
@@ -166,7 +170,8 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
      * @var string[]
      */
     protected static $attributeMap = [
-        'phone' => 'phone'
+        'phone' => 'phone',
+        'pi_alias' => 'pi_alias'
     ];
 
     /**
@@ -175,7 +180,8 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
      * @var string[]
      */
     protected static $setters = [
-        'phone' => 'setPhone'
+        'phone' => 'setPhone',
+        'pi_alias' => 'setPiAlias'
     ];
 
     /**
@@ -184,7 +190,8 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
      * @var string[]
      */
     protected static $getters = [
-        'phone' => 'getPhone'
+        'phone' => 'getPhone',
+        'pi_alias' => 'getPiAlias'
     ];
 
     /**
@@ -245,6 +252,7 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
     public function __construct(?array $data = null)
     {
         $this->setIfExists('phone', $data ?? [], null);
+        $this->setIfExists('pi_alias', $data ?? [], null);
     }
 
     /**
@@ -274,9 +282,10 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
     {
         $invalidProperties = [];
 
-        if ($this->container['phone'] === null) {
-            $invalidProperties[] = "'phone' can't be null";
+        if (!is_null($this->container['pi_alias']) && (mb_strlen($this->container['pi_alias']) > 64)) {
+            $invalidProperties[] = "invalid value for 'pi_alias', the character length must be smaller than or equal to 64.";
         }
+
         return $invalidProperties;
     }
 
@@ -295,7 +304,7 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
     /**
      * Gets phone
      *
-     * @return string
+     * @return string|null
      */
     public function getPhone()
     {
@@ -305,7 +314,7 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
     /**
      * Sets phone
      *
-     * @param string $phone phone
+     * @param string|null $phone phone
      *
      * @return self
      */
@@ -315,6 +324,37 @@ class CreatePayoutRequestRecipient implements ModelInterface, ArrayAccess, \Json
             throw new \InvalidArgumentException('non-nullable phone cannot be null');
         }
         $this->container['phone'] = $phone;
+
+        return $this;
+    }
+
+    /**
+     * Gets pi_alias
+     *
+     * @return string|null
+     */
+    public function getPiAlias()
+    {
+        return $this->container['pi_alias'];
+    }
+
+    /**
+     * Sets pi_alias
+     *
+     * @param string|null $pi_alias The recipient's PI-SPI payment alias. Required by the `pispi` provider.
+     *
+     * @return self
+     */
+    public function setPiAlias($pi_alias)
+    {
+        if (is_null($pi_alias)) {
+            throw new \InvalidArgumentException('non-nullable pi_alias cannot be null');
+        }
+        if ((mb_strlen($pi_alias) > 64)) {
+            throw new \InvalidArgumentException('invalid length for $pi_alias when calling CreatePayoutRequestRecipient., must be smaller than or equal to 64.');
+        }
+
+        $this->container['pi_alias'] = $pi_alias;
 
         return $this;
     }

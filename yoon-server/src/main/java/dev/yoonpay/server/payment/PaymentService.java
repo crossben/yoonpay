@@ -62,6 +62,8 @@ public class PaymentService {
         Currency currency = currency(req.currency());
         String phone = req.customer() == null || req.customer().phone() == null
                 ? null : Phones.normalize(req.customer().phone(), req.country());
+        String alias = req.customer() == null || req.customer().piAlias() == null || req.customer().piAlias().isBlank()
+                ? null : req.customer().piAlias().trim();
         URI returnUrl = uri(req.returnUrl());
 
         var decision = router.route(new RouteRequest(Operation.COLLECT, req.country(), req.method(), currency,
@@ -75,7 +77,7 @@ public class PaymentService {
         tx.executeWithoutResult(s -> {
             payments.insert(new PaymentRecord(id, app.id(), PaymentStatus.CREATED.name(), req.amount(),
                     currency.getCurrencyCode(), req.country(), req.method(), req.reference(), req.description(),
-                    phone, req.returnUrl(), null, null, null, null, null, null, null, 0, null, null, 0));
+                    phone, req.returnUrl(), null, null, null, null, null, null, null, 0, null, null, 0, alias));
             events.record(app.id(), "payment", id, null, PaymentStatus.CREATED, Decision.APPLY, Cause.api, null, null);
         });
 
@@ -88,7 +90,7 @@ public class PaymentService {
             payments.insertAttempt(attempt, id, providerId.value());
 
             CollectRequest call = new CollectRequest(attempt, new Money(req.amount(), currency), req.country(),
-                    req.method(), phone, req.description(), returnUrl, callbackUrl(app, providerId));
+                    req.method(), phone, req.description(), returnUrl, callbackUrl(app, providerId), alias);
             CallOutcome outcome = providers.call(app, providerId.value(), Operation.COLLECT, () -> provider.collect(call));
 
             switch (outcome) {

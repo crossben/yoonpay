@@ -132,6 +132,12 @@ export interface CreatePaymentRequestCustomer {
      * @memberof CreatePaymentRequestCustomer
      */
     phone?: string;
+    /**
+     * The customer's PI-SPI payment alias. Required by the `pispi` provider.
+     * @type {string}
+     * @memberof CreatePaymentRequestCustomer
+     */
+    pi_alias?: string;
 }
 /**
  * 
@@ -183,7 +189,7 @@ export interface CreatePayoutRequest {
     provider?: string;
 }
 /**
- * 
+ * A phone, or a PI-SPI payment alias (`pispi` provider): at least one.
  * @export
  * @interface CreatePayoutRequestRecipient
  */
@@ -193,7 +199,13 @@ export interface CreatePayoutRequestRecipient {
      * @type {string}
      * @memberof CreatePayoutRequestRecipient
      */
-    phone: string;
+    phone?: string;
+    /**
+     * The recipient's PI-SPI payment alias. Required by the `pispi` provider.
+     * @type {string}
+     * @memberof CreatePayoutRequestRecipient
+     */
+    pi_alias?: string;
 }
 /**
  * 
@@ -1050,11 +1062,11 @@ export interface PayoutPage {
  */
 export interface PayoutRecipient {
     /**
-     * 
+     * Masked. Null when the payout went to a PI-SPI alias.
      * @type {string}
      * @memberof PayoutRecipient
      */
-    phone: string;
+    phone: string | null;
 }
 
 /**

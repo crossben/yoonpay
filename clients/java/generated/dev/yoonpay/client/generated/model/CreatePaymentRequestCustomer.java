@@ -34,13 +34,18 @@ import dev.yoonpay.client.generated.ApiClient;
  * CreatePaymentRequestCustomer
  */
 @JsonPropertyOrder({
-  CreatePaymentRequestCustomer.JSON_PROPERTY_PHONE
+  CreatePaymentRequestCustomer.JSON_PROPERTY_PHONE,
+  CreatePaymentRequestCustomer.JSON_PROPERTY_PI_ALIAS
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class CreatePaymentRequestCustomer {
   public static final String JSON_PROPERTY_PHONE = "phone";
   @jakarta.annotation.Nullable
   private String phone;
+
+  public static final String JSON_PROPERTY_PI_ALIAS = "pi_alias";
+  @jakarta.annotation.Nullable
+  private String piAlias;
 
   public CreatePaymentRequestCustomer() { 
   }
@@ -69,6 +74,30 @@ public class CreatePaymentRequestCustomer {
   }
 
 
+  public CreatePaymentRequestCustomer piAlias(@jakarta.annotation.Nullable String piAlias) {
+    this.piAlias = piAlias;
+    return this;
+  }
+
+  /**
+   * The customer&#39;s PI-SPI payment alias. Required by the &#x60;pispi&#x60; provider.
+   * @return piAlias
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_PI_ALIAS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getPiAlias() {
+    return piAlias;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_PI_ALIAS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setPiAlias(@jakarta.annotation.Nullable String piAlias) {
+    this.piAlias = piAlias;
+  }
+
+
   /**
    * Return true if this CreatePaymentRequest_customer object is equal to o.
    */
@@ -81,12 +110,13 @@ public class CreatePaymentRequestCustomer {
       return false;
     }
     CreatePaymentRequestCustomer createPaymentRequestCustomer = (CreatePaymentRequestCustomer) o;
-    return Objects.equals(this.phone, createPaymentRequestCustomer.phone);
+    return Objects.equals(this.phone, createPaymentRequestCustomer.phone) &&
+        Objects.equals(this.piAlias, createPaymentRequestCustomer.piAlias);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(phone);
+    return Objects.hash(phone, piAlias);
   }
 
   @Override
@@ -94,6 +124,7 @@ public class CreatePaymentRequestCustomer {
     StringBuilder sb = new StringBuilder();
     sb.append("class CreatePaymentRequestCustomer {\n");
     sb.append("    phone: ").append(toIndentedString(phone)).append("\n");
+    sb.append("    piAlias: ").append(toIndentedString(piAlias)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -144,6 +175,11 @@ public class CreatePaymentRequestCustomer {
     // add `phone` to the URL query string
     if (getPhone() != null) {
       joiner.add(String.format(Locale.ROOT, "%sphone%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getPhone()))));
+    }
+
+    // add `pi_alias` to the URL query string
+    if (getPiAlias() != null) {
+      joiner.add(String.format(Locale.ROOT, "%spi_alias%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getPiAlias()))));
     }
 
     return joiner.toString();

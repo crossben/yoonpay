@@ -30,6 +30,26 @@ class PayoutApiTest extends ApiTest {
     }
 
     @Test
+    void a_payout_can_go_to_a_pi_alias_instead_of_a_phone() {
+        Response r = post("shop", "/v1/payouts", Map.of("amount", 2500, "currency", "XOF", "country", "SN",
+                "method", "wave", "recipient", Map.of("pi_alias", "c0ffee00-0000-4000-8000-000000000001")));
+
+        assertThat(r.status()).isEqualTo(201);
+        assertThat(r.json().path("recipient").path("phone").isNull()).isTrue();
+        assertThat(FAKE_ONE.lastPayout().recipientAlias()).isEqualTo("c0ffee00-0000-4000-8000-000000000001");
+        assertThat(FAKE_ONE.lastPayout().recipientPhone()).isNull();
+    }
+
+    @Test
+    void a_payout_needs_a_phone_or_a_pi_alias() {
+        Response r = post("shop", "/v1/payouts", Map.of("amount", 2500, "currency", "XOF", "country", "SN",
+                "method", "wave", "recipient", Map.of()));
+
+        assertThat(r.status()).isEqualTo(400);
+        assertThat(FAKE_ONE.mutatingCalls()).isZero();
+    }
+
+    @Test
     void a_lost_answer_is_unknown_never_retried_and_never_sent_to_another_provider() {
         FAKE_ONE.script(Behaviour.timeoutAfterAccept());
         long before = reserved();

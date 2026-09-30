@@ -31,21 +31,26 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import dev.yoonpay.client.generated.ApiClient;
 /**
- * CreatePayoutRequestRecipient
+ * A phone, or a PI-SPI payment alias (&#x60;pispi&#x60; provider): at least one.
  */
 @JsonPropertyOrder({
-  CreatePayoutRequestRecipient.JSON_PROPERTY_PHONE
+  CreatePayoutRequestRecipient.JSON_PROPERTY_PHONE,
+  CreatePayoutRequestRecipient.JSON_PROPERTY_PI_ALIAS
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class CreatePayoutRequestRecipient {
   public static final String JSON_PROPERTY_PHONE = "phone";
-  @jakarta.annotation.Nonnull
+  @jakarta.annotation.Nullable
   private String phone;
+
+  public static final String JSON_PROPERTY_PI_ALIAS = "pi_alias";
+  @jakarta.annotation.Nullable
+  private String piAlias;
 
   public CreatePayoutRequestRecipient() { 
   }
 
-  public CreatePayoutRequestRecipient phone(@jakarta.annotation.Nonnull String phone) {
+  public CreatePayoutRequestRecipient phone(@jakarta.annotation.Nullable String phone) {
     this.phone = phone;
     return this;
   }
@@ -54,18 +59,42 @@ public class CreatePayoutRequestRecipient {
    * Get phone
    * @return phone
    */
-  @jakarta.annotation.Nonnull
-  @JsonProperty(value = JSON_PROPERTY_PHONE, required = true)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_PHONE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getPhone() {
     return phone;
   }
 
 
-  @JsonProperty(value = JSON_PROPERTY_PHONE, required = true)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setPhone(@jakarta.annotation.Nonnull String phone) {
+  @JsonProperty(value = JSON_PROPERTY_PHONE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setPhone(@jakarta.annotation.Nullable String phone) {
     this.phone = phone;
+  }
+
+
+  public CreatePayoutRequestRecipient piAlias(@jakarta.annotation.Nullable String piAlias) {
+    this.piAlias = piAlias;
+    return this;
+  }
+
+  /**
+   * The recipient&#39;s PI-SPI payment alias. Required by the &#x60;pispi&#x60; provider.
+   * @return piAlias
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_PI_ALIAS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getPiAlias() {
+    return piAlias;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_PI_ALIAS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setPiAlias(@jakarta.annotation.Nullable String piAlias) {
+    this.piAlias = piAlias;
   }
 
 
@@ -81,12 +110,13 @@ public class CreatePayoutRequestRecipient {
       return false;
     }
     CreatePayoutRequestRecipient createPayoutRequestRecipient = (CreatePayoutRequestRecipient) o;
-    return Objects.equals(this.phone, createPayoutRequestRecipient.phone);
+    return Objects.equals(this.phone, createPayoutRequestRecipient.phone) &&
+        Objects.equals(this.piAlias, createPayoutRequestRecipient.piAlias);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(phone);
+    return Objects.hash(phone, piAlias);
   }
 
   @Override
@@ -94,6 +124,7 @@ public class CreatePayoutRequestRecipient {
     StringBuilder sb = new StringBuilder();
     sb.append("class CreatePayoutRequestRecipient {\n");
     sb.append("    phone: ").append(toIndentedString(phone)).append("\n");
+    sb.append("    piAlias: ").append(toIndentedString(piAlias)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -144,6 +175,11 @@ public class CreatePayoutRequestRecipient {
     // add `phone` to the URL query string
     if (getPhone() != null) {
       joiner.add(String.format(Locale.ROOT, "%sphone%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getPhone()))));
+    }
+
+    // add `pi_alias` to the URL query string
+    if (getPiAlias() != null) {
+      joiner.add(String.format(Locale.ROOT, "%spi_alias%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getPiAlias()))));
     }
 
     return joiner.toString();
