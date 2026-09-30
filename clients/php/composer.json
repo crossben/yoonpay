@@ -1,0 +1,42 @@
+{
+    "name": "yoonpay/yoon-php",
+    "description": "PHP and Laravel client for Yoon, the self-hosted payment gateway for African payment providers.",
+    "type": "library",
+    "license": "Apache-2.0",
+    "keywords": ["payments", "paydunya", "dexpay", "naboopay", "wave", "orange-money", "laravel", "senegal"],
+    "homepage": "https://github.com/yoonpay/yoon",
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^7.8 || ^8.0",
+        "guzzlehttp/psr7": "^2.6 || ^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0"
+    },
+    "suggest": {
+        "illuminate/support": "For the Laravel service provider, facade and webhook middleware"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yoon\\": "src/",
+            "Yoon\\Generated\\": "generated/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Yoon\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Yoon\\Laravel\\YoonServiceProvider"],
+            "aliases": {"Yoon": "Yoon\\Laravel\\Facades\\Yoon"}
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}

@@ -32,6 +32,10 @@
             <artifactId>yoon-provider-naboopay</artifactId>
         </dependency>
         <dependency>
+            <groupId>dev.yoonpay</groupId>
+            <artifactId>yoon-provider-demo</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
@@ -104,6 +108,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dev.yoonpay</groupId>
+            <artifactId>yoon-java</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

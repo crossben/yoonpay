@@ -6,11 +6,9 @@ import dev.yoonpay.server.provider.ProviderRegistry;
 import dev.yoonpay.server.web.ApiProblem;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -31,14 +29,12 @@ public class InboundWebhookController {
 
     private final Applications applications;
     private final ProviderRegistry providers;
-    private final JdbcClient jdbc;
-    private final ObjectMapper json;
+    private final InboundWebhookStore store;
 
-    public InboundWebhookController(Applications applications, ProviderRegistry providers, JdbcClient jdbc, ObjectMapper json) {
+    public InboundWebhookController(Applications applications, ProviderRegistry providers, InboundWebhookStore store) {
         this.applications = applications;
         this.providers = providers;
-        this.jdbc = jdbc;
-        this.json = json;
+        this.store = store;
     }
 
     public record Received(boolean received) {
@@ -60,10 +56,7 @@ public class InboundWebhookController {
         for (String name : Collections.list(request.getHeaderNames())) {
             headers.put(name.toLowerCase(), Collections.list(request.getHeaders(name)));
         }
-        jdbc.sql("INSERT INTO inbound_webhooks (application_id, provider, headers, body) VALUES (:app, :provider, :headers, :body)")
-                .param("app", app.id()).param("provider", provider)
-                .param("headers", json.writeValueAsString(headers)).param("body", body)
-                .update();
+        store.store(app, provider, headers, body);
         return new Received(true);
     }
 

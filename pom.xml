@@ -31,6 +31,7 @@
         <module>yoon-testkit</module>
         <module>yoon-providers</module>
         <module>yoon-server</module>
+        <module>clients/java</module>
     </modules>
 
     <properties>
@@ -74,6 +75,11 @@
             <dependency>
                 <groupId>dev.yoonpay</groupId>
                 <artifactId>yoon-provider-naboopay</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.yoonpay</groupId>
+                <artifactId>yoon-provider-demo</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

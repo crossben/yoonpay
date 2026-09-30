@@ -32,6 +32,9 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | `yoon-testkit` | `FakeProvider` — scriptable provider for tests | `yoon-core` |
 | `yoon-providers/yoon-provider-support` | `ProviderHttp` (outcome classification), JSON, signatures, credentials | core, Jackson |
 | `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
+| `yoon-providers/yoon-provider-demo` | Demo provider (`YOON_DEMO_ENABLED`), page in `server/demo` | same |
+| `clients/php`, `clients/java` | Apache-2.0 clients: `generated/` + thin hand-written layer | standalone builds |
+| `examples/laravel-shop` | Laravel 13 app using `clients/php` | — |
 | `yoon-server` | Spring Boot 4 app: HTTP API, persistence, provider callbacks, outbox, sweeps | core; testkit in test scope |
 
 Package root: `dev.yoonpay`. Architecture decisions: `docs/adr/` (never rewrite
@@ -150,6 +153,19 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   docs page + status table test + WireMock tests. If core must change, the SPI
   is wrong: fix it and write an ADR.
 
+### Clients (`clients/`)
+
+- `clients/*/generated` is produced by `./clients/generate.sh` (Docker) — **never edit it**.
+  After changing `api/openapi.yaml`, run the script and commit the result; CI's
+  contract-drift job fails otherwise. Fixes to generated output belong in the script.
+- The hand-written layer stays thin: helpers take an explicit idempotency key; errors
+  become `YoonException` with the problem `code`.
+- Signature verification in every client must pass `api/test-vectors/webhook-signature.json`.
+- `JavaClientTest` (server) runs the Java client against the real server; `clients/php` tests
+  run on lowest and highest dependencies (Guzzle 7 and 8).
+- The IDE may compile into `target/`: if Maven reports "Unresolved compilation problems",
+  run with `clean`.
+
 ## Testing
 
 - Integration tests extend `dev.yoonpay.server.PostgresTest` (one shared Postgres
@@ -171,4 +187,4 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 ## Licensing
 
 `yoon-core`, `yoon-testkit`, `yoon-server` and providers: AGPL-3.0. Client
-libraries (future `clients/`): Apache-2.0. External contributions require a CLA.
+libraries (`clients/`) and `examples/`: Apache-2.0. External contributions require a CLA.

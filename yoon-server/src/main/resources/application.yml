@@ -23,6 +23,9 @@ yoon:
   admin-token: ${YOON_ADMIN_TOKEN:}
   scheduling:
     enabled: ${YOON_SCHEDULING_ENABLED:true}
+  # Demo provider + checkout page for trying Yoon without a provider account. Never in production.
+  demo:
+    enabled: ${YOON_DEMO_ENABLED:false}
   # Webhooks to the application: YOON_APPS_SHOP_WEBHOOK_URL, YOON_APPS_SHOP_WEBHOOK_SECRET
   # Reconciliation timing: YOON_SWEEP_PAYMENT_TTL=30m, YOON_SWEEP_PAYOUT_REVIEW_AFTER=24h, ...
   # Providers per application come from env vars, e.g.

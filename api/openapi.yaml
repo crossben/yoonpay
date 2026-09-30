@@ -48,6 +48,8 @@ tags:
     description: Instance and configuration information.
   - name: Provider callbacks
     description: Endpoints the payment providers call. Not for applications.
+  - name: Webhooks to your app
+    description: What Yoon POSTs to your application's webhook URL, and how to verify it.
   - name: Admin
     description: 'Operator API for the whole instance. Requires `YOON_ADMIN_TOKEN`; disabled (404) without it.'
 
@@ -727,6 +729,8 @@ paths:
 webhooks:
   event:
     post:
+      operationId: receiveYoonEvent
+      tags: [Webhooks to your app]
       summary: Event sent to your application
       description: |
         Yoon POSTs every event to `YOON_APPS_<APP>_WEBHOOK_URL`. Answer any 2xx quickly; anything else

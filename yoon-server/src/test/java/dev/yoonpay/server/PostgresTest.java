@@ -30,6 +30,8 @@ import java.util.UUID;
         "yoon.apps.live.providers.dexpay.credentials.api-secret=sk_test",
         "yoon.apps.live.providers.dexpay.credentials.webhook-secret=" + PostgresTest.DEXPAY_WEBHOOK_SECRET,
         "yoon.public-url=https://yoon.example",
+        "yoon.demo.enabled=true",
+        "yoon.apps.demoapp.providers.demo.priority=1",
 })
 @Import(TestProviders.class)
 public abstract class PostgresTest {

@@ -18,14 +18,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # Every YOON_* setting in .env (apps, providers, webhooks, demo mode) reaches Yoon.
+    env_file:
+      - path: .env
+        required: false
     environment:
       YOON_DB_URL: jdbc:postgresql://postgres:5432/yoon
       YOON_DB_USER: yoon
       YOON_DB_PASSWORD: ${POSTGRES_PASSWORD}
-      YOON_PUBLIC_URL: ${YOON_PUBLIC_URL:-}
-      YOON_ADMIN_TOKEN: ${YOON_ADMIN_TOKEN:-}
     ports:
       - "8080:8080"
+    # Lets Yoon deliver webhooks to an app running on this machine (e.g. the example shop).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   pgdata:

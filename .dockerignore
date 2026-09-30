@@ -1,3 +1,7 @@
 **/target
 .git
 .env
+examples
+clients/php
+**/vendor
+**/node_modules

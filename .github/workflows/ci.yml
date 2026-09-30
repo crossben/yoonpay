@@ -18,8 +18,61 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-      # verify = compile + unit tests + ArchUnit + Testcontainers integration tests
+      # verify = compile + unit, ArchUnit, WireMock and Testcontainers tests, incl. the Java client
+      # against the running server.
       - run: ./mvnw -B verify
+
+  contract-drift:
+    # The clients are generated from api/openapi.yaml. If someone changes the contract without
+    # regenerating (or edits generated code by hand), this fails.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./clients/generate.sh
+      - name: Generated clients match api/openapi.yaml
+        run: |
+          if ! git diff --exit-code -- clients/php/generated clients/java/generated; then
+            echo "::error::Generated clients are out of date. Run ./clients/generate.sh and commit the result."
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain -- clients/php/generated clients/java/generated)" ]; then
+            git status --porcelain -- clients/php/generated clients/java/generated
+            echo "::error::Generated clients have untracked changes. Run ./clients/generate.sh and commit the result."
+            exit 1
+          fi
+
+  php-client:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # lowest = Guzzle 7 / older Laravel; highest = Guzzle 8 / Laravel 13.
+        dependencies: [lowest, highest]
+    defaults:
+      run:
+        working-directory: clients/php
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: composer update --no-interaction --prefer-dist ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
+      - run: vendor/bin/phpunit
+
+  example-shop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/laravel-shop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan test
 
   image:
     runs-on: ubuntu-latest

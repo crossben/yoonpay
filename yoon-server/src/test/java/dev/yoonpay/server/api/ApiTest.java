@@ -44,7 +44,7 @@ public abstract class ApiTest extends PostgresTest {
     private static final Map<String, String> KEYS = new ConcurrentHashMap<>();
 
     @LocalServerPort
-    int port;
+    protected int port;
 
     @Autowired
     ApiKeyService apiKeys;

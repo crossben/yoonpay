@@ -1,0 +1,7 @@
+{
+  "description": "Yoon-Signature test vector. The server's signer and every client's verifier must agree on it.",
+  "secret": "whsec_test_vector_0123456789abcdef0123",
+  "timestamp": 1790000000,
+  "body": "{\"id\":\"evt_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d\",\"object\":\"event\",\"type\":\"payment.succeeded\",\"created_at\":\"2026-09-21T10:13:20Z\",\"data\":{\"object\":{\"id\":\"pay_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d\",\"object\":\"payment\",\"status\":\"succeeded\",\"amount\":5000}}}",
+  "header": "t=1790000000,v1=eab085b9983192b5c959bc0048f28980f24853bf15bd18987198b1461cf408b0"
+}
