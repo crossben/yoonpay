@@ -1,0 +1,88 @@
+{
+  "name": "@yoonpay/yoon",
+  "version": "0.1.0",
+  "description": "JavaScript/TypeScript client for Yoon, a self-hosted payment gateway for African payment providers. Runs on Node, Bun, Deno and edge runtimes.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crossben/yoonpay.git",
+    "directory": "clients/js"
+  },
+  "bugs": "https://github.com/crossben/yoonpay/issues",
+  "keywords": [
+    "yoon",
+    "payments",
+    "wave",
+    "orange-money",
+    "senegal",
+    "xof",
+    "paydunya",
+    "dexpay",
+    "naboopay"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./express": {
+      "types": "./dist/adapters/express.d.ts",
+      "import": "./dist/adapters/express.js",
+      "require": "./dist/adapters/express.cjs"
+    },
+    "./fastify": {
+      "types": "./dist/adapters/fastify.d.ts",
+      "import": "./dist/adapters/fastify.js",
+      "require": "./dist/adapters/fastify.cjs"
+    },
+    "./nestjs": {
+      "types": "./dist/adapters/nest.d.ts",
+      "import": "./dist/adapters/nest.js",
+      "require": "./dist/adapters/nest.cjs"
+    },
+    "./next": {
+      "types": "./dist/adapters/next.d.ts",
+      "import": "./dist/adapters/next.js",
+      "require": "./dist/adapters/next.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@nestjs/common": ">=10"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@nestjs/common": ">=10",
+    "@nestjs/testing": "^12.1.2",
+    "@types/express": "^4.17.21",
+    "@types/node": "^18.19.130",
+    "@types/supertest": "^6.0.0",
+    "express": "^4.21.0",
+    "fastify": "^4.29.0",
+    "reflect-metadata": "^0.2.2",
+    "supertest": "^7.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

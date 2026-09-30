@@ -31,12 +31,12 @@ jobs:
       - run: ./clients/generate.sh
       - name: Generated clients match api/openapi.yaml
         run: |
-          if ! git diff --exit-code -- clients/php/generated clients/java/generated; then
+          if ! git diff --exit-code -- clients/php/generated clients/java/generated clients/js/generated; then
             echo "::error::Generated clients are out of date. Run ./clients/generate.sh and commit the result."
             exit 1
           fi
-          if [ -n "$(git status --porcelain -- clients/php/generated clients/java/generated)" ]; then
-            git status --porcelain -- clients/php/generated clients/java/generated
+          if [ -n "$(git status --porcelain -- clients/php/generated clients/java/generated clients/js/generated)" ]; then
+            git status --porcelain -- clients/php/generated clients/java/generated clients/js/generated
             echo "::error::Generated clients have untracked changes. Run ./clients/generate.sh and commit the result."
             exit 1
           fi
@@ -75,6 +75,77 @@ jobs:
           coverage: none
       - run: composer update --no-interaction --prefer-dist ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
       - run: vendor/bin/phpunit
+
+  js-client:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # lowest = Node 18 floor; highest = current LTS.
+        node-version: ['18', '24']
+    defaults:
+      run:
+        working-directory: clients/js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: clients/js/package.json
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  js-client-lowest-deps:
+    # The dependency matrix's other end: the oldest framework majors the adapters support
+    # (Express 4, Fastify 4, Nest 10). Runtime floor (Node 18) is covered by js-client.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm install --no-audit --no-fund express@4 @types/express@4 fastify@4 @nestjs/common@10 @nestjs/testing@10
+      - run: npm test
+
+  clients-e2e:
+    # The shared scenario (clients/e2e/scenario.md) against a real server in demo mode.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Start Yoon in demo mode
+        run: |
+          cat > .env <<'ENV'
+          POSTGRES_PASSWORD=local-test
+          YOON_PUBLIC_URL=http://localhost:8080
+          YOON_DEMO_ENABLED=true
+          YOON_APPS_E2E_PROVIDERS_DEMO_PRIORITY=1
+          ENV
+          docker compose up -d --build --wait
+      - name: Create the e2e application
+        run: |
+          KEY=$(docker compose run --rm -T yoon apps create e2e | grep -o 'yk_[A-Za-z0-9_-]*')
+          echo "YOON_API_KEY=$KEY" >> "$GITHUB_ENV"
+          docker compose restart yoon && docker compose up -d --wait
+      - name: JavaScript client e2e
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+          YOON_URL=http://localhost:8080 YOON_API_KEY="$YOON_API_KEY" node e2e/run.mjs
+        working-directory: clients/js
 
   example-shop:
     runs-on: ubuntu-latest

@@ -36,4 +36,19 @@ rm -rf clients/java/generated && mkdir -p clients/java/generated
 cp -r "$WORK/java/src/main/java/." clients/java/generated/
 rm -f clients/java/generated/dev/yoonpay/client/generated/api/WebhooksToYourAppApi.java
 
+# JavaScript / TypeScript: typescript-fetch on the platform's global fetch and Web Crypto,
+# so it runs on Node, Bun, Deno and edge runtimes. Without runtime checks: a newer server's
+# unknown enum values or extra fields must not crash parsing (models stay plain interfaces).
+# Property names stay as the contract spells them (checkout_url, not checkoutUrl): the
+# typescript-fetch runtime never renames keys, so interfaces must match the wire format.
+generate -g typescript-fetch -o /out/js --additional-properties='npmName=@yoonpay/yoon,supportsES6=true,hideGenerationTimestamp=true,withoutRuntimeChecks=true,modelPropertyNaming=original,paramNaming=original'
+rm -rf clients/js/generated && mkdir -p clients/js/generated
+# Keep only the TypeScript sources; package scaffolding is hand-written at clients/js.
+rm -rf "$WORK/js/.openapi-generator" "$WORK/js/.openapi-generator-ignore" "$WORK/js/README.md"
+rm -f "$WORK"/js/package.json "$WORK"/js/tsconfig.json "$WORK"/js/tsconfig.esm.json \
+      "$WORK"/js/.gitignore "$WORK"/js/.npmignore "$WORK"/js/LICENSE
+cp -r "$WORK/js/." clients/js/generated/
+# The spec's `webhooks` section describes what Yoon sends; it is not an API to call.
+rm -f clients/js/generated/src/apis/WebhooksToYourAppApi.ts
+
 echo "Clients regenerated from api/openapi.yaml"

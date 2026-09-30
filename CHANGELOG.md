@@ -3,6 +3,15 @@
 All notable changes. Versions follow [semantic versioning](https://semver.org); `/v1` of the API
 never changes incompatibly.
 
+## [Unreleased]
+
+### Clients
+- New JavaScript/TypeScript client `@yoonpay/yoon` (`clients/js`): generated from the API
+  contract, Node ≥ 18 (also Bun, Deno and edge runtimes), with idempotency-key-first helpers,
+  `YoonException`, webhook signature verification and adapters for Express, Fastify, NestJS and
+  Next.js (plus a framework-free `verifyWebhook` for Web `Request`). Shared signature test
+  vector, e2e scenario (`clients/e2e/scenario.md`) and `clients-e2e` CI job.
+
 ## [0.1.0] - 2026-09-30
 
 First release.

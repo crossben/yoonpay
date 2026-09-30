@@ -77,6 +77,31 @@ jobs:
           cosign sign --yes "${GHCR_IMAGE}@${DIGEST}"
           cosign sign --yes "${HUB_IMAGE}@${DIGEST}"
 
+  npm-client:
+    # Publishes @yoonpay/yoon from clients/js. Needs the NPM_TOKEN secret (an automation
+    # token for the @yoonpay organisation) — or switch to npm trusted publishing by removing
+    # the token steps and keeping id-token: write, which this workflow already has.
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    defaults:
+      run:
+        working-directory: clients/js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   php-mirror:
     # Packagist needs composer.json at a repository root: mirror clients/php into
     # <owner>/yoon-php and tag it; Packagist's GitHub integration publishes the version.

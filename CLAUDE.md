@@ -36,7 +36,7 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | `yoon-providers/yoon-provider-support` | `ProviderHttp` (outcome classification), JSON, signatures, credentials | core, Jackson |
 | `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
 | `yoon-providers/yoon-provider-demo` | Demo provider (`YOON_DEMO_ENABLED`), page in `server/demo` | same |
-| `clients/php`, `clients/java` | Apache-2.0 clients: `generated/` + thin hand-written layer | standalone builds |
+| `clients/php`, `clients/java`, `clients/js` | Apache-2.0 clients: `generated/` + thin hand-written layer | standalone builds |
 | `examples/laravel-shop` | Laravel 13 app using `clients/php` | — |
 | `yoon-server` | Spring Boot 4 app: HTTP API, persistence, provider callbacks, outbox, sweeps | core; testkit in test scope |
 
@@ -165,7 +165,9 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   become `YoonException` with the problem `code`.
 - Signature verification in every client must pass `api/test-vectors/webhook-signature.json`.
 - `JavaClientTest` (server) runs the Java client against the real server; `clients/php` tests
-  run on lowest and highest dependencies (Guzzle 7 and 8).
+  run on lowest and highest dependencies (Guzzle 7 and 8); `clients/js` tests run on Node 18 and
+  current, with vitest, and its e2e script (`clients/js/e2e/run.mjs`) runs the shared scenario
+  (`clients/e2e/scenario.md`) against a demo server in the `clients-e2e` CI job.
 - The IDE may compile into `target/`: if Maven reports "Unresolved compilation problems",
   run with `clean`.
 
