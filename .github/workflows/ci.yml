@@ -80,8 +80,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # lowest = Node 18 floor; highest = current LTS.
-        node-version: ['18', '24']
+        # Node 20 floor (global Web Crypto; Node 18 has none in ES modules) up to current LTS.
+        node-version: ['20', '22', '24']
     defaults:
       run:
         working-directory: clients/js
@@ -96,10 +96,13 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # The built package under plain `node` (not Vitest, not `node -e`, which both expose
+      # globals real applications don't get).
+      - run: npm run smoke
 
   js-client-lowest-deps:
     # The dependency matrix's other end: the oldest framework majors the adapters support
-    # (Express 4, Fastify 4, Nest 10). Runtime floor (Node 18) is covered by js-client.
+    # (Express 4, Fastify 4, Nest 10). Runtime floor (Node 20) is covered by js-client.
     runs-on: ubuntu-latest
     defaults:
       run:

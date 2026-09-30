@@ -43,6 +43,12 @@ export class MemoryEventStore implements YoonWebhookStore {
   }
 }
 
+/**
+ * Shared by every call that passes no store. A store created per call would forget each
+ * event at once: route handlers (Next.js, edge) often build their options per request.
+ */
+const defaultStore = new MemoryEventStore();
+
 export interface YoonWebhookOptions {
   /** The same value as `YOON_APPS_<APP>_WEBHOOK_SECRET` on the Yoon side (≥ 32 characters). */
   secret: string;
@@ -66,7 +72,7 @@ export async function receiveWebhook(
   options: YoonWebhookOptions,
   handler: YoonWebhookHandler,
 ): Promise<{ status: number; body: Record<string, unknown>; event?: YoonWebhookEvent }> {
-  const store = options.store ?? new MemoryEventStore();
+  const store = options.store ?? defaultStore;
   const now = options.now?.() ?? Math.floor(Date.now() / 1000);
 
   const authentic = await verifySignature(
@@ -89,7 +95,9 @@ export async function receiveWebhook(
 
   await handler(event);
   await store.add(event.id);
-  return { status: 200, body: { received: true, event }, event };
+  // The event stays out of the reply body: Yoon does not need it echoed back, and it would
+  // copy payment data into whatever logs the reply passes through.
+  return { status: 200, body: { received: true }, event };
 }
 
 export { YoonWebhookEvent, YOON_SIGNATURE_HEADER, verifySignature };

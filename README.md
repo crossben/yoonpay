@@ -85,7 +85,7 @@ Yoon's, and the provider's quirks.
 | --- | --- | --- |
 | PHP / Laravel | `yoonpay/yoon-php` | [clients/php](clients/php) — facade, `yoon.webhook` middleware; Laravel 10–13 |
 | Java | `io.github.crossben:yoon-java` | [clients/java](clients/java) — Java 17+ |
-| JavaScript / TypeScript | `@yoonpay/yoon` | [clients/js](clients/js) — Node ≥ 18, also Bun, Deno and edge; Express, Fastify, NestJS, Next.js adapters |
+| JavaScript / TypeScript | `@yoonpay/yoon` | [clients/js](clients/js) — Node ≥ 20, also Bun, Deno and edge; Express, Fastify, NestJS, Next.js adapters |
 
 All are generated from `api/openapi.yaml` (never edited by hand; CI fails if they drift), with
 a thin hand-written layer: idempotency-key-first helpers, one exception type carrying Yoon's

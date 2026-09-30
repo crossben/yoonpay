@@ -38,6 +38,43 @@ describe("verifyWebhook / yoonWebhookRoute", () => {
     expect(events).toHaveLength(1);
   });
 
+  it("remembers events without an explicit store (options built per request)", async () => {
+    // The common Next.js / edge usage: options written inline in the handler, no store.
+    const events: string[] = [];
+    const handle = (request: Request) =>
+      verifyWebhook(request, { secret: SECRET, now: () => T, onEvent: (e) => void events.push(e.id) });
+
+    const body = EVENT_BODY.replace("evt_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d", "evt_default_store_inline");
+    await handle(delivery(body, sign(SECRET, body, T)));
+    const dup = await handle(delivery(body, sign(SECRET, body, T)));
+
+    expect(await dup.json()).toEqual({ duplicate: true });
+    expect(events).toEqual(["evt_default_store_inline"]);
+  });
+
+  it("the Next.js route remembers events without an explicit store", async () => {
+    const events: string[] = [];
+    const route = yoonWebhookRoute({ secret: SECRET, now: () => T, onEvent: (e) => void events.push(e.id) });
+
+    const body = EVENT_BODY.replace("evt_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d", "evt_default_store_route");
+    await route(delivery(body, sign(SECRET, body, T)));
+    const dup = await route(delivery(body, sign(SECRET, body, T)));
+
+    expect(await dup.json()).toEqual({ duplicate: true });
+    expect(events).toEqual(["evt_default_store_route"]);
+  });
+
+  it("acknowledges without echoing the event back", async () => {
+    const body = EVENT_BODY.replace("evt_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d", "evt_no_echo");
+    const res = await verifyWebhook(delivery(body, sign(SECRET, body, T)), {
+      secret: SECRET,
+      store: new MemoryEventStore(),
+      now: () => T,
+      onEvent: () => {},
+    });
+    expect(await res.json()).toEqual({ received: true });
+  });
+
   it("rejects a bad signature with 401", async () => {
     const res = await verifyWebhook(delivery(EVENT_BODY, sign("whsec_wrong", EVENT_BODY, T)), {
       secret: SECRET,

@@ -3,7 +3,7 @@
 JavaScript/TypeScript client for [Yoon](https://github.com/crossben/yoonpay), a self-hosted payment
 gateway for African payment providers. Apache-2.0.
 
-Requires Node ≥ 18 (also runs on Bun, Deno and edge runtimes): the client uses only the global
+Requires Node ≥ 20 (also runs on Bun, Deno and edge runtimes): the client uses only the global
 `fetch` and Web Crypto — no Node-specific modules, no other dependency. TypeScript types included.
 
 ```sh

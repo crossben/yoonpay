@@ -7,7 +7,7 @@ never changes incompatibly.
 
 ### Clients
 - New JavaScript/TypeScript client `@yoonpay/yoon` (`clients/js`): generated from the API
-  contract, Node ≥ 18 (also Bun, Deno and edge runtimes), with idempotency-key-first helpers,
+  contract, Node ≥ 20 (also Bun, Deno and edge runtimes), with idempotency-key-first helpers,
   `YoonException`, webhook signature verification and adapters for Express, Fastify, NestJS and
   Next.js (plus a framework-free `verifyWebhook` for Web `Request`). Shared signature test
   vector, e2e scenario (`clients/e2e/scenario.md`) and `clients-e2e` CI job.

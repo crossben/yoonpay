@@ -5,8 +5,8 @@ import type { FetchAPI } from "../../generated/src/runtime";
  * - `connectTimeoutMs` (default 5 000): until the response headers arrive;
  * - `timeoutMs` (default 30 000): the whole exchange, headers plus body read.
  *
- * Works on any runtime with `fetch` and `AbortController` (Node ≥ 18, Bun, Deno, edge);
- * `AbortSignal.any` is deliberately not used so the Node 18 floor holds. A timeout is a
+ * Works on any runtime with `fetch` and `AbortController` (Node ≥ 20, Bun, Deno, edge);
+ * `AbortSignal.any` is deliberately not used, to keep the timer logic explicit. A timeout is a
  * lost request: it surfaces as a retryable `YoonException` (`problemCode === null`).
  */
 export function timedFetch(fetchImpl: FetchAPI, timeoutMs: number, connectTimeoutMs: number): FetchAPI {
