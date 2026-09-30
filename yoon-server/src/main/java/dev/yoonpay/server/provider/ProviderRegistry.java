@@ -37,7 +37,11 @@ public class ProviderRegistry {
     private final CircuitBreakerRegistry breakers;
     private final Map<String, PaymentProvider> instances = new ConcurrentHashMap<>();
 
-    public ProviderRegistry(List<PaymentProviderFactory> factories, YoonProperties properties) {
+    private final io.micrometer.core.instrument.MeterRegistry meters;
+
+    public ProviderRegistry(List<PaymentProviderFactory> factories, YoonProperties properties,
+                            io.micrometer.core.instrument.MeterRegistry meters) {
+        this.meters = meters;
         this.factories = factories.stream().collect(Collectors.toMap(f -> f.id().value(), f -> f));
         this.properties = properties;
         this.breakers = CircuitBreakerRegistry.of(CircuitBreakerConfig.custom()
@@ -73,9 +77,11 @@ public class ProviderRegistry {
      * Runs a mutating call through the provider's breaker. Unknown outcomes and "not sent"
      * rejections count as failures; a business rejection means the provider is healthy.
      */
-    public CallOutcome call(AppPrincipal app, String providerId, Supplier<CallOutcome> call) {
+    public CallOutcome call(AppPrincipal app, String providerId, dev.yoonpay.core.provider.Operation operation,
+                            Supplier<CallOutcome> call) {
         CircuitBreaker breaker = breaker(app, providerId);
         if (!breaker.tryAcquirePermission()) {
+            record(providerId, operation, "circuit_open", 0);
             return new CallOutcome.Rejected(PROVIDER_UNAVAILABLE, "circuit open: provider not contacted");
         }
         long start = System.nanoTime();
@@ -85,9 +91,15 @@ public class ProviderRegistry {
         } catch (RuntimeException e) {
             // An adapter bug after the request may have left: treat as unknown, never as rejected.
             breaker.onError(System.nanoTime() - start, TimeUnit.NANOSECONDS, e);
+            record(providerId, operation, "unknown", System.nanoTime() - start);
             return new CallOutcome.Unknown("adapter error: " + e.getClass().getSimpleName());
         }
         long took = System.nanoTime() - start;
+        record(providerId, operation, switch (outcome) {
+            case CallOutcome.Accepted a -> "accepted";
+            case CallOutcome.Rejected r -> r.code().equals(PROVIDER_UNAVAILABLE) ? "not_sent" : "rejected";
+            case CallOutcome.Unknown u -> "unknown";
+        }, took);
         boolean unhealthy = outcome instanceof CallOutcome.Unknown
                 || (outcome instanceof CallOutcome.Rejected r && r.code().equals(PROVIDER_UNAVAILABLE));
         if (unhealthy) {
@@ -96,6 +108,15 @@ public class ProviderRegistry {
             breaker.onSuccess(took, TimeUnit.NANOSECONDS);
         }
         return outcome;
+    }
+
+    /** {@code yoon_provider_calls_seconds{provider, operation, outcome}}: latency and outcome of every mutating call. */
+    private void record(String providerId, dev.yoonpay.core.provider.Operation operation, String outcome, long nanos) {
+        io.micrometer.core.instrument.Timer.builder("yoon.provider.calls")
+                .description("Mutating provider calls by outcome")
+                .tag("provider", providerId).tag("operation", operation.name().toLowerCase()).tag("outcome", outcome)
+                .publishPercentileHistogram()
+                .register(meters).record(nanos, TimeUnit.NANOSECONDS);
     }
 
     private PaymentProvider provider(AppPrincipal app, String providerId) {

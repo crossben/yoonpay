@@ -1,0 +1,106 @@
+name: Release
+
+# Push a tag like v0.1.0. Builds, tests, publishes a signed multi-arch image to GHCR and
+# Docker Hub, and creates the GitHub release with an SBOM.
+#
+# Repository secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN (Docker Hub access token).
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write      # create the GitHub release
+  packages: write      # push to GHCR
+  id-token: write      # keyless cosign signing
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - run: ./mvnw -B verify
+
+  image:
+    needs: verify
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/yoonpay/yoon
+            docker.io/yoonpay/yoon
+          # 0.1.0, 0.1 and latest
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: VERSION=${{ github.ref_name }}
+          sbom: true
+          provenance: mode=max
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign the image (keyless, by digest)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          cosign sign --yes "ghcr.io/yoonpay/yoon@${DIGEST}"
+          cosign sign --yes "docker.io/yoonpay/yoon@${DIGEST}"
+
+  github-release:
+    needs: image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: CycloneDX SBOM of the server
+        run: ./mvnw -B -q -DskipTests package org.cyclonedx:cyclonedx-maven-plugin:2.9.1:makeAggregateBom -DoutputFormat=json -DoutputName=yoon-sbom
+      - name: Release notes from CHANGELOG.md
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          awk -v v="## [$version]" 'index($0, v) == 1 {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md > notes.md
+          test -s notes.md || echo "See CHANGELOG.md" > notes.md
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          DIGEST: ${{ needs.image.outputs.digest }}
+        run: |
+          {
+            cat notes.md
+            echo
+            echo "Image: \`ghcr.io/yoonpay/yoon:${TAG#v}\` (also on Docker Hub), digest \`${DIGEST}\`, signed with cosign (keyless)."
+          } > body.md
+          gh release create "$TAG" --title "Yoon $TAG" --notes-file body.md target/yoon-sbom.json

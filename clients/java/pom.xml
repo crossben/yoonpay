@@ -7,7 +7,7 @@
     <!-- Deliberately standalone: an Apache-2.0 library for applications, not part of the AGPL server build. -->
     <groupId>dev.yoonpay</groupId>
     <artifactId>yoon-java</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>Yoon Java client</name>
     <description>Java client for Yoon, the self-hosted payment gateway for African payment providers.</description>
     <url>https://github.com/yoonpay/yoon</url>

@@ -1,0 +1,57 @@
+# Wire these to Alertmanager (or read them in Grafana). Every rule points at something a
+# human must look at; see docs/runbook.md for what to do.
+groups:
+  - name: yoon
+    rules:
+      - alert: YoonDown
+        expr: up{job="yoon"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: Yoon is not answering Prometheus.
+
+      - alert: YoonAmountMismatch
+        expr: increase(yoon_alerts_total{type="amount_mismatch"}[15m]) > 0
+        labels: {severity: critical}
+        annotations:
+          summary: A provider confirmed a different amount than requested. The payment was not settled.
+
+      - alert: YoonPayoutNeedsReview
+        expr: yoon_payouts_needs_review > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value }} payout(s) have an unknown outcome and need a human (runbook: resolve a payout)."
+
+      - alert: YoonLateSuccess
+        expr: increase(yoon_alerts_total{type=~"late_success|late_payout"}[1h]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: Money arrived or left after Yoon had given up on it. Check the affected order with the application.
+
+      - alert: YoonDeadEvents
+        expr: yoon_outbox_dead > 0
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value }} event(s) could not be delivered to an application (runbook: replay dead letters)."
+
+      - alert: YoonOutboxBacklog
+        expr: yoon_outbox_pending > 500
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: Events are piling up; an application's webhook endpoint is probably down.
+
+      - alert: YoonProviderUnknownOutcomes
+        expr: sum by (provider) (rate(yoon_provider_calls_seconds_count{outcome="unknown"}[10m])) > 0.05
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.provider }} keeps timing out or failing; payments stay pending on it."
+
+      - alert: YoonUnmappedProviderStatus
+        expr: increase(yoon_alerts_total{type="unmapped_provider_status"}[1h]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: A provider sent a status Yoon does not know. Update the adapter's status table.

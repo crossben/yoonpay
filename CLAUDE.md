@@ -166,6 +166,17 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - The IDE may compile into `target/`: if Maven reports "Unresolved compilation problems",
   run with `clean`.
 
+### Operations (`deploy/`, `docs/runbook.md`)
+
+- Metric names used by `deploy/prometheus/alerts.yml` and the Grafana dashboard are pinned by
+  `MetricsTest`; rename a metric only together with both.
+- A change that alters operations (new env var, new alert, new admin action) updates the
+  README configuration table, `deploy/.env.example` and `docs/runbook.md`.
+- Validate deploy files after editing: `promtool check config|rules`, `caddy validate`,
+  `docker compose config`; workflows with `actionlint`.
+- `CHANGELOG.md` gets an entry for every user-visible change; the release workflow takes the
+  release notes from it.
+
 ## Testing
 
 - Integration tests extend `dev.yoonpay.server.PostgresTest` (one shared Postgres

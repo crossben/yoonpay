@@ -1,0 +1,18 @@
+# HTTPS certificates are obtained and renewed automatically for YOON_DOMAIN.
+{$YOON_DOMAIN} {
+	encode zstd gzip
+
+	# Metrics stay internal (Prometheus scrapes yoon:8080 directly).
+	@internal path /actuator/prometheus /actuator/metrics*
+	respond @internal 404
+
+	reverse_proxy yoon:8080 {
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+}

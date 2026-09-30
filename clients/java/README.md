@@ -7,7 +7,7 @@ African payment providers. Apache-2.0. Java 17+, Jackson 2, no other dependency.
 <dependency>
     <groupId>dev.yoonpay</groupId>
     <artifactId>yoon-java</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 

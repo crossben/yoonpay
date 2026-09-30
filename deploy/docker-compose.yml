@@ -1,0 +1,106 @@
+# Production: Yoon + Postgres behind Caddy (automatic HTTPS), nightly backups.
+#   cp .env.example .env   # fill it in
+#   docker compose up -d
+#   docker compose --profile monitoring up -d   # adds Prometheus + Grafana (localhost only)
+# See docs/deploy.md.
+name: yoon
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yoon
+      POSTGRES_USER: yoon
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yoon -d yoon"]
+      interval: 5s
+      retries: 10
+
+  yoon:
+    image: ${YOON_IMAGE:-ghcr.io/yoonpay/yoon:0.1}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      YOON_DB_URL: jdbc:postgresql://postgres:5432/yoon
+      YOON_DB_USER: yoon
+      YOON_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    # Not published: only Caddy (and Prometheus) reach it.
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      yoon:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      YOON_DOMAIN: ${YOON_DOMAIN:?set YOON_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # Nightly pg_dump, kept 14 days, in ./backups. Copy them off the machine (see docs/runbook.md).
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          f=/backups/yoon-$$(date -u +%Y%m%dT%H%M%SZ).dump
+          pg_dump -h postgres -U yoon -d yoon -Fc -f "$$f.partial" && mv "$$f.partial" "$$f" && echo "backup $$f"
+          find /backups -name 'yoon-*.dump' -mtime +14 -delete
+          sleep 86400
+        done
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: [monitoring]
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    profiles: [monitoring]
+    restart: unless-stopped
+    environment:
+      # Unset: Grafana starts with admin/admin and forces a change at first login (it listens on localhost only).
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+  prometheus_data:
+  grafana_data:

@@ -26,9 +26,12 @@ public class RefundTransitions {
     private final LedgerRepository ledger;
     private final Outbox outbox;
     private final TransactionTemplate tx;
+    private final dev.yoonpay.server.lifecycle.StatusMetrics metrics;
 
     public RefundTransitions(RefundRepository refunds, StatusEvents events, LedgerRepository ledger, Outbox outbox,
-                             TransactionTemplate tx) {
+                             TransactionTemplate tx,
+                            dev.yoonpay.server.lifecycle.StatusMetrics metrics) {
+        this.metrics = metrics;
         this.refunds = refunds;
         this.events = events;
         this.ledger = ledger;
@@ -48,6 +51,7 @@ public class RefundTransitions {
             }
             refunds.update(id, to.name(), new HashMap<>(fields));
             RefundRecord updated = refunds.find(app.id(), id).orElseThrow();
+            metrics.statusChanged("refund", to.name(), updated.provider());
 
             switch (to) {
                 case REFUNDED -> {

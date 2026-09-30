@@ -32,9 +32,12 @@ public class PaymentTransitions {
     private final Outbox outbox;
     private final Alerts alerts;
     private final TransactionTemplate tx;
+    private final dev.yoonpay.server.lifecycle.StatusMetrics metrics;
 
     public PaymentTransitions(PaymentRepository payments, StatusEvents events, LedgerRepository ledger,
-                              Outbox outbox, Alerts alerts, TransactionTemplate tx) {
+                              Outbox outbox, Alerts alerts, TransactionTemplate tx,
+                            dev.yoonpay.server.lifecycle.StatusMetrics metrics) {
+        this.metrics = metrics;
         this.payments = payments;
         this.events = events;
         this.ledger = ledger;
@@ -59,6 +62,7 @@ public class PaymentTransitions {
             clean.replaceAll((k, v) -> "".equals(v) ? null : v);
             payments.update(id, to.name(), clean);
             PaymentRecord updated = payments.find(app.id(), id).orElseThrow();
+            metrics.statusChanged("payment", to.name(), updated.provider());
 
             switch (to) {
                 case SUCCEEDED -> {

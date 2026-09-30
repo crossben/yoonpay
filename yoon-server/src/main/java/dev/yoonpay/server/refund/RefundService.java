@@ -85,7 +85,7 @@ public class RefundService {
         RefundRecord refund = reserved.refund();
         RefundRequest call = new RefundRequest(refund.id(), new ProviderReference(reserved.payment().providerReference()),
                 new Money(refund.amount(), Currency.getInstance(refund.currency())), refund.reason());
-        CallOutcome outcome = providers.call(app, refund.provider(), () -> reserved.provider().refund(call));
+        CallOutcome outcome = providers.call(app, refund.provider(), Operation.REFUND, () -> reserved.provider().refund(call));
 
         switch (outcome) {
             case CallOutcome.Accepted a -> move(app, refund.id(), RefundStatus.PENDING, "accepted by provider",

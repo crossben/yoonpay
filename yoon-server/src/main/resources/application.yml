@@ -10,6 +10,10 @@ spring:
     url: ${YOON_DB_URL}
     username: ${YOON_DB_USER}
     password: ${YOON_DB_PASSWORD}
+    hikari:
+      # Each payment runs several short transactions; 10 (Hikari's default) capped a single
+      # instance near 240 checkouts/s in load tests. Keep instances × pool < Postgres max_connections.
+      maximum-pool-size: ${YOON_DB_POOL_SIZE:20}
   flyway:
     locations: classpath:db/migration
   jackson:

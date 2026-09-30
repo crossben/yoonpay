@@ -32,9 +32,12 @@ public class PayoutTransitions {
     private final Outbox outbox;
     private final Alerts alerts;
     private final TransactionTemplate tx;
+    private final dev.yoonpay.server.lifecycle.StatusMetrics metrics;
 
     public PayoutTransitions(PayoutRepository payouts, StatusEvents events, LedgerRepository ledger, Outbox outbox,
-                             Alerts alerts, TransactionTemplate tx) {
+                             Alerts alerts, TransactionTemplate tx,
+                            dev.yoonpay.server.lifecycle.StatusMetrics metrics) {
+        this.metrics = metrics;
         this.payouts = payouts;
         this.events = events;
         this.ledger = ledger;
@@ -55,6 +58,7 @@ public class PayoutTransitions {
             }
             payouts.update(id, to.name(), new HashMap<>(fields));
             PayoutRecord updated = payouts.find(app.id(), id).orElseThrow();
+            metrics.statusChanged("payout", to.name(), updated.provider());
             String provider = updated.provider();
             Money amount = new Money(updated.amount(), Currency.getInstance(updated.currency()));
             boolean wasReserved = from == PayoutStatus.PROCESSING || from == PayoutStatus.UNKNOWN;

@@ -41,6 +41,23 @@ jobs:
             exit 1
           fi
 
+  breaking-changes:
+    # /v1 is frozen once released: compare the contract with the last release tag and fail on
+    # any breaking change (removed fields or routes, new required inputs, narrowed types…).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compare api/openapi.yaml with the last release
+        run: |
+          last=$(git tag --list 'v*' --sort=-v:refname | head -1)
+          if [ -z "$last" ]; then echo "No release yet: nothing to compare with."; exit 0; fi
+          git show "$last:api/openapi.yaml" > /tmp/released.yaml
+          docker run --rm -v /tmp:/base:ro -v "$PWD/api:/head:ro" tufin/oasdiff:v1.11.7 \
+            breaking /base/released.yaml /head/openapi.yaml --fail-on WARN
+          echo "No breaking change since $last."
+
   php-client:
     runs-on: ubuntu-latest
     strategy:

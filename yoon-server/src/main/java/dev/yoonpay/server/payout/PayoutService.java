@@ -73,7 +73,7 @@ public class PayoutService {
 
         Money amount = new Money(req.amount(), currency);
         PayoutRequest call = new PayoutRequest(payout.id(), amount, req.country(), req.method(), phone, null);
-        CallOutcome outcome = providers.call(app, providerId.value(), () -> provider.payout(call));
+        CallOutcome outcome = providers.call(app, providerId.value(), Operation.PAYOUT, () -> provider.payout(call));
 
         switch (outcome) {
             case CallOutcome.Accepted a -> transitions.apply(app, payout.id(), PayoutStatus.PROCESSING, Cause.provider_call,

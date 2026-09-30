@@ -89,7 +89,7 @@ public class PaymentService {
 
             CollectRequest call = new CollectRequest(attempt, new Money(req.amount(), currency), req.country(),
                     req.method(), phone, req.description(), returnUrl, callbackUrl(app, providerId));
-            CallOutcome outcome = providers.call(app, providerId.value(), () -> provider.collect(call));
+            CallOutcome outcome = providers.call(app, providerId.value(), Operation.COLLECT, () -> provider.collect(call));
 
             switch (outcome) {
                 case CallOutcome.Accepted a -> {
