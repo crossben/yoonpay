@@ -4,7 +4,9 @@ name: Release
 # Docker Hub, and creates the GitHub release with an SBOM.
 #
 # Repository secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN (Docker Hub access token),
-# PHP_MIRROR_DEPLOY_KEY (SSH key with write access to <owner>/yoon-php, for Packagist).
+# PHP_MIRROR_DEPLOY_KEY (SSH key with write access to <owner>/yoon-php, for Packagist),
+# NPM_TOKEN (npm automation token for @yoonpay). PyPI needs no secret: the pypi-client job uses
+# trusted publishing (a pending publisher for `yoonpay` on pypi.org).
 # Images: ghcr.io/<repository owner>/yoon and docker.io/<DOCKERHUB_USERNAME>/yoon.
 on:
   push:
