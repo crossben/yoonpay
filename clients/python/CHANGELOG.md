@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 - 2026-10-01
 
 - First release of the Python client: `Yoon` with `create_payment`, `get_payment`, `refund`,
   `create_payout` and `export_csv` (explicit idempotency key on every write, no retries,

@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 - 2026-10-01
 
 - First release of the Spring Boot starter: an auto-configured `Yoon` bean (from `yoon.url`,
   `yoon.api-key`, `yoon.timeout`) and a webhook filter for the paths in `yoon.webhook.paths`

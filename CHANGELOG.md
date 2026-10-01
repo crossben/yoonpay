@@ -5,45 +5,7 @@ never changes incompatibly.
 
 ## [Unreleased]
 
-### Providers
-- New provider **Wave (direct)** (`wave`, Wave Business API): checkout sessions, payouts with
-  idempotency keys, full-amount refunds, signed webhooks; SN, CI, ML, BF in XOF. Same method
-  `wave` as the aggregators, so routing fails over between them. Not yet run against a Wave
-  Business account. See `docs/providers/wave.md` and ADR-0020.
-- New provider **PI-SPI** (`pispi`, BCEAO instant payments, via the merchant's institution's API
-  Business): payment requests to a customer's PI alias, payouts to a PI alias, full-amount
-  refunds (returns of funds), OAuth2 client credentials and mutual TLS. Not yet run against the
-  PI-SPI sandbox. See `docs/providers/pispi.md` and ADR-0019.
-- `ProviderHttp` supports mutual TLS (client certificate from PEM), `PUT` and form posts.
-- DexPay and PayDunya refuse a payout without a phone number (`phone_required`).
-
-### API
-- `customer.pi_alias` on `POST /v1/payments` and `recipient.pi_alias` on `POST /v1/payouts`.
-  `recipient.phone` is now optional (one of the two is required).
-- **Upgrade note:** in payout responses `recipient.phone` is `null` for a payout sent to a PI
-  alias. Payouts sent to a phone are unchanged.
-- Migration `V5__pi_alias`: alias columns; `payouts.recipient_phone` becomes nullable.
-
-### Clients
-- Symfony bundle in `yoonpay/yoon-php` (`Yoon\Symfony\YoonBundle`): `config/packages/yoon.yaml`, an
-  autowired `Yoon`, and `#[YoonWebhook]` on webhook controllers (signature check, duplicates
-  answered without calling the controller through Symfony Cache, an event remembered only after a
-  2xx answer), with `Yoon\Webhook\Event` injected as an argument. Symfony 6.4 LTS and 7.x.
-- Python client `yoonpay` (`clients/python`): `create_payment`, `get_payment`, `refund`,
-  `create_payout`, `export_csv` with an explicit idempotency key, no retries, `YoonException` with
-  Yoon's `code`, webhook verification, and webhook helpers for Django, FastAPI and Flask.
-  Python 3.10+.
-- Spring Boot starter `io.github.crossben:yoon-spring-boot-starter`
-  (`clients/java-spring-boot-starter`): a `Yoon` bean from `yoon.url` / `yoon.api-key` and a
-  webhook filter on `yoon.webhook.paths`, with `YoonEvent` injectable into controllers. Spring
-  Boot 3.x and 4.x.
-- New JavaScript/TypeScript client `@yoonpay/yoon` (`clients/js`): generated from the API
-  contract, Node ≥ 20 (also Bun, Deno and edge runtimes), with idempotency-key-first helpers,
-  `YoonException`, webhook signature verification and adapters for Express, Fastify, NestJS and
-  Next.js (plus a framework-free `verifyWebhook` for Web `Request`). Shared signature test
-  vector, e2e scenario (`clients/e2e/scenario.md`) and `clients-e2e` CI job.
-
-## [0.1.0] - 2026-09-30
+## [0.1.0] - 2026-10-01
 
 First release.
 
@@ -57,20 +19,40 @@ First release.
 - Provider callbacks stored, verified and re-confirmed with the provider's status API; signed,
   retried events to applications with dead letters; automatic reconciliation.
 - Operator API (`/admin/v1`), operator CLI (`apps create | list | add-key | revoke-key`).
+- A customer or payout recipient can be identified by phone or by PI-SPI payment alias
+  (`customer.pi_alias`, `recipient.pi_alias`).
 
 ### Providers
 - PayDunya (collect, payout), DexPay (collect, payout), NabooPay (collect), and a demo provider.
+- **Wave (direct)** (`wave`, Wave Business API): checkout sessions, payouts with idempotency
+  keys, full-amount refunds, signed webhooks; SN, CI, ML, BF in XOF. Same method `wave` as the
+  aggregators, so routing fails over between them. See `docs/providers/wave.md`, ADR-0020.
+- **PI-SPI** (`pispi`, BCEAO instant payments, through the merchant's institution's API
+  Business): payment requests to a customer's PI alias, payouts to a PI alias, full-amount
+  refunds (returns of funds), OAuth2 client credentials and mutual TLS; the eight UEMOA
+  countries in XOF. See `docs/providers/pispi.md`, ADR-0019.
 
 ### Clients
-- `yoonpay/yoon-php` (PHP 8.2+, Laravel 10–13) and `io.github.crossben:yoon-java` (Java 17+), generated
-  from the API contract.
+- PHP `yoonpay/yoon-php` (PHP 8.2+): Laravel 10–13 (facade, `yoon.webhook` middleware) and a
+  Symfony bundle (`Yoon\Symfony\YoonBundle`, `#[YoonWebhook]`; Symfony 6.4 LTS and 7.x).
+- Java `io.github.crossben:yoon-java` (Java 17+) and a Spring Boot starter
+  `io.github.crossben:yoon-spring-boot-starter` (Spring Boot 3.x and 4.x).
+- JavaScript/TypeScript `@yoonpay/yoon` (Node ≥ 20, also Bun, Deno and edge runtimes), with
+  adapters for Express, Fastify, NestJS and Next.js.
+- Python `yoonpay` (Python 3.10+), with webhook helpers for Django, FastAPI and Flask.
+- All generated from the API contract with a thin hand-written layer: an explicit idempotency
+  key on every write, no retries, one exception type carrying Yoon's error `code`, and webhook
+  signature verification checked against a shared test vector.
 
 ### Operations
 - Docker image with healthcheck (amd64, arm64), production Compose with Caddy, backups,
   Prometheus alert rules and a Grafana dashboard; runbook; published load-test numbers.
 
 ### Known limitations
-- The provider adapters are tested against simulated APIs built from production integrations,
-  not against the providers' sandboxes.
-- Senegal (XOF) only. No provider offers refunds through an API; refund by payout.
+- The provider adapters are tested against simulated APIs, not against the providers'
+  sandboxes: PayDunya, DexPay and NabooPay from production integrations, Wave from its public
+  documentation, PI-SPI from the BCEAO specification. Test with your own sandbox keys before
+  taking real payments.
+- PayDunya, DexPay and NabooPay: Senegal (XOF) only and no refund API (refund by payout). Wave
+  and PI-SPI refund the full amount only; send a partial refund as a payout.
 - Provider settings are read at startup (restart to apply changes).

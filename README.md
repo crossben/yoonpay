@@ -14,11 +14,11 @@ One API in front of PayDunya, DexPay, NabooPay, Wave and PI-SPI (more later): ro
 verified webhooks, idempotency, a ledger and automatic reconciliation — written
 once, in Java, instead of in every project.
 
-> **Status: 0.1.0 — first release.** The gateway, its operations tooling and its
-> PayDunya, DexPay and NabooPay adapters are built and tested; the Wave (direct) and PI-SPI adapters are on the
-> main branch, not in a release yet. The adapters are tested
-> against simulated provider APIs built from production integrations (Wave: from its public
-> documentation; PI-SPI: from the BCEAO specification); they have **not yet been run against the providers' sandboxes**. Try it with the demo provider, and
+> **Status: 0.1.0 — first release.** The gateway, its operations tooling, its PayDunya,
+> DexPay, NabooPay, Wave (direct) and PI-SPI adapters and its clients are built and tested. The
+> adapters are tested against simulated provider APIs (built from production integrations;
+> Wave: from its public documentation; PI-SPI: from the BCEAO specification); they have
+> **not yet been run against the providers' sandboxes**. Try it with the demo provider, and
 > test with your own sandbox keys before taking real payments.
 
 ## What works today
