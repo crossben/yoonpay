@@ -32,6 +32,15 @@ Change the value in `.env`, then `docker compose up -d`. For a webhook secret, u
 application first if it accepts only one secret: deliveries fail (and are retried) until both
 sides agree.
 
+## Set up the Wave webhook
+
+In the Wave Business portal (Developers → Webhooks), add a webhook per application:
+URL `https://<YOON_PUBLIC_URL>/v1/hooks/wave/<application id>`, security **signing secret**,
+events `checkout.session.completed` and `checkout.session.payment_failed`. Copy its secret
+(`wave_..._WHS_...`) into `YOON_APPS_<APP>_PROVIDERS_WAVE_CREDENTIALS_WEBHOOK_SECRET` and
+`docker compose up -d`. During a rotation Wave signs with both secrets, so update the variable
+once the new secret is issued.
+
 ## Register the PI-SPI webhook
 
 PI-SPI does not take a callback URL per request: register one webhook per application, once, with

@@ -21,6 +21,7 @@
         <module>yoon-provider-dexpay</module>
         <module>yoon-provider-naboopay</module>
         <module>yoon-provider-pispi</module>
+        <module>yoon-provider-wave</module>
         <module>yoon-provider-demo</module>
     </modules>
 

@@ -6,6 +6,10 @@ never changes incompatibly.
 ## [Unreleased]
 
 ### Providers
+- New provider **Wave (direct)** (`wave`, Wave Business API): checkout sessions, payouts with
+  idempotency keys, full-amount refunds, signed webhooks; SN, CI, ML, BF in XOF. Same method
+  `wave` as the aggregators, so routing fails over between them. Not yet run against a Wave
+  Business account. See `docs/providers/wave.md` and ADR-0020.
 - New provider **PI-SPI** (`pispi`, BCEAO instant payments, via the merchant's institution's API
   Business): payment requests to a customer's PI alias, payouts to a PI alias, full-amount
   refunds (returns of funds), OAuth2 client credentials and mutual TLS. Not yet run against the
@@ -21,6 +25,18 @@ never changes incompatibly.
 - Migration `V5__pi_alias`: alias columns; `payouts.recipient_phone` becomes nullable.
 
 ### Clients
+- Symfony bundle in `yoonpay/yoon-php` (`Yoon\Symfony\YoonBundle`): `config/packages/yoon.yaml`, an
+  autowired `Yoon`, and `#[YoonWebhook]` on webhook controllers (signature check, duplicates
+  answered without calling the controller through Symfony Cache, an event remembered only after a
+  2xx answer), with `Yoon\Webhook\Event` injected as an argument. Symfony 6.4 LTS and 7.x.
+- Python client `yoonpay` (`clients/python`): `create_payment`, `get_payment`, `refund`,
+  `create_payout`, `export_csv` with an explicit idempotency key, no retries, `YoonException` with
+  Yoon's `code`, webhook verification, and webhook helpers for Django, FastAPI and Flask.
+  Python 3.10+.
+- Spring Boot starter `io.github.crossben:yoon-spring-boot-starter`
+  (`clients/java-spring-boot-starter`): a `Yoon` bean from `yoon.url` / `yoon.api-key` and a
+  webhook filter on `yoon.webhook.paths`, with `YoonEvent` injectable into controllers. Spring
+  Boot 3.x and 4.x.
 - New JavaScript/TypeScript client `@yoonpay/yoon` (`clients/js`): generated from the API
   contract, Node ≥ 20 (also Bun, Deno and edge runtimes), with idempotency-key-first helpers,
   `YoonException`, webhook signature verification and adapters for Express, Fastify, NestJS and

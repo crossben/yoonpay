@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yoonpay"
+version = "0.1.0"
+description = "Python client for Yoon, a self-hosted payment gateway for African payment providers, with Django, FastAPI and Flask helpers."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+keywords = ["yoon", "payments", "wave", "orange-money", "senegal", "xof", "paydunya", "dexpay", "naboopay"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Framework :: Django",
+    "Framework :: FastAPI",
+    "Framework :: Flask",
+    "Typing :: Typed",
+]
+# The generated code's own dependencies (openapi-generator's python generator).
+dependencies = [
+    "urllib3>=2.1.0,<3.0.0",
+    "python-dateutil>=2.8.2",
+    "pydantic>=2.0",
+    "typing-extensions>=4.7.1",
+]
+
+[project.optional-dependencies]
+django = ["django>=4.2"]
+fastapi = ["fastapi>=0.100"]
+flask = ["flask>=2.3"]
+test = ["pytest>=8", "pytest-httpserver>=1.0", "httpx>=0.24"]
+
+[project.urls]
+Homepage = "https://github.com/crossben/yoonpay"
+Source = "https://github.com/crossben/yoonpay/tree/main/clients/python"
+Issues = "https://github.com/crossben/yoonpay/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yoonpay"]
+
+[tool.hatch.build.targets.wheel.force-include]
+# generated/ is produced by clients/generate.sh; it becomes yoonpay.generated in the wheel.
+"generated/yoonpay/generated" = "yoonpay/generated"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "generated", "tests", "e2e", "README.md", "CHANGELOG.md", "LICENSE"]
+
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "generated"]
+testpaths = ["tests"]

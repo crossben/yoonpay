@@ -51,4 +51,42 @@ cp -r "$WORK/js/." clients/js/generated/
 # The spec's `webhooks` section describes what Yoon sends; it is not an API to call.
 rm -f clients/js/generated/src/apis/WebhooksToYourAppApi.ts
 
+# Python: the `python` generator (pydantic v2, urllib3) as the package yoonpay.generated; the
+# hand-written layer is clients/python/src/yoonpay.
+generate -g python -o /out/python --additional-properties='packageName=yoonpay.generated,projectName=yoonpay,hideGenerationTimestamp=true'
+rm -rf clients/python/generated && mkdir -p clients/python/generated/yoonpay
+# Keep only the module; packaging (pyproject.toml), README and tests are hand-written.
+cp -r "$WORK/python/yoonpay/generated" clients/python/generated/yoonpay/
+# The spec's `webhooks` section describes what Yoon sends; it is not an API to call.
+rm -f clients/python/generated/yoonpay/generated/api/webhooks_to_your_app_api.py
+if grep -rq 'webhooks_to_your_app_api' clients/python/generated; then echo "generated Python still imports the webhooks API" >&2; exit 1; fi
+# Query parameters of type date-time: the generator formats them with strftime("...%z"), which
+# writes the offset as "+0000", which the server refuses (400); isoformat() writes the RFC 3339
+# "+00:00".
+perl -0pi -e 's/(\w+)\.strftime\(\s*self\.api_client\.configuration\.datetime_format\s*\)/$1.isoformat()/g' \
+  clients/python/generated/yoonpay/generated/api/*.py
+if grep -rq 'configuration.datetime_format' clients/python/generated/yoonpay/generated/api; then
+  echo "unpatched date-time formatting in generated Python" >&2; exit 1
+fi
+# A newer server may send an enum value this client does not know (a new status or event
+# type): parsing must not fail. Each generated enum gets a _missing_ hook that keeps the raw
+# string as a pseudo-member, so `payment.status == "new_value"` still works.
+enums=$(grep -l '^class [A-Za-z]*(str, Enum):$' clients/python/generated/yoonpay/generated/models/*.py)
+[ -n "$enums" ] || { echo "no generated Python enums found: the unknown-value patch no longer applies" >&2; exit 1; }
+for f in $enums; do
+  [ "$(grep -c '^class ' "$f")" = 1 ] && tail -n 3 "$f" | grep -q 'return cls(json.loads(json_str))' \
+    || { echo "unexpected enum layout in $f: the unknown-value patch no longer applies" >&2; exit 1; }
+  cat >> "$f" <<'PY'
+    @classmethod
+    def _missing_(cls, value):
+        # Added by clients/generate.sh: unknown values from a newer server must not crash parsing.
+        if not isinstance(value, str):
+            return None
+        member = str.__new__(cls, value)
+        member._name_ = value.upper()
+        member._value_ = value
+        return member
+PY
+done
+
 echo "Clients regenerated from api/openapi.yaml"

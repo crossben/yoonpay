@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Guidance for AI coding agents working on Yoon, a self-hosted, open-source payment
-gateway for African payment providers (PayDunya, DexPay, NabooPay, PI-SPI).
+gateway for African payment providers (PayDunya, DexPay, NabooPay, Wave, PI-SPI).
 
 This repository is the gateway. The website (yoonpay.benhattab.pro) is a separate repository,
 checked out next to this one as `../website/`; its rules are in `../website/PLAN.md`.
@@ -34,9 +34,10 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | `yoon-core` | Money, state machines, shadow-ledger model, provider SPI | the JDK only |
 | `yoon-testkit` | `FakeProvider` — scriptable provider for tests | `yoon-core` |
 | `yoon-providers/yoon-provider-support` | `ProviderHttp` (outcome classification, optional mutual TLS), `Tls` (PEM → SSLContext), JSON, signatures, credentials | core, Jackson |
-| `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay,pispi}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
+| `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay,wave,pispi}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
 | `yoon-providers/yoon-provider-demo` | Demo provider (`YOON_DEMO_ENABLED`), page in `server/demo` | same |
-| `clients/php`, `clients/java`, `clients/js` | Apache-2.0 clients: `generated/` + thin hand-written layer | standalone builds |
+| `clients/php` (incl. Symfony bundle `src/Symfony`), `clients/java`, `clients/js`, `clients/python` | Apache-2.0 clients: `generated/` + thin hand-written layer | standalone builds |
+| `clients/java-spring-boot-starter` | Spring Boot 3/4 auto-configuration over `clients/java` | yoon-java; Spring Boot `provided` |
 | `examples/laravel-shop` | Laravel 13 app using `clients/php` | — |
 | `yoon-server` | Spring Boot 4 app: HTTP API, persistence, provider callbacks, outbox, sweeps | core; testkit in test scope |
 
@@ -170,6 +171,17 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   run on lowest and highest dependencies (Guzzle 7 and 8); `clients/js` tests run on Node 20 and
   current, with vitest, and its e2e script (`clients/js/e2e/run.mjs`) runs the shared scenario
   (`clients/e2e/scenario.md`) against a demo server in the `clients-e2e` CI job.
+- Every client behaves the same (`docs/plans/more-clients.md` §1): helpers take a required
+  idempotency key, no retries (HTTP-library retries off), one exception with the problem `code`
+  (`unreadable_response` for an unreadable 2xx), webhook helpers that answer 401 / 200 for
+  duplicates and remember an id only after a 2xx, and the API key never appears in logs or errors.
+- `clients/python`: `generate.sh` patches the generated code (no webhooks API, ISO date-time query
+  parameters, unknown enum values kept as strings), each patch checked. pytest on Python 3.10 with
+  the lowest dependencies and on the latest; `clients/python/e2e/run.py` runs in `clients-e2e`.
+- The Symfony bundle lives in `clients/php/src/Symfony`; `symfony/*` stays out of `require`. CI
+  tests it on Symfony 7.x (`php-client`) and 6.4 LTS (`php-client-symfony-lts`).
+- `clients/java-spring-boot-starter` needs `clients/java` installed locally (`mvn install`) until
+  yoon-java is on Maven Central; CI tests it on Spring Boot 3 (`-Pboot3`) and 4.
 - The IDE may compile into `target/`: if Maven reports "Unresolved compilation problems",
   run with `clean`.
 

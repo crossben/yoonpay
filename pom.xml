@@ -79,6 +79,11 @@
             </dependency>
             <dependency>
                 <groupId>dev.yoonpay</groupId>
+                <artifactId>yoon-provider-wave</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.yoonpay</groupId>
                 <artifactId>yoon-provider-naboopay</artifactId>
                 <version>${project.version}</version>
             </dependency>

@@ -102,6 +102,30 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  pypi-client:
+    # Publishes yoonpay from clients/python through PyPI trusted publishing — no token. The
+    # owner registers this repository and the workflow file release.yml as a trusted publisher
+    # of the PyPI project yoonpay.
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install build ".[django,fastapi,flask,test]"
+        working-directory: clients/python
+      - run: python -m pytest
+        working-directory: clients/python
+      - run: python -m build
+        working-directory: clients/python
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: clients/python/dist
+
   php-mirror:
     # Packagist needs composer.json at a repository root: mirror clients/php into
     # <owner>/yoon-php and tag it; Packagist's GitHub integration publishes the version.
