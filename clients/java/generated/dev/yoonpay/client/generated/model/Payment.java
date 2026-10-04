@@ -46,6 +46,8 @@ import dev.yoonpay.client.generated.ApiClient;
   Payment.JSON_PROPERTY_CURRENCY,
   Payment.JSON_PROPERTY_COUNTRY,
   Payment.JSON_PROPERTY_METHOD,
+  Payment.JSON_PROPERTY_CHECKOUT,
+  Payment.JSON_PROPERTY_CHECKOUT_EXPIRES_AT,
   Payment.JSON_PROPERTY_REFERENCE,
   Payment.JSON_PROPERTY_DESCRIPTION,
   Payment.JSON_PROPERTY_CUSTOMER,
@@ -124,6 +126,49 @@ public class Payment {
   public static final String JSON_PROPERTY_METHOD = "method";
   @jakarta.annotation.Nonnull
   private String method;
+
+  /**
+   * &#x60;hosted&#x60;: the customer picks the method on the Yoon page at &#x60;checkout_url&#x60;.
+   */
+  public enum CheckoutEnum {
+    DIRECT(String.valueOf("direct")),
+    
+    HOSTED(String.valueOf("hosted"));
+
+    private String value;
+
+    CheckoutEnum(String value) {
+      this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static CheckoutEnum fromValue(String value) {
+      for (CheckoutEnum b : CheckoutEnum.values()) {
+        if (b.value.equals(value)) {
+          return b;
+        }
+      }
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+  }
+
+  public static final String JSON_PROPERTY_CHECKOUT = "checkout";
+  @jakarta.annotation.Nullable
+  private CheckoutEnum checkout;
+
+  public static final String JSON_PROPERTY_CHECKOUT_EXPIRES_AT = "checkout_expires_at";
+  @jakarta.annotation.Nullable
+  private OffsetDateTime checkoutExpiresAt;
 
   public static final String JSON_PROPERTY_REFERENCE = "reference";
   @jakarta.annotation.Nullable
@@ -346,7 +391,7 @@ public class Payment {
   }
 
   /**
-   * Get method
+   * The payment method. &#x60;any&#x60; for a hosted checkout whose customer has not chosen yet (kept a string so clients built against 0.1.0 keep working).
    * @return method
    */
   @jakarta.annotation.Nonnull
@@ -361,6 +406,54 @@ public class Payment {
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
   public void setMethod(@jakarta.annotation.Nonnull String method) {
     this.method = method;
+  }
+
+
+  public Payment checkout(@jakarta.annotation.Nullable CheckoutEnum checkout) {
+    this.checkout = checkout;
+    return this;
+  }
+
+  /**
+   * &#x60;hosted&#x60;: the customer picks the method on the Yoon page at &#x60;checkout_url&#x60;.
+   * @return checkout
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_CHECKOUT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public CheckoutEnum getCheckout() {
+    return checkout;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_CHECKOUT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setCheckout(@jakarta.annotation.Nullable CheckoutEnum checkout) {
+    this.checkout = checkout;
+  }
+
+
+  public Payment checkoutExpiresAt(@jakarta.annotation.Nullable OffsetDateTime checkoutExpiresAt) {
+    this.checkoutExpiresAt = checkoutExpiresAt;
+    return this;
+  }
+
+  /**
+   * Hosted checkout only. After this an unused checkout fails with &#x60;checkout_expired&#x60;.
+   * @return checkoutExpiresAt
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_CHECKOUT_EXPIRES_AT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public OffsetDateTime getCheckoutExpiresAt() {
+    return checkoutExpiresAt;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_CHECKOUT_EXPIRES_AT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setCheckoutExpiresAt(@jakarta.annotation.Nullable OffsetDateTime checkoutExpiresAt) {
+    this.checkoutExpiresAt = checkoutExpiresAt;
   }
 
 
@@ -490,7 +583,7 @@ public class Payment {
   }
 
   /**
-   * Redirect the customer here
+   * Redirect the customer here, if set. For a hosted checkout, always the Yoon page (&#x60;{YOON_PUBLIC_URL}/checkout/{id}?t&#x3D;…&#x60;); it forwards the customer to the provider. 
    * @return checkoutUrl
    */
   @jakarta.annotation.Nullable
@@ -648,6 +741,8 @@ public class Payment {
         Objects.equals(this.currency, payment.currency) &&
         Objects.equals(this.country, payment.country) &&
         Objects.equals(this.method, payment.method) &&
+        Objects.equals(this.checkout, payment.checkout) &&
+        Objects.equals(this.checkoutExpiresAt, payment.checkoutExpiresAt) &&
         Objects.equals(this.reference, payment.reference) &&
         Objects.equals(this.description, payment.description) &&
         Objects.equals(this.customer, payment.customer) &&
@@ -663,7 +758,7 @@ public class Payment {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, status, amount, amountRefunded, currency, country, method, reference, description, customer, provider, providerReference, checkoutUrl, instructions, routingReason, failure, createdAt, updatedAt);
+    return Objects.hash(id, _object, status, amount, amountRefunded, currency, country, method, checkout, checkoutExpiresAt, reference, description, customer, provider, providerReference, checkoutUrl, instructions, routingReason, failure, createdAt, updatedAt);
   }
 
   @Override
@@ -678,6 +773,8 @@ public class Payment {
     sb.append("    currency: ").append(toIndentedString(currency)).append("\n");
     sb.append("    country: ").append(toIndentedString(country)).append("\n");
     sb.append("    method: ").append(toIndentedString(method)).append("\n");
+    sb.append("    checkout: ").append(toIndentedString(checkout)).append("\n");
+    sb.append("    checkoutExpiresAt: ").append(toIndentedString(checkoutExpiresAt)).append("\n");
     sb.append("    reference: ").append(toIndentedString(reference)).append("\n");
     sb.append("    description: ").append(toIndentedString(description)).append("\n");
     sb.append("    customer: ").append(toIndentedString(customer)).append("\n");
@@ -774,6 +871,16 @@ public class Payment {
     // add `method` to the URL query string
     if (getMethod() != null) {
       joiner.add(String.format(Locale.ROOT, "%smethod%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getMethod()))));
+    }
+
+    // add `checkout` to the URL query string
+    if (getCheckout() != null) {
+      joiner.add(String.format(Locale.ROOT, "%scheckout%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCheckout()))));
+    }
+
+    // add `checkout_expires_at` to the URL query string
+    if (getCheckoutExpiresAt() != null) {
+      joiner.add(String.format(Locale.ROOT, "%scheckout_expires_at%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCheckoutExpiresAt()))));
     }
 
     // add `reference` to the URL query string

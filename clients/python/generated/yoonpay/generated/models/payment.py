@@ -37,25 +37,37 @@ class Payment(BaseModel):
     amount_refunded: StrictInt
     currency: StrictStr
     country: StrictStr
-    method: StrictStr
+    method: StrictStr = Field(description="The payment method. `any` for a hosted checkout whose customer has not chosen yet (kept a string so clients built against 0.1.0 keep working).")
+    checkout: Optional[StrictStr] = Field(default=None, description="`hosted`: the customer picks the method on the Yoon page at `checkout_url`.")
+    checkout_expires_at: Optional[datetime] = Field(default=None, description="Hosted checkout only. After this an unused checkout fails with `checkout_expired`.")
     reference: Optional[StrictStr] = None
     description: Optional[StrictStr] = None
     customer: Optional[PaymentCustomer] = None
     provider: Optional[StrictStr] = None
     provider_reference: Optional[StrictStr] = None
-    checkout_url: Optional[StrictStr] = Field(default=None, description="Redirect the customer here")
+    checkout_url: Optional[StrictStr] = Field(default=None, description="Redirect the customer here, if set. For a hosted checkout, always the Yoon page (`{YOON_PUBLIC_URL}/checkout/{id}?t=…`); it forwards the customer to the provider. ")
     instructions: Optional[StrictStr] = Field(default=None, description="Push/USSD instruction to show the customer")
     routing_reason: Optional[StrictStr] = Field(default=None, description="Why this provider — and any rejections before it.")
     failure: Optional[Failure] = None
     created_at: datetime
     updated_at: datetime
-    __properties: ClassVar[List[str]] = ["id", "object", "status", "amount", "amount_refunded", "currency", "country", "method", "reference", "description", "customer", "provider", "provider_reference", "checkout_url", "instructions", "routing_reason", "failure", "created_at", "updated_at"]
+    __properties: ClassVar[List[str]] = ["id", "object", "status", "amount", "amount_refunded", "currency", "country", "method", "checkout", "checkout_expires_at", "reference", "description", "customer", "provider", "provider_reference", "checkout_url", "instructions", "routing_reason", "failure", "created_at", "updated_at"]
 
     @field_validator('object')
     def object_validate_enum(cls, value):
         """Validates the enum"""
         if value not in set(['payment']):
             raise ValueError("must be one of enum values ('payment')")
+        return value
+
+    @field_validator('checkout')
+    def checkout_validate_enum(cls, value):
+        """Validates the enum"""
+        if value is None:
+            return value
+
+        if value not in set(['direct', 'hosted']):
+            raise ValueError("must be one of enum values ('direct', 'hosted')")
         return value
 
     model_config = ConfigDict(
@@ -103,6 +115,11 @@ class Payment(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of failure
         if self.failure:
             _dict['failure'] = self.failure.to_dict()
+        # set to None if checkout_expires_at (nullable) is None
+        # and model_fields_set contains the field
+        if self.checkout_expires_at is None and "checkout_expires_at" in self.model_fields_set:
+            _dict['checkout_expires_at'] = None
+
         # set to None if reference (nullable) is None
         # and model_fields_set contains the field
         if self.reference is None and "reference" in self.model_fields_set:
@@ -158,6 +175,8 @@ class Payment(BaseModel):
             "currency": obj.get("currency"),
             "country": obj.get("country"),
             "method": obj.get("method"),
+            "checkout": obj.get("checkout"),
+            "checkout_expires_at": obj.get("checkout_expires_at"),
             "reference": obj.get("reference"),
             "description": obj.get("description"),
             "customer": PaymentCustomer.from_dict(obj["customer"]) if obj.get("customer") is not None else None,

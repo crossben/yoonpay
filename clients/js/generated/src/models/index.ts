@@ -3,6 +3,126 @@
 /**
  * 
  * @export
+ * @interface AdminGetBalances200Response
+ */
+export interface AdminGetBalances200Response {
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminGetBalances200Response
+     */
+    object: AdminGetBalances200ResponseObjectEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminGetBalances200Response
+     */
+    note: string;
+    /**
+     * 
+     * @type {Array<AdminGetBalances200ResponseDataInner>}
+     * @memberof AdminGetBalances200Response
+     */
+    data: Array<AdminGetBalances200ResponseDataInner>;
+}
+
+
+/**
+ * @export
+ */
+export const AdminGetBalances200ResponseObjectEnum = {
+    Balances: 'balances'
+} as const;
+export type AdminGetBalances200ResponseObjectEnum = typeof AdminGetBalances200ResponseObjectEnum[keyof typeof AdminGetBalances200ResponseObjectEnum];
+
+/**
+ * 
+ * @export
+ * @interface AdminGetBalances200ResponseDataInner
+ */
+export interface AdminGetBalances200ResponseDataInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminGetBalances200ResponseDataInner
+     */
+    account: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminGetBalances200ResponseDataInner
+     */
+    provider: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminGetBalances200ResponseDataInner
+     */
+    currency: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AdminGetBalances200ResponseDataInner
+     */
+    amount: number;
+}
+/**
+ * 
+ * @export
+ * @interface AdminListApplications200Response
+ */
+export interface AdminListApplications200Response {
+    /**
+     * 
+     * @type {Array<AdminListApplications200ResponseDataInner>}
+     * @memberof AdminListApplications200Response
+     */
+    data: Array<AdminListApplications200ResponseDataInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AdminListApplications200ResponseDataInner
+ */
+export interface AdminListApplications200ResponseDataInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminListApplications200ResponseDataInner
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminListApplications200ResponseDataInner
+     */
+    object: AdminListApplications200ResponseDataInnerObjectEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminListApplications200ResponseDataInner
+     */
+    name: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminListApplications200ResponseDataInner
+     */
+    created_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const AdminListApplications200ResponseDataInnerObjectEnum = {
+    Application: 'application'
+} as const;
+export type AdminListApplications200ResponseDataInnerObjectEnum = typeof AdminListApplications200ResponseDataInnerObjectEnum[keyof typeof AdminListApplications200ResponseDataInnerObjectEnum];
+
+/**
+ * 
+ * @export
  * @interface AdminReplayDeadLetter202Response
  */
 export interface AdminReplayDeadLetter202Response {
@@ -62,6 +182,215 @@ export type AdminResolvePayoutRequestStatusEnum = typeof AdminResolvePayoutReque
 /**
  * 
  * @export
+ * @interface CheckoutAttemptRequest
+ */
+export interface CheckoutAttemptRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutAttemptRequest
+     */
+    method: string;
+    /**
+     * Optional; validated for the payment country.
+     * @type {string}
+     * @memberof CheckoutAttemptRequest
+     */
+    phone?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutAttemptRequest
+     */
+    pi_alias?: string;
+}
+/**
+ * What the hosted checkout page shows. Holds no secret and no other object.
+ * @export
+ * @interface CheckoutView
+ */
+export interface CheckoutView {
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    id: string;
+    /**
+     * 
+     * @type {PaymentStatus}
+     * @memberof CheckoutView
+     */
+    status: PaymentStatus;
+    /**
+     * Minor units.
+     * @type {number}
+     * @memberof CheckoutView
+     */
+    amount: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    country: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    description: string | null;
+    /**
+     * The method chosen last.
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    method: string | null;
+    /**
+     * 
+     * @type {Array<CheckoutViewMethodsInner>}
+     * @memberof CheckoutView
+     */
+    methods: Array<CheckoutViewMethodsInner>;
+    /**
+     * True while the customer may start an attempt.
+     * @type {boolean}
+     * @memberof CheckoutView
+     */
+    can_choose: boolean;
+    /**
+     * 
+     * @type {CheckoutViewNextAction}
+     * @memberof CheckoutView
+     */
+    next_action: CheckoutViewNextAction;
+    /**
+     * Masked.
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    customer_phone: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CheckoutView
+     */
+    has_pi_alias: boolean;
+    /**
+     * The application's page to go back to.
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    return_url: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutView
+     */
+    expires_at: string | null;
+    /**
+     * 
+     * @type {CheckoutViewLastError}
+     * @memberof CheckoutView
+     */
+    last_error: CheckoutViewLastError;
+}
+
+
+/**
+ * Why the last round was refused by every provider (only right after it).
+ * @export
+ * @interface CheckoutViewLastError
+ */
+export interface CheckoutViewLastError {
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutViewLastError
+     */
+    code: string;
+}
+/**
+ * 
+ * @export
+ * @interface CheckoutViewMethodsInner
+ */
+export interface CheckoutViewMethodsInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutViewMethodsInner
+     */
+    method: string;
+    /**
+     * False while every provider for it is unavailable.
+     * @type {boolean}
+     * @memberof CheckoutViewMethodsInner
+     */
+    available: boolean;
+    /**
+     * `pi_alias`: ask the customer for their PI-SPI alias (unless `has_pi_alias`).
+     * @type {string}
+     * @memberof CheckoutViewMethodsInner
+     */
+    needs: CheckoutViewMethodsInnerNeedsEnum;
+}
+
+
+/**
+ * @export
+ */
+export const CheckoutViewMethodsInnerNeedsEnum = {
+    None: 'none',
+    PiAlias: 'pi_alias'
+} as const;
+export type CheckoutViewMethodsInnerNeedsEnum = typeof CheckoutViewMethodsInnerNeedsEnum[keyof typeof CheckoutViewMethodsInnerNeedsEnum];
+
+/**
+ * 
+ * @export
+ * @interface CheckoutViewNextAction
+ */
+export interface CheckoutViewNextAction {
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutViewNextAction
+     */
+    type: CheckoutViewNextActionTypeEnum;
+    /**
+     * The provider's checkout page.
+     * @type {string}
+     * @memberof CheckoutViewNextAction
+     */
+    url: string | null;
+    /**
+     * Push/USSD instructions from the provider.
+     * @type {string}
+     * @memberof CheckoutViewNextAction
+     */
+    instructions: string | null;
+}
+
+
+/**
+ * @export
+ */
+export const CheckoutViewNextActionTypeEnum = {
+    Redirect: 'redirect',
+    Instructions: 'instructions'
+} as const;
+export type CheckoutViewNextActionTypeEnum = typeof CheckoutViewNextActionTypeEnum[keyof typeof CheckoutViewNextActionTypeEnum];
+
+/**
+ * 
+ * @export
  * @interface CreatePaymentRequest
  */
 export interface CreatePaymentRequest {
@@ -84,11 +413,21 @@ export interface CreatePaymentRequest {
      */
     country: string;
     /**
-     * e.g. wave, orange_money, card
+     * e.g. wave, orange_money, free_money, card, pispi. Required unless `checkout` is `hosted`;
+     * with `hosted` it limits the checkout page to this one method.
+     * 
      * @type {string}
      * @memberof CreatePaymentRequest
      */
-    method: string;
+    method?: string;
+    /**
+     * `direct` (default): Yoon calls a provider now. `hosted`: Yoon calls no provider yet and
+     * returns `checkout_url`, a Yoon page where the customer picks the method (ADR-0024).
+     * 
+     * @type {string}
+     * @memberof CreatePaymentRequest
+     */
+    checkout?: CreatePaymentRequestCheckoutEnum;
     /**
      * 
      * @type {CreatePaymentRequestCustomer}
@@ -120,6 +459,17 @@ export interface CreatePaymentRequest {
      */
     provider?: string;
 }
+
+
+/**
+ * @export
+ */
+export const CreatePaymentRequestCheckoutEnum = {
+    Direct: 'direct',
+    Hosted: 'hosted'
+} as const;
+export type CreatePaymentRequestCheckoutEnum = typeof CreatePaymentRequestCheckoutEnum[keyof typeof CreatePaymentRequestCheckoutEnum];
+
 /**
  * 
  * @export
@@ -780,11 +1130,23 @@ export interface Payment {
      */
     country: string;
     /**
-     * 
+     * The payment method. `any` for a hosted checkout whose customer has not chosen yet (kept a string so clients built against 0.1.0 keep working).
      * @type {string}
      * @memberof Payment
      */
     method: string;
+    /**
+     * `hosted`: the customer picks the method on the Yoon page at `checkout_url`.
+     * @type {string}
+     * @memberof Payment
+     */
+    checkout?: PaymentCheckoutEnum;
+    /**
+     * Hosted checkout only. After this an unused checkout fails with `checkout_expired`.
+     * @type {string}
+     * @memberof Payment
+     */
+    checkout_expires_at?: string | null;
     /**
      * 
      * @type {string}
@@ -816,7 +1178,9 @@ export interface Payment {
      */
     provider_reference?: string | null;
     /**
-     * Redirect the customer here
+     * Redirect the customer here, if set. For a hosted checkout, always the Yoon page
+     * (`{YOON_PUBLIC_URL}/checkout/{id}?t=…`); it forwards the customer to the provider.
+     * 
      * @type {string}
      * @memberof Payment
      */
@@ -861,6 +1225,15 @@ export const PaymentObjectEnum = {
     Payment: 'payment'
 } as const;
 export type PaymentObjectEnum = typeof PaymentObjectEnum[keyof typeof PaymentObjectEnum];
+
+/**
+ * @export
+ */
+export const PaymentCheckoutEnum = {
+    Direct: 'direct',
+    Hosted: 'hosted'
+} as const;
+export type PaymentCheckoutEnum = typeof PaymentCheckoutEnum[keyof typeof PaymentCheckoutEnum];
 
 /**
  * 

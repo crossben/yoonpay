@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="color-scheme" content="light dark">
+    <title>Payment</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/checkout/checkout.css">
+    <script type="module" src="/checkout/checkout.js"></script>
+</head>
+<body>
+<header class="top">
+    <span class="brand" data-i18n="secure">Secure payment</span>
+    <button type="button" id="lang" class="secondary small" aria-label="Français">FR</button>
+</header>
+
+<main id="main">
+    <section class="card summary" aria-labelledby="amount">
+        <p class="muted label" data-i18n="toPay">Amount to pay</p>
+        <h1 id="amount" class="amount">…</h1>
+        <p id="description" class="description" hidden></p>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <section id="choose" class="card" hidden aria-labelledby="choose-title">
+        <form id="choose-form" novalidate>
+            <fieldset>
+                <legend id="choose-title" data-i18n="choose">Choose how to pay</legend>
+                <div id="methods" class="methods"></div>
+            </fieldset>
+            <div id="phone-field" class="field" hidden>
+                <label for="phone" data-i18n="phone">Mobile number</label>
+                <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="32">
+                <p class="hint muted" id="phone-hint" data-i18n="phoneHint">The number of the wallet that will pay.</p>
+            </div>
+            <div id="alias-field" class="field" hidden>
+                <label for="alias" data-i18n="alias">PI-SPI alias</label>
+                <input id="alias" name="alias" type="text" autocomplete="off" spellcheck="false" maxlength="64">
+                <p class="hint muted" data-i18n="aliasHint">The payment alias shown in your banking or wallet app.</p>
+            </div>
+            <p id="form-error" class="error" role="alert" hidden></p>
+            <button type="submit" id="pay" class="primary" data-i18n="pay">Pay</button>
+        </form>
+    </section>
+
+    <section id="next" class="card" hidden>
+        <p id="instructions" class="instructions"></p>
+        <a id="provider-link" class="button primary" hidden data-i18n="continue">Continue to payment</a>
+    </section>
+
+    <p id="return-wrap" class="return" hidden>
+        <a id="return" class="button secondary" data-i18n="back">Return to the shop</a>
+    </p>
+</main>
+
+<footer class="muted">
+    <span data-i18n="footer">Payment processed by Yoon</span>
+</footer>
+</body>
+</html>

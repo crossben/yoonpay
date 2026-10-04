@@ -160,7 +160,7 @@ public class PaymentsApi {
 
   /**
    * Create a payment
-   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried. 
+   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried.  With &#x60;checkout: hosted&#x60;, &#x60;method&#x60; is optional and no provider is called yet: the payment is &#x60;created&#x60; and &#x60;checkout_url&#x60; is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires &#x60;YOON_PUBLIC_URL&#x60;; cannot be combined with &#x60;provider&#x60;. 
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param createPaymentRequest  (required)
    * @return Payment
@@ -172,7 +172,7 @@ public class PaymentsApi {
 
   /**
    * Create a payment
-   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried. 
+   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried.  With &#x60;checkout: hosted&#x60;, &#x60;method&#x60; is optional and no provider is called yet: the payment is &#x60;created&#x60; and &#x60;checkout_url&#x60; is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires &#x60;YOON_PUBLIC_URL&#x60;; cannot be combined with &#x60;provider&#x60;. 
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param createPaymentRequest  (required)
    * @param headers Optional headers to include in the request
@@ -186,7 +186,7 @@ public class PaymentsApi {
 
   /**
    * Create a payment
-   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried. 
+   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried.  With &#x60;checkout: hosted&#x60;, &#x60;method&#x60; is optional and no provider is called yet: the payment is &#x60;created&#x60; and &#x60;checkout_url&#x60; is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires &#x60;YOON_PUBLIC_URL&#x60;; cannot be combined with &#x60;provider&#x60;. 
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param createPaymentRequest  (required)
    * @return ApiResponse&lt;Payment&gt;
@@ -198,7 +198,7 @@ public class PaymentsApi {
 
   /**
    * Create a payment
-   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried. 
+   * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays &#x60;pending&#x60; there — no other provider is tried.  With &#x60;checkout: hosted&#x60;, &#x60;method&#x60; is optional and no provider is called yet: the payment is &#x60;created&#x60; and &#x60;checkout_url&#x60; is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires &#x60;YOON_PUBLIC_URL&#x60;; cannot be combined with &#x60;provider&#x60;. 
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param createPaymentRequest  (required)
    * @param headers Optional headers to include in the request

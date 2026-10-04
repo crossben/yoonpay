@@ -61,6 +61,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         'currency' => 'string',
         'country' => 'string',
         'method' => 'string',
+        'checkout' => 'string',
         'customer' => '\Yoon\Generated\Model\CreatePaymentRequestCustomer',
         'reference' => 'string',
         'description' => 'string',
@@ -80,6 +81,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         'currency' => null,
         'country' => null,
         'method' => null,
+        'checkout' => null,
         'customer' => null,
         'reference' => null,
         'description' => null,
@@ -97,6 +99,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         'currency' => false,
         'country' => false,
         'method' => false,
+        'checkout' => false,
         'customer' => false,
         'reference' => false,
         'description' => false,
@@ -194,6 +197,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         'currency' => 'currency',
         'country' => 'country',
         'method' => 'method',
+        'checkout' => 'checkout',
         'customer' => 'customer',
         'reference' => 'reference',
         'description' => 'description',
@@ -211,6 +215,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         'currency' => 'setCurrency',
         'country' => 'setCountry',
         'method' => 'setMethod',
+        'checkout' => 'setCheckout',
         'customer' => 'setCustomer',
         'reference' => 'setReference',
         'description' => 'setDescription',
@@ -228,6 +233,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         'currency' => 'getCurrency',
         'country' => 'getCountry',
         'method' => 'getMethod',
+        'checkout' => 'getCheckout',
         'customer' => 'getCustomer',
         'reference' => 'getReference',
         'description' => 'getDescription',
@@ -276,6 +282,21 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         return self::$openAPIModelName;
     }
 
+    public const CHECKOUT_DIRECT = 'direct';
+    public const CHECKOUT_HOSTED = 'hosted';
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public function getCheckoutAllowableValues()
+    {
+        return [
+            self::CHECKOUT_DIRECT,
+            self::CHECKOUT_HOSTED,
+        ];
+    }
 
     /**
      * Associative array for storing property values
@@ -296,6 +317,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         $this->setIfExists('currency', $data ?? [], null);
         $this->setIfExists('country', $data ?? [], null);
         $this->setIfExists('method', $data ?? [], null);
+        $this->setIfExists('checkout', $data ?? [], 'direct');
         $this->setIfExists('customer', $data ?? [], null);
         $this->setIfExists('reference', $data ?? [], null);
         $this->setIfExists('description', $data ?? [], null);
@@ -351,11 +373,17 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
             $invalidProperties[] = "invalid value for 'country', must be conform to the pattern /^[A-Z]{2}$/.";
         }
 
-        if ($this->container['method'] === null) {
-            $invalidProperties[] = "'method' can't be null";
-        }
-        if ((mb_strlen($this->container['method']) > 32)) {
+        if (!is_null($this->container['method']) && (mb_strlen($this->container['method']) > 32)) {
             $invalidProperties[] = "invalid value for 'method', the character length must be smaller than or equal to 32.";
+        }
+
+        $allowedValues = $this->getCheckoutAllowableValues();
+        if (!is_null($this->container['checkout']) && !in_array($this->container['checkout'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'checkout', must be one of '%s'",
+                $this->container['checkout'],
+                implode("', '", $allowedValues)
+            );
         }
 
         if (!is_null($this->container['reference']) && (mb_strlen($this->container['reference']) > 255)) {
@@ -484,7 +512,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
     /**
      * Gets method
      *
-     * @return string
+     * @return string|null
      */
     public function getMethod()
     {
@@ -494,7 +522,7 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
     /**
      * Sets method
      *
-     * @param string $method e.g. wave, orange_money, card
+     * @param string|null $method e.g. wave, orange_money, free_money, card, pispi. Required unless `checkout` is `hosted`; with `hosted` it limits the checkout page to this one method.
      *
      * @return self
      */
@@ -508,6 +536,43 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         }
 
         $this->container['method'] = $method;
+
+        return $this;
+    }
+
+    /**
+     * Gets checkout
+     *
+     * @return string|null
+     */
+    public function getCheckout()
+    {
+        return $this->container['checkout'];
+    }
+
+    /**
+     * Sets checkout
+     *
+     * @param string|null $checkout `direct` (default): Yoon calls a provider now. `hosted`: Yoon calls no provider yet and returns `checkout_url`, a Yoon page where the customer picks the method (ADR-0024).
+     *
+     * @return self
+     */
+    public function setCheckout($checkout)
+    {
+        if (is_null($checkout)) {
+            throw new \InvalidArgumentException('non-nullable checkout cannot be null');
+        }
+        $allowedValues = $this->getCheckoutAllowableValues();
+        if (!in_array($checkout, $allowedValues, true)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    "Invalid value '%s' for 'checkout', must be one of '%s'",
+                    $checkout,
+                    implode("', '", $allowedValues)
+                )
+            );
+        }
+        $this->container['checkout'] = $checkout;
 
         return $this;
     }

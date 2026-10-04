@@ -65,6 +65,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         'currency' => 'string',
         'country' => 'string',
         'method' => 'string',
+        'checkout' => 'string',
+        'checkout_expires_at' => '\DateTime',
         'reference' => 'string',
         'description' => 'string',
         'customer' => '\Yoon\Generated\Model\PaymentCustomer',
@@ -94,6 +96,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         'currency' => null,
         'country' => null,
         'method' => null,
+        'checkout' => null,
+        'checkout_expires_at' => 'date-time',
         'reference' => null,
         'description' => null,
         'customer' => null,
@@ -121,6 +125,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         'currency' => false,
         'country' => false,
         'method' => false,
+        'checkout' => false,
+        'checkout_expires_at' => true,
         'reference' => true,
         'description' => true,
         'customer' => false,
@@ -228,6 +234,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         'currency' => 'currency',
         'country' => 'country',
         'method' => 'method',
+        'checkout' => 'checkout',
+        'checkout_expires_at' => 'checkout_expires_at',
         'reference' => 'reference',
         'description' => 'description',
         'customer' => 'customer',
@@ -255,6 +263,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         'currency' => 'setCurrency',
         'country' => 'setCountry',
         'method' => 'setMethod',
+        'checkout' => 'setCheckout',
+        'checkout_expires_at' => 'setCheckoutExpiresAt',
         'reference' => 'setReference',
         'description' => 'setDescription',
         'customer' => 'setCustomer',
@@ -282,6 +292,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         'currency' => 'getCurrency',
         'country' => 'getCountry',
         'method' => 'getMethod',
+        'checkout' => 'getCheckout',
+        'checkout_expires_at' => 'getCheckoutExpiresAt',
         'reference' => 'getReference',
         'description' => 'getDescription',
         'customer' => 'getCustomer',
@@ -337,6 +349,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
     }
 
     public const OBJECT_PAYMENT = 'payment';
+    public const CHECKOUT_DIRECT = 'direct';
+    public const CHECKOUT_HOSTED = 'hosted';
 
     /**
      * Gets allowable values of the enum
@@ -347,6 +361,19 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
     {
         return [
             self::OBJECT_PAYMENT,
+        ];
+    }
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public function getCheckoutAllowableValues()
+    {
+        return [
+            self::CHECKOUT_DIRECT,
+            self::CHECKOUT_HOSTED,
         ];
     }
 
@@ -373,6 +400,8 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('currency', $data ?? [], null);
         $this->setIfExists('country', $data ?? [], null);
         $this->setIfExists('method', $data ?? [], null);
+        $this->setIfExists('checkout', $data ?? [], null);
+        $this->setIfExists('checkout_expires_at', $data ?? [], null);
         $this->setIfExists('reference', $data ?? [], null);
         $this->setIfExists('description', $data ?? [], null);
         $this->setIfExists('customer', $data ?? [], null);
@@ -446,6 +475,15 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         if ($this->container['method'] === null) {
             $invalidProperties[] = "'method' can't be null";
         }
+        $allowedValues = $this->getCheckoutAllowableValues();
+        if (!is_null($this->container['checkout']) && !in_array($this->container['checkout'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'checkout', must be one of '%s'",
+                $this->container['checkout'],
+                implode("', '", $allowedValues)
+            );
+        }
+
         if ($this->container['created_at'] === null) {
             $invalidProperties[] = "'created_at' can't be null";
         }
@@ -679,7 +717,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Sets method
      *
-     * @param string $method method
+     * @param string $method The payment method. `any` for a hosted checkout whose customer has not chosen yet (kept a string so clients built against 0.1.0 keep working).
      *
      * @return self
      */
@@ -689,6 +727,77 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable method cannot be null');
         }
         $this->container['method'] = $method;
+
+        return $this;
+    }
+
+    /**
+     * Gets checkout
+     *
+     * @return string|null
+     */
+    public function getCheckout()
+    {
+        return $this->container['checkout'];
+    }
+
+    /**
+     * Sets checkout
+     *
+     * @param string|null $checkout `hosted`: the customer picks the method on the Yoon page at `checkout_url`.
+     *
+     * @return self
+     */
+    public function setCheckout($checkout)
+    {
+        if (is_null($checkout)) {
+            throw new \InvalidArgumentException('non-nullable checkout cannot be null');
+        }
+        $allowedValues = $this->getCheckoutAllowableValues();
+        if (!in_array($checkout, $allowedValues, true)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    "Invalid value '%s' for 'checkout', must be one of '%s'",
+                    $checkout,
+                    implode("', '", $allowedValues)
+                )
+            );
+        }
+        $this->container['checkout'] = $checkout;
+
+        return $this;
+    }
+
+    /**
+     * Gets checkout_expires_at
+     *
+     * @return \DateTime|null
+     */
+    public function getCheckoutExpiresAt()
+    {
+        return $this->container['checkout_expires_at'];
+    }
+
+    /**
+     * Sets checkout_expires_at
+     *
+     * @param \DateTime|null $checkout_expires_at Hosted checkout only. After this an unused checkout fails with `checkout_expired`.
+     *
+     * @return self
+     */
+    public function setCheckoutExpiresAt($checkout_expires_at)
+    {
+        if (is_null($checkout_expires_at)) {
+            array_push($this->openAPINullablesSetToNull, 'checkout_expires_at');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('checkout_expires_at', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['checkout_expires_at'] = $checkout_expires_at;
 
         return $this;
     }
@@ -869,7 +978,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Sets checkout_url
      *
-     * @param string|null $checkout_url Redirect the customer here
+     * @param string|null $checkout_url Redirect the customer here, if set. For a hosted checkout, always the Yoon page (`{YOON_PUBLIC_URL}/checkout/{id}?t=…`); it forwards the customer to the provider.
      *
      * @return self
      */

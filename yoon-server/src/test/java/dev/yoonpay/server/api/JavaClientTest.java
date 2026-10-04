@@ -52,6 +52,19 @@ class JavaClientTest extends ApiTest {
     }
 
     @Test
+    void a_hosted_checkout_payment_has_method_any_until_chosen_and_a_yoon_checkout_url() {
+        Payment p = client().createPayment(new CreatePaymentRequest().amount(5000L).currency("XOF").country("SN")
+                .checkout(CreatePaymentRequest.CheckoutEnum.HOSTED).reference("order_" + UUID.randomUUID()),
+                UUID.randomUUID().toString());
+
+        assertThat(p.getStatus()).isEqualTo(PaymentStatus.CREATED);
+        assertThat(p.getMethod()).isEqualTo("any");
+        assertThat(p.getCheckout()).isEqualTo(Payment.CheckoutEnum.HOSTED);
+        assertThat(p.getCheckoutUrl()).startsWith("https://yoon.example/checkout/" + p.getId() + "?t=");
+        assertThat(p.getCheckoutExpiresAt()).isNotNull();
+    }
+
+    @Test
     void a_failed_payment_carries_its_failure() {
         FAKE_ONE.script(Behaviour.reject("DECLINED"));
         FAKE_TWO.script(Behaviour.reject("DECLINED"));

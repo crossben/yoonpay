@@ -37,6 +37,14 @@
         </dependency>
         <dependency>
             <groupId>dev.yoonpay</groupId>
+            <artifactId>yoon-provider-stripe</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.yoonpay</groupId>
+            <artifactId>yoon-provider-cinetpay</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.yoonpay</groupId>
             <artifactId>yoon-provider-naboopay</artifactId>
         </dependency>
         <dependency>

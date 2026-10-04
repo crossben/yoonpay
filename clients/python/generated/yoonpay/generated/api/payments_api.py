@@ -64,7 +64,7 @@ class PaymentsApi:
     ) -> Payment:
         """Create a payment
 
-        Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried. 
+        Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried.  With `checkout: hosted`, `method` is optional and no provider is called yet: the payment is `created` and `checkout_url` is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires `YOON_PUBLIC_URL`; cannot be combined with `provider`. 
 
         :param idempotency_key: Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
         :type idempotency_key: str
@@ -139,7 +139,7 @@ class PaymentsApi:
     ) -> ApiResponse[Payment]:
         """Create a payment
 
-        Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried. 
+        Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried.  With `checkout: hosted`, `method` is optional and no provider is called yet: the payment is `created` and `checkout_url` is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires `YOON_PUBLIC_URL`; cannot be combined with `provider`. 
 
         :param idempotency_key: Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
         :type idempotency_key: str
@@ -214,7 +214,7 @@ class PaymentsApi:
     ) -> RESTResponseType:
         """Create a payment
 
-        Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried. 
+        Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried.  With `checkout: hosted`, `method` is optional and no provider is called yet: the payment is `created` and `checkout_url` is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires `YOON_PUBLIC_URL`; cannot be combined with `provider`. 
 
         :param idempotency_key: Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
         :type idempotency_key: str

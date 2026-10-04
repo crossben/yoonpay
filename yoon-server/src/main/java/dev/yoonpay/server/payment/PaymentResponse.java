@@ -4,7 +4,7 @@ import dev.yoonpay.server.phone.Phones;
 
 import java.time.Instant;
 
-/** A payment as the API returns it. Phone numbers are masked. */
+/** A payment as the API returns it. Phone numbers are masked; the checkout token appears only inside {@code checkout_url}. */
 public record PaymentResponse(
         String id,
         String object,
@@ -14,6 +14,8 @@ public record PaymentResponse(
         String currency,
         String country,
         String method,
+        String checkout,
+        Instant checkoutExpiresAt,
         String reference,
         String description,
         Customer customer,
@@ -32,11 +34,19 @@ public record PaymentResponse(
     public record Failure(String code, String message) {
     }
 
+    /** A hosted checkout's method before the customer chooses: never null on the wire (0.1.0 clients expect a string). */
+    public static final String NOT_CHOSEN = "any";
+
     public static PaymentResponse of(PaymentRecord p) {
         return new PaymentResponse(p.id(), "payment", p.status().toLowerCase(), p.amount(), p.amountRefunded(),
-                p.currency(), p.country(), p.method(), p.reference(), p.description(),
+                p.currency(), p.country(), p.method() == null ? NOT_CHOSEN : p.method(),
+                p.checkout() == null ? PaymentRecord.DIRECT : p.checkout(), p.checkoutExpiresAt(),
+                p.reference(), p.description(),
                 p.customerPhone() == null ? null : new Customer(Phones.mask(p.customerPhone())),
-                p.provider(), p.providerReference(), p.checkoutUrl(), p.instructions(), p.routingReason(),
+                p.provider(), p.providerReference(),
+                // Hosted: the customer always goes to the Yoon page, which forwards to the provider.
+                p.hosted() ? p.hostedCheckoutUrl() : p.checkoutUrl(),
+                p.instructions(), p.routingReason(),
                 p.failureCode() == null ? null : new Failure(p.failureCode(), p.failureMessage()),
                 p.createdAt(), p.updatedAt());
     }

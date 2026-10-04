@@ -20,5 +20,5 @@ class ProvidersArchitectureTest {
     @ArchTest
     static final ArchRule providers_do_not_know_each_other = classes()
             .that().resideInAPackage("dev.yoonpay.provider.paydunya..")
-            .should().onlyDependOnClassesThat().resideOutsideOfPackages("dev.yoonpay.provider.dexpay..", "dev.yoonpay.provider.naboopay..", "dev.yoonpay.provider.pispi..", "dev.yoonpay.provider.wave..");
+            .should().onlyDependOnClassesThat().resideOutsideOfPackages("dev.yoonpay.provider.dexpay..", "dev.yoonpay.provider.naboopay..", "dev.yoonpay.provider.pispi..", "dev.yoonpay.provider.wave..", "dev.yoonpay.provider.stripe..", "dev.yoonpay.provider.cinetpay..");
 }

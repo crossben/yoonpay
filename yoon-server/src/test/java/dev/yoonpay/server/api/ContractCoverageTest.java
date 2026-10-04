@@ -15,7 +15,7 @@ import java.util.TreeSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Every /v1 and /admin/v1 route the server exposes must be documented in api/openapi.yaml, and every
+ * Every /v1, /admin/v1 and public /checkout/api route the server exposes must be documented in api/openapi.yaml, and every
  * documented route must exist. Adding an endpoint without documenting it fails the build.
  */
 class ContractCoverageTest extends PostgresTest {
@@ -29,7 +29,7 @@ class ContractCoverageTest extends PostgresTest {
         Set<String> implemented = new TreeSet<>();
         mappings.getHandlerMethods().keySet().forEach(info -> {
             for (String path : info.getPatternValues()) {
-                if (path.startsWith("/v1/") || path.startsWith("/admin/v1/")) {
+                if (path.startsWith("/v1/") || path.startsWith("/admin/v1/") || path.startsWith("/checkout/api/")) {
                     info.getMethodsCondition().getMethods().forEach(m -> implemented.add(m.name() + " " + normalize(path)));
                 }
             }

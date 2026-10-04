@@ -60,6 +60,43 @@ and `docker compose up -d`. To rotate it, `POST $BASE_URL/webhooks/<id>/secrets`
 `dateExpiration`, then update the variable. Missed callbacks are harmless: the sweeps ask the
 status API anyway.
 
+## Operator dashboard
+
+Open `$YOON/dashboard` and paste the admin token. It shows applications; payments, refunds and
+payouts per application (filter by status, newest first); payouts needing review; dead letters
+(with **Replay**); balances and ledger entries; and the status history of any record (click its id).
+The token stays in that browser tab's session storage; **Sign out** or closing the tab forgets it.
+The dashboard does not resolve payouts: use `POST /admin/v1/payouts/{id}/resolve` below.
+
+It exists only with `YOON_ADMIN_TOKEN` set; `YOON_DASHBOARD_ENABLED=false` removes it (404). The
+same data is available with curl, e.g.
+`curl -H "Authorization: Bearer $ADMIN" "$YOON/admin/v1/applications/<id>/payments?status=pending"`.
+
+## Hosted checkout
+
+Applications that create payments with `"checkout": "hosted"` send their customers to
+`$YOON_PUBLIC_URL/checkout/<payment id>?t=<token>` (ADR-0024), so that page must be reachable from
+the internet at `YOON_PUBLIC_URL` (without it, hosted payments are refused with
+`public_url_required`). The page lists the methods the application's providers support for the
+payment's country and currency, starts the provider attempt when the customer chooses, then polls
+the status.
+
+- A checkout nobody uses becomes `failed` with failure code `checkout_expired` after
+  `YOON_CHECKOUT_TTL` (default `30m`); the payment sweep does it, and the page does it on read.
+- After 10 refused attempts a checkout becomes `failed` (`checkout_attempts_exhausted`).
+- A choice whose provider answer is unknown leaves the payment `pending` on that provider, as for
+  any payment: the page shows "waiting for confirmation" and offers no other method. A payment
+  stuck in `created` with an attempt running past `YOON_SWEEP_PENDING_AFTER` (crash mid-call) is
+  moved to `pending` by the sweep and settled from the provider's status API.
+- The public checkout endpoints answer 429 (`rate_limited`) beyond `YOON_CHECKOUT_RATE_LIMIT`
+  requests per minute per client address (default 300, `0` = off), per instance. Behind the bundled
+  Caddy the client address comes from `X-Forwarded-For` (Yoon trusts it only from private-network
+  proxies, `SERVER_FORWARD_HEADERS_STRATEGY=native`). If every customer seems to share one address
+  (a proxy on a public IP), raise the limit or set it to `0` and limit at the proxy.
+- The token in the page URL grants that one checkout only (see it, choose a method while the
+  payment waits). It is part of `checkout_url` in the API and in webhook payloads; treat it like the
+  order link it is.
+
 ## Rotate the admin token
 
 Change `YOON_ADMIN_TOKEN` in `.env`, `docker compose up -d`.

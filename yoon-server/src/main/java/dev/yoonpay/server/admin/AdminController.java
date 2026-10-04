@@ -32,7 +32,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
-/** Operator API for this instance, across all applications. No UI in v1. */
+/** Operator API for this instance, across all applications. Read views per application: {@code AdminReadController}; UI: {@code /dashboard} (ADR-0021). */
 @RestController
 @RequestMapping("/admin/v1")
 public class AdminController {

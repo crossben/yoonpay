@@ -76,10 +76,13 @@ once, in Java, instead of in every project.
 | DexPay | Wave, Orange Money, Free Money, card | Wave, Orange Money | — | [docs/providers/dexpay.md](docs/providers/dexpay.md) |
 | NabooPay | Wave, Orange Money, Free Money, card | — | — | [docs/providers/naboopay.md](docs/providers/naboopay.md) |
 | Wave (direct) | Wave, 4 XOF countries | Wave | Full amount | [docs/providers/wave.md](docs/providers/wave.md) |
+| CinetPay | Mobile money in 9 countries (CI, SN, BF, ML, TG, BJ, NE, CM, GN) | Mobile money | — | [docs/providers/cinetpay.md](docs/providers/cinetpay.md) |
+| Stripe | Cards (international) | — | Full and partial | [docs/providers/stripe.md](docs/providers/stripe.md) |
 | PI-SPI (BCEAO) | Payment request to a PI alias, 8 UEMOA countries | To a PI alias | Full amount | [docs/providers/pispi.md](docs/providers/pispi.md) |
 
-PayDunya, DexPay and NabooPay offer no refund API: refund a customer by sending a payout.
+PayDunya, DexPay, NabooPay and CinetPay offer no refund API: refund a customer by sending a payout.
 Wave (direct) and PI-SPI return the full amount of a payment; send a partial refund as a payout.
+Stripe refunds any amount up to what was paid.
 Each page lists the credentials to set, how the provider's statuses map to
 Yoon's, and the provider's quirks.
 
@@ -98,6 +101,28 @@ The PHP, Java, JavaScript and Python clients are generated from `api/openapi.yam
 hand; CI fails if they drift); the Symfony bundle and the Spring Boot starter build on the PHP and
 Java clients. Each has a thin hand-written layer: idempotency-key-first helpers, one exception type carrying Yoon's
 error code, and webhook signature verification. Apache-2.0.
+
+## Hosted checkout
+
+Create a payment with `"checkout": "hosted"` and no `method`, then send the customer to the returned
+`checkout_url` (`{YOON_PUBLIC_URL}/checkout/{id}?t=…`). Yoon's page lists the methods your providers
+support for that country and currency (e.g. Wave, Orange Money, Free Money, card, PI-SPI), starts the
+provider attempt through the normal routing and failover, redirects the customer or shows the push
+instructions, polls the status and returns the customer to your `return_url`. One attempt at a time,
+never a second one while a provider may have the payment. Until the customer chooses, the payment's
+`method` is `any`. French/English, light/dark, phone-sized. Needs `YOON_PUBLIC_URL`. See ADR-0024.
+
+## Operator dashboard
+
+Open `https://<your yoon>/dashboard` and paste `YOON_ADMIN_TOKEN`. You see your applications;
+payments, refunds and payouts per application (filter by status, newest first, paginated);
+payouts needing review; webhook dead letters, which you can replay; balances and ledger
+entries; and the status history of any record. Phone numbers stay masked. The token is kept
+only in that browser tab (session storage) and sent in the `Authorization` header, never in
+a URL. The page is static (no build step, no CDN) and served with a strict
+Content-Security-Policy. It is read-only apart from replaying dead letters: resolve a payout
+with the operator API ([docs/runbook.md](docs/runbook.md)). Set `YOON_DASHBOARD_ENABLED=false`
+to turn it off. See ADR-0021.
 
 ## Try it without a provider account
 
@@ -185,6 +210,9 @@ Build and test (needs a running Docker daemon — integration tests start a real
 | `YOON_SWEEP_PAYOUT_REVIEW_AFTER` | no | Open payouts are flagged for review after this (default `24h`) |
 | `YOON_SWEEP_PENDING_AFTER` | no | Wait before the sweep asks a provider (default `1m`) |
 | `YOON_DEMO_ENABLED` | no | `true` enables the demo provider and its checkout page. Never in production |
+| `YOON_CHECKOUT_TTL` | no | How long a hosted checkout waits for the customer's choice before it fails with `checkout_expired` (default `30m`) |
+| `YOON_CHECKOUT_RATE_LIMIT` | no | Public checkout requests allowed per minute per client address (default `300`, `0` = off) |
+| `YOON_DASHBOARD_ENABLED` | no | Operator dashboard at `/dashboard` (default `true`). It exists only when `YOON_ADMIN_TOKEN` is set; `false` removes it (404) |
 | `YOON_DB_POOL_SIZE` | no | Database connections per instance (default `20`); keep instances × pool below Postgres' `max_connections` |
 | `YOON_SOURCE_URL` | if modified | Where users get this instance's source code (AGPL-3.0). Defaults to the upstream repository; set it if you run a modified version |
 | `YOON_APPS_<APP>_PROVIDERS_<PROVIDER>_PRIORITY` | per provider | Enables a provider for an application; lower is preferred (default 100) |
@@ -229,7 +257,7 @@ plainly: [docs/licensing.md](docs/licensing.md). The name is covered by [TRADEMA
 | --- | --- |
 | `yoon-core` | Domain: money, state machines, ledger model, provider interface. Pure Java, no dependencies. |
 | `yoon-testkit` | `FakeProvider` and test helpers. |
-| `yoon-providers/` | One module per provider (PayDunya, DexPay, NabooPay, Wave, PI-SPI, demo) plus shared HTTP support (incl. mutual TLS). No Spring. |
+| `yoon-providers/` | One module per provider (PayDunya, DexPay, NabooPay, CinetPay, Wave, Stripe, PI-SPI, demo) plus shared HTTP support (incl. mutual TLS). No Spring. |
 | `yoon-server` | The Spring Boot gateway: HTTP API, provider callbacks, outbound events, reconciliation. |
 | `api/openapi.yaml` | The API contract, written by hand; served at `/openapi.yaml` and rendered at `/docs`. |
 | `clients/` | PHP (Laravel, Symfony), Java (+ Spring Boot starter), JavaScript and Python clients (Apache-2.0); generated parts by `clients/generate.sh`. |

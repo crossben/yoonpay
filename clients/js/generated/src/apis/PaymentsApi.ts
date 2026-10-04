@@ -54,7 +54,7 @@ export interface ListPaymentsRequest {
 export class PaymentsApi extends runtime.BaseAPI {
 
     /**
-     * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried. 
+     * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried.  With `checkout: hosted`, `method` is optional and no provider is called yet: the payment is `created` and `checkout_url` is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires `YOON_PUBLIC_URL`; cannot be combined with `provider`. 
      * Create a payment
      */
     async createPaymentRaw(requestParameters: CreatePaymentOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Payment>> {
@@ -105,7 +105,7 @@ export class PaymentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried. 
+     * Routes the payment to a configured provider that supports the country, method and currency. If that provider definitely refuses, the next one is tried. If its answer is unknown (timeout, error), the payment stays `pending` there — no other provider is tried.  With `checkout: hosted`, `method` is optional and no provider is called yet: the payment is `created` and `checkout_url` is a Yoon page where the customer picks one of the methods your providers support for this country and currency. Send the customer there. Requires `YOON_PUBLIC_URL`; cannot be combined with `provider`. 
      * Create a payment
      */
     async createPayment(requestParameters: CreatePaymentOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Payment> {

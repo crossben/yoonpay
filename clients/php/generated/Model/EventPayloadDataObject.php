@@ -66,6 +66,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'currency' => 'string',
         'country' => 'string',
         'method' => 'string',
+        'checkout' => 'string',
+        'checkout_expires_at' => '\DateTime',
         'reference' => 'string',
         'description' => 'string',
         'customer' => '\Yoon\Generated\Model\PaymentCustomer',
@@ -99,6 +101,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'currency' => null,
         'country' => null,
         'method' => null,
+        'checkout' => null,
+        'checkout_expires_at' => 'date-time',
         'reference' => null,
         'description' => null,
         'customer' => null,
@@ -130,6 +134,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'currency' => false,
         'country' => false,
         'method' => false,
+        'checkout' => false,
+        'checkout_expires_at' => false,
         'reference' => false,
         'description' => false,
         'customer' => false,
@@ -241,6 +247,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'currency' => 'currency',
         'country' => 'country',
         'method' => 'method',
+        'checkout' => 'checkout',
+        'checkout_expires_at' => 'checkout_expires_at',
         'reference' => 'reference',
         'description' => 'description',
         'customer' => 'customer',
@@ -272,6 +280,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'currency' => 'setCurrency',
         'country' => 'setCountry',
         'method' => 'setMethod',
+        'checkout' => 'setCheckout',
+        'checkout_expires_at' => 'setCheckoutExpiresAt',
         'reference' => 'setReference',
         'description' => 'setDescription',
         'customer' => 'setCustomer',
@@ -303,6 +313,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'currency' => 'getCurrency',
         'country' => 'getCountry',
         'method' => 'getMethod',
+        'checkout' => 'getCheckout',
+        'checkout_expires_at' => 'getCheckoutExpiresAt',
         'reference' => 'getReference',
         'description' => 'getDescription',
         'customer' => 'getCustomer',
@@ -362,6 +374,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     }
 
     public const OBJECT_PAYOUT = 'payout';
+    public const CHECKOUT_DIRECT = 'direct';
+    public const CHECKOUT_HOSTED = 'hosted';
 
     /**
      * Gets allowable values of the enum
@@ -372,6 +386,19 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     {
         return [
             self::OBJECT_PAYOUT,
+        ];
+    }
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public function getCheckoutAllowableValues()
+    {
+        return [
+            self::CHECKOUT_DIRECT,
+            self::CHECKOUT_HOSTED,
         ];
     }
 
@@ -398,6 +425,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('currency', $data ?? [], null);
         $this->setIfExists('country', $data ?? [], null);
         $this->setIfExists('method', $data ?? [], null);
+        $this->setIfExists('checkout', $data ?? [], null);
+        $this->setIfExists('checkout_expires_at', $data ?? [], null);
         $this->setIfExists('reference', $data ?? [], null);
         $this->setIfExists('description', $data ?? [], null);
         $this->setIfExists('customer', $data ?? [], null);
@@ -475,6 +504,15 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         if ($this->container['method'] === null) {
             $invalidProperties[] = "'method' can't be null";
         }
+        $allowedValues = $this->getCheckoutAllowableValues();
+        if (!is_null($this->container['checkout']) && !in_array($this->container['checkout'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'checkout', must be one of '%s'",
+                $this->container['checkout'],
+                implode("', '", $allowedValues)
+            );
+        }
+
         if ($this->container['provider'] === null) {
             $invalidProperties[] = "'provider' can't be null";
         }
@@ -735,6 +773,70 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     }
 
     /**
+     * Gets checkout
+     *
+     * @return string|null
+     */
+    public function getCheckout()
+    {
+        return $this->container['checkout'];
+    }
+
+    /**
+     * Sets checkout
+     *
+     * @param string|null $checkout `hosted`: the customer picks the method on the Yoon page at `checkout_url`.
+     *
+     * @return self
+     */
+    public function setCheckout($checkout)
+    {
+        if (is_null($checkout)) {
+            throw new \InvalidArgumentException('non-nullable checkout cannot be null');
+        }
+        $allowedValues = $this->getCheckoutAllowableValues();
+        if (!in_array($checkout, $allowedValues, true)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    "Invalid value '%s' for 'checkout', must be one of '%s'",
+                    $checkout,
+                    implode("', '", $allowedValues)
+                )
+            );
+        }
+        $this->container['checkout'] = $checkout;
+
+        return $this;
+    }
+
+    /**
+     * Gets checkout_expires_at
+     *
+     * @return \DateTime|null
+     */
+    public function getCheckoutExpiresAt()
+    {
+        return $this->container['checkout_expires_at'];
+    }
+
+    /**
+     * Sets checkout_expires_at
+     *
+     * @param \DateTime|null $checkout_expires_at Hosted checkout only. After this an unused checkout fails with `checkout_expired`.
+     *
+     * @return self
+     */
+    public function setCheckoutExpiresAt($checkout_expires_at)
+    {
+        if (is_null($checkout_expires_at)) {
+            throw new \InvalidArgumentException('non-nullable checkout_expires_at cannot be null');
+        }
+        $this->container['checkout_expires_at'] = $checkout_expires_at;
+
+        return $this;
+    }
+
+    /**
      * Gets reference
      *
      * @return string|null
@@ -882,7 +984,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets checkout_url
      *
-     * @param string|null $checkout_url Redirect the customer here
+     * @param string|null $checkout_url Redirect the customer here, if set. For a hosted checkout, always the Yoon page (`{YOON_PUBLIC_URL}/checkout/{id}?t=…`); it forwards the customer to the provider.
      *
      * @return self
      */

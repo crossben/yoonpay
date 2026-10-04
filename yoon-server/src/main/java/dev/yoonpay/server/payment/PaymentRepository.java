@@ -30,9 +30,12 @@ public class PaymentRepository {
     public void insert(PaymentRecord p) {
         jdbc.sql("""
                         INSERT INTO payments (id, application_id, status, amount, currency, country, method, reference,
-                                              description, customer_phone, return_url, customer_pi_alias)
+                                              description, customer_phone, return_url, customer_pi_alias,
+                                              checkout, checkout_token, hosted_checkout_url, checkout_expires_at,
+                                              checkout_method)
                         VALUES (:id, :app, :status, :amount, :currency, :country, :method, :reference,
-                                :description, :phone, :returnUrl, :alias)""")
+                                :description, :phone, :returnUrl, :alias,
+                                :checkout, :token, :hostedUrl, :expiresAt, :checkoutMethod)""")
                 .param("id", p.id())
                 .param("app", p.applicationId())
                 .param("status", p.status())
@@ -45,7 +48,52 @@ public class PaymentRepository {
                 .param("phone", p.customerPhone())
                 .param("returnUrl", p.returnUrl())
                 .param("alias", p.customerPiAlias())
+                .param("checkout", p.checkout() == null ? PaymentRecord.DIRECT : p.checkout())
+                .param("token", p.checkoutToken())
+                .param("hostedUrl", p.hostedCheckoutUrl())
+                .param("expiresAt", p.checkoutExpiresAt() == null ? null : java.sql.Timestamp.from(p.checkoutExpiresAt()))
+                .param("checkoutMethod", p.checkoutMethod())
                 .update();
+    }
+
+    /** A hosted-checkout payment by id alone, for the public checkout page (the token is checked by the caller). */
+    public Optional<PaymentRecord> findHosted(String id) {
+        return jdbc.sql(SELECT + " WHERE p.id = :id AND p.checkout = 'hosted'")
+                .param("id", id)
+                .query(PaymentRecord.class).optional();
+    }
+
+    /**
+     * Claims a hosted checkout for one attempt round, committed on its own before any provider
+     * call: only one caller can win, and only while the payment waits for a choice. Records the
+     * customer's choice (not the status).
+     */
+    public boolean claimCheckout(String id, String method, String phone, String alias) {
+        return jdbc.sql("""
+                        UPDATE payments
+                        SET checkout_busy = true, method = :method, updated_at = now(),
+                            customer_phone = coalesce(:phone, customer_phone),
+                            customer_pi_alias = coalesce(:alias, customer_pi_alias)
+                        WHERE id = :id AND checkout = 'hosted' AND status = 'CREATED'
+                          AND NOT checkout_busy AND checkout_expires_at > now()""")
+                .param("id", id).param("method", method).param("phone", phone).param("alias", alias)
+                .update() == 1;
+    }
+
+    /** Ends a round in which every provider definitely refused: the customer may choose again. */
+    public void releaseCheckout(String id) {
+        jdbc.sql("UPDATE payments SET checkout_busy = false WHERE id = :id AND checkout = 'hosted'")
+                .param("id", id).update();
+    }
+
+    public String attemptProvider(String attemptId) {
+        return jdbc.sql("SELECT provider FROM payment_attempts WHERE id = :id")
+                .param("id", attemptId).query(String.class).single();
+    }
+
+    public int countAttempts(String paymentId) {
+        return jdbc.sql("SELECT count(*) FROM payment_attempts WHERE payment_id = :p")
+                .param("p", paymentId).query(Integer.class).single();
     }
 
     public Optional<PaymentRecord> find(UUID app, String id) {

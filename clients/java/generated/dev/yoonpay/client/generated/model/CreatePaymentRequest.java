@@ -40,6 +40,7 @@ import dev.yoonpay.client.generated.ApiClient;
   CreatePaymentRequest.JSON_PROPERTY_CURRENCY,
   CreatePaymentRequest.JSON_PROPERTY_COUNTRY,
   CreatePaymentRequest.JSON_PROPERTY_METHOD,
+  CreatePaymentRequest.JSON_PROPERTY_CHECKOUT,
   CreatePaymentRequest.JSON_PROPERTY_CUSTOMER,
   CreatePaymentRequest.JSON_PROPERTY_REFERENCE,
   CreatePaymentRequest.JSON_PROPERTY_DESCRIPTION,
@@ -61,8 +62,47 @@ public class CreatePaymentRequest {
   private String country;
 
   public static final String JSON_PROPERTY_METHOD = "method";
-  @jakarta.annotation.Nonnull
+  @jakarta.annotation.Nullable
   private String method;
+
+  /**
+   * &#x60;direct&#x60; (default): Yoon calls a provider now. &#x60;hosted&#x60;: Yoon calls no provider yet and returns &#x60;checkout_url&#x60;, a Yoon page where the customer picks the method (ADR-0024). 
+   */
+  public enum CheckoutEnum {
+    DIRECT(String.valueOf("direct")),
+    
+    HOSTED(String.valueOf("hosted"));
+
+    private String value;
+
+    CheckoutEnum(String value) {
+      this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(value);
+    }
+
+    @JsonCreator
+    public static CheckoutEnum fromValue(String value) {
+      for (CheckoutEnum b : CheckoutEnum.values()) {
+        if (b.value.equals(value)) {
+          return b;
+        }
+      }
+      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    }
+  }
+
+  public static final String JSON_PROPERTY_CHECKOUT = "checkout";
+  @jakarta.annotation.Nullable
+  private CheckoutEnum checkout = CheckoutEnum.DIRECT;
 
   public static final String JSON_PROPERTY_CUSTOMER = "customer";
   @jakarta.annotation.Nullable
@@ -160,27 +200,51 @@ public class CreatePaymentRequest {
   }
 
 
-  public CreatePaymentRequest method(@jakarta.annotation.Nonnull String method) {
+  public CreatePaymentRequest method(@jakarta.annotation.Nullable String method) {
     this.method = method;
     return this;
   }
 
   /**
-   * e.g. wave, orange_money, card
+   * e.g. wave, orange_money, free_money, card, pispi. Required unless &#x60;checkout&#x60; is &#x60;hosted&#x60;; with &#x60;hosted&#x60; it limits the checkout page to this one method. 
    * @return method
    */
-  @jakarta.annotation.Nonnull
-  @JsonProperty(value = JSON_PROPERTY_METHOD, required = true)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_METHOD, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getMethod() {
     return method;
   }
 
 
-  @JsonProperty(value = JSON_PROPERTY_METHOD, required = true)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setMethod(@jakarta.annotation.Nonnull String method) {
+  @JsonProperty(value = JSON_PROPERTY_METHOD, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setMethod(@jakarta.annotation.Nullable String method) {
     this.method = method;
+  }
+
+
+  public CreatePaymentRequest checkout(@jakarta.annotation.Nullable CheckoutEnum checkout) {
+    this.checkout = checkout;
+    return this;
+  }
+
+  /**
+   * &#x60;direct&#x60; (default): Yoon calls a provider now. &#x60;hosted&#x60;: Yoon calls no provider yet and returns &#x60;checkout_url&#x60;, a Yoon page where the customer picks the method (ADR-0024). 
+   * @return checkout
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_CHECKOUT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public CheckoutEnum getCheckout() {
+    return checkout;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_CHECKOUT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setCheckout(@jakarta.annotation.Nullable CheckoutEnum checkout) {
+    this.checkout = checkout;
   }
 
 
@@ -320,6 +384,7 @@ public class CreatePaymentRequest {
         Objects.equals(this.currency, createPaymentRequest.currency) &&
         Objects.equals(this.country, createPaymentRequest.country) &&
         Objects.equals(this.method, createPaymentRequest.method) &&
+        Objects.equals(this.checkout, createPaymentRequest.checkout) &&
         Objects.equals(this.customer, createPaymentRequest.customer) &&
         Objects.equals(this.reference, createPaymentRequest.reference) &&
         Objects.equals(this.description, createPaymentRequest.description) &&
@@ -329,7 +394,7 @@ public class CreatePaymentRequest {
 
   @Override
   public int hashCode() {
-    return Objects.hash(amount, currency, country, method, customer, reference, description, returnUrl, provider);
+    return Objects.hash(amount, currency, country, method, checkout, customer, reference, description, returnUrl, provider);
   }
 
   @Override
@@ -340,6 +405,7 @@ public class CreatePaymentRequest {
     sb.append("    currency: ").append(toIndentedString(currency)).append("\n");
     sb.append("    country: ").append(toIndentedString(country)).append("\n");
     sb.append("    method: ").append(toIndentedString(method)).append("\n");
+    sb.append("    checkout: ").append(toIndentedString(checkout)).append("\n");
     sb.append("    customer: ").append(toIndentedString(customer)).append("\n");
     sb.append("    reference: ").append(toIndentedString(reference)).append("\n");
     sb.append("    description: ").append(toIndentedString(description)).append("\n");
@@ -410,6 +476,11 @@ public class CreatePaymentRequest {
     // add `method` to the URL query string
     if (getMethod() != null) {
       joiner.add(String.format(Locale.ROOT, "%smethod%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getMethod()))));
+    }
+
+    // add `checkout` to the URL query string
+    if (getCheckout() != null) {
+      joiner.add(String.format(Locale.ROOT, "%scheckout%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCheckout()))));
     }
 
     // add `customer` to the URL query string

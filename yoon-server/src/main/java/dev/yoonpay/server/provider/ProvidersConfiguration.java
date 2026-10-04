@@ -1,9 +1,11 @@
 package dev.yoonpay.server.provider;
 
+import dev.yoonpay.provider.cinetpay.CinetPayFactory;
 import dev.yoonpay.provider.dexpay.DexPayFactory;
 import dev.yoonpay.provider.naboopay.NabooPayFactory;
 import dev.yoonpay.provider.paydunya.PayDunyaFactory;
 import dev.yoonpay.provider.pispi.PiSpiFactory;
+import dev.yoonpay.provider.stripe.StripeFactory;
 import dev.yoonpay.provider.wave.WaveFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,5 +40,15 @@ public class ProvidersConfiguration {
     @Bean
     WaveFactory wave() {
         return new WaveFactory();
+    }
+
+    @Bean
+    StripeFactory stripe() {
+        return new StripeFactory();
+    }
+
+    @Bean
+    CinetPayFactory cinetpay() {
+        return new CinetPayFactory();
     }
 }

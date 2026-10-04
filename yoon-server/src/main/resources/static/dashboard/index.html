@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <meta name="color-scheme" content="light dark">
+    <title>Yoon operator dashboard</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/dashboard/dashboard.css">
+    <script type="module" src="/dashboard/dashboard.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+    <h1>Yoon <span class="muted">operator</span></h1>
+    <div class="top-actions" id="session" hidden>
+        <label for="app">Application</label>
+        <select id="app"></select>
+        <button type="button" id="signout" class="secondary">Sign out</button>
+    </div>
+</header>
+
+<main id="main">
+    <section id="login" aria-labelledby="login-title" class="card narrow">
+        <h2 id="login-title">Sign in</h2>
+        <p>Enter this instance's <code>YOON_ADMIN_TOKEN</code>. It stays in this browser tab only
+            (session storage) and is sent as <code>Authorization: Bearer</code> to <code>/admin/v1</code>.</p>
+        <form id="login-form" autocomplete="off">
+            <label for="token">Admin token</label>
+            <input id="token" name="token" type="password" required minlength="32" autocomplete="off" spellcheck="false">
+            <button type="submit">Sign in</button>
+        </form>
+    </section>
+
+    <section id="app-view" hidden>
+        <nav aria-label="Views">
+            <div role="tablist" id="tabs">
+                <button role="tab" type="button" data-view="payments" aria-selected="true">Payments</button>
+                <button role="tab" type="button" data-view="refunds" aria-selected="false">Refunds</button>
+                <button role="tab" type="button" data-view="payouts" aria-selected="false">Payouts</button>
+                <button role="tab" type="button" data-view="review" aria-selected="false">Needs review</button>
+                <button role="tab" type="button" data-view="dead" aria-selected="false">Dead letters</button>
+                <button role="tab" type="button" data-view="ledger" aria-selected="false">Balances &amp; ledger</button>
+            </div>
+        </nav>
+
+        <div role="tabpanel" id="panel" aria-live="polite">
+            <div class="toolbar" id="toolbar">
+                <label for="status">Status</label>
+                <select id="status"></select>
+                <button type="button" id="refresh" class="secondary">Refresh</button>
+                <span class="scope muted" id="scope"></span>
+            </div>
+            <div id="content"></div>
+            <div class="pager">
+                <button type="button" id="first" class="secondary">Newest</button>
+                <button type="button" id="next" class="secondary">Older</button>
+            </div>
+        </div>
+
+        <section id="history" class="card" aria-labelledby="history-title" hidden>
+            <h2 id="history-title">Status history</h2>
+            <div id="history-content"></div>
+            <button type="button" id="history-close" class="secondary">Close</button>
+        </section>
+    </section>
+
+    <p id="message" role="status" class="message" hidden></p>
+</main>
+<footer class="muted">Read-only view of the <a href="/docs">operator API</a>. Amounts are shown in the currency's major unit.</footer>
+</body>
+</html>

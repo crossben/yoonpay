@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Clock;
 
 @Configuration
-@EnableConfigurationProperties({YoonProperties.class, SweepProperties.class})
+@EnableConfigurationProperties({YoonProperties.class, SweepProperties.class, CheckoutProperties.class})
 public class YoonConfiguration {
 
     @Bean

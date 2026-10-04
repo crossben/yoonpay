@@ -31,13 +31,14 @@ class CreatePaymentRequest(BaseModel):
     amount: Annotated[int, Field(strict=True, ge=1)] = Field(description="Minor units.")
     currency: Annotated[str, Field(strict=True)]
     country: Annotated[str, Field(strict=True)]
-    method: Annotated[str, Field(strict=True, max_length=32)] = Field(description="e.g. wave, orange_money, card")
+    method: Optional[Annotated[str, Field(strict=True, max_length=32)]] = Field(default=None, description="e.g. wave, orange_money, free_money, card, pispi. Required unless `checkout` is `hosted`; with `hosted` it limits the checkout page to this one method. ")
+    checkout: Optional[StrictStr] = Field(default='direct', description="`direct` (default): Yoon calls a provider now. `hosted`: Yoon calls no provider yet and returns `checkout_url`, a Yoon page where the customer picks the method (ADR-0024). ")
     customer: Optional[CreatePaymentRequestCustomer] = None
     reference: Optional[Annotated[str, Field(strict=True, max_length=255)]] = Field(default=None, description="Your own order id.")
     description: Optional[Annotated[str, Field(strict=True, max_length=500)]] = None
     return_url: Optional[Annotated[str, Field(strict=True, max_length=2048)]] = None
     provider: Optional[StrictStr] = Field(default=None, description="Optional: pin a configured provider instead of routing.")
-    __properties: ClassVar[List[str]] = ["amount", "currency", "country", "method", "customer", "reference", "description", "return_url", "provider"]
+    __properties: ClassVar[List[str]] = ["amount", "currency", "country", "method", "checkout", "customer", "reference", "description", "return_url", "provider"]
 
     @field_validator('currency')
     def currency_validate_regular_expression(cls, value):
@@ -51,6 +52,16 @@ class CreatePaymentRequest(BaseModel):
         """Validates the regular expression"""
         if not re.match(r"^[A-Z]{2}$", value):
             raise ValueError(r"must validate the regular expression /^[A-Z]{2}$/")
+        return value
+
+    @field_validator('checkout')
+    def checkout_validate_enum(cls, value):
+        """Validates the enum"""
+        if value is None:
+            return value
+
+        if value not in set(['direct', 'hosted']):
+            raise ValueError("must be one of enum values ('direct', 'hosted')")
         return value
 
     model_config = ConfigDict(
@@ -111,6 +122,7 @@ class CreatePaymentRequest(BaseModel):
             "currency": obj.get("currency"),
             "country": obj.get("country"),
             "method": obj.get("method"),
+            "checkout": obj.get("checkout") if obj.get("checkout") is not None else 'direct',
             "customer": CreatePaymentRequestCustomer.from_dict(obj["customer"]) if obj.get("customer") is not None else None,
             "reference": obj.get("reference"),
             "description": obj.get("description"),

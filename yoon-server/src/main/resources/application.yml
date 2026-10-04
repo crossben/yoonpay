@@ -27,6 +27,16 @@ yoon:
   admin-token: ${YOON_ADMIN_TOKEN:}
   scheduling:
     enabled: ${YOON_SCHEDULING_ENABLED:true}
+  # Read-mostly operator dashboard at /dashboard (static page; data needs YOON_ADMIN_TOKEN).
+  # Served only when this is true AND the admin token is set. ADR-0021.
+  dashboard:
+    enabled: ${YOON_DASHBOARD_ENABLED:true}
+  # Hosted checkout (ADR-0024): POST /v1/payments with checkout=hosted; the customer picks the
+  # method on {YOON_PUBLIC_URL}/checkout/{id}. Unused checkouts fail after the TTL; the public
+  # checkout endpoints allow this many requests per minute per client address (0 = no limit).
+  checkout:
+    ttl: ${YOON_CHECKOUT_TTL:30m}
+    rate-limit: ${YOON_CHECKOUT_RATE_LIMIT:300}
   # Demo provider + checkout page for trying Yoon without a provider account. Never in production.
   demo:
     enabled: ${YOON_DEMO_ENABLED:false}
@@ -38,6 +48,11 @@ yoon:
 
 # API documentation: Swagger UI at /docs renders the hand-written contract (api/openapi.yaml,
 # served at /openapi.yaml). There is no spec generated from code.
+
+server:
+  # Behind a reverse proxy (deploy/Caddyfile), take the client address from X-Forwarded-For —
+  # trusted only from private-network proxies — so the checkout rate limit is per customer.
+  forward-headers-strategy: ${SERVER_FORWARD_HEADERS_STRATEGY:native}
 
 management:
   endpoints:

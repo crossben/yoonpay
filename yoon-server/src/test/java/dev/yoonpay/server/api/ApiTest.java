@@ -128,6 +128,12 @@ public abstract class ApiTest extends PostgresTest {
     }
 
     protected Response send(String app, String method, String path, Object body, String idempotencyKey) {
+        return send(app, method, path, body, idempotencyKey, Map.of());
+    }
+
+    /** Like {@link #send}, with extra request headers (e.g. the public checkout token). */
+    protected Response send(String app, String method, String path, Object body, String idempotencyKey,
+                            Map<String, String> extraHeaders) {
         try {
             String payload = body == null ? null : (body instanceof String s ? s : json.writeValueAsString(body));
             HttpRequest.Builder b = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
@@ -143,8 +149,9 @@ public abstract class ApiTest extends PostgresTest {
             if (idempotencyKey != null) {
                 b.header("Idempotency-Key", idempotencyKey);
             }
+            extraHeaders.forEach(b::header);
             HttpResponse<String> r = http.send(b.build(), HttpResponse.BodyHandlers.ofString());
-            validate(method, path, payload, idempotencyKey, app != null, r);
+            validate(method, path, payload, idempotencyKey, app != null, extraHeaders, r);
             String contentType = r.headers().firstValue("Content-Type").orElse("");
             JsonNode node = contentType.contains("json") && !r.body().isEmpty() ? json.readTree(r.body()) : null;
             return new Response(r.statusCode(), r.headers().map(), r.body(), node);
@@ -154,7 +161,7 @@ public abstract class ApiTest extends PostgresTest {
     }
 
     private void validate(String method, String path, String payload, String idempotencyKey, boolean auth,
-                          HttpResponse<String> r) {
+                          Map<String, String> extraHeaders, HttpResponse<String> r) {
         URI uri = URI.create(path);
         SimpleRequest.Builder req = new SimpleRequest.Builder(Request.Method.valueOf(method), uri.getPath());
         if (uri.getQuery() != null) {
@@ -172,6 +179,7 @@ public abstract class ApiTest extends PostgresTest {
         if (auth) {
             req.withAuthorization("Bearer x");
         }
+        extraHeaders.forEach(req::withHeader);
         SimpleResponse.Builder res = SimpleResponse.Builder.status(r.statusCode()).withBody(r.body());
         r.headers().map().forEach((k, v) -> res.withHeader(k, v));
 

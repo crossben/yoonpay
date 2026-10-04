@@ -8,6 +8,7 @@ import dev.yoonpay.server.idempotency.IdempotencyStore;
 import dev.yoonpay.server.lifecycle.StatusEvents.Cause;
 import dev.yoonpay.server.payment.PaymentRecord;
 import dev.yoonpay.server.payment.PaymentRepository;
+import dev.yoonpay.server.payment.PaymentService;
 import dev.yoonpay.server.payment.PaymentTransitions;
 import dev.yoonpay.server.payout.PayoutRecord;
 import dev.yoonpay.server.payout.PayoutTransitions;
@@ -46,10 +47,12 @@ public class Reconciler {
     private final IdempotencyStore idempotency;
     private final SweepProperties sweep;
     private final Clock clock;
+    private final PaymentService paymentService;
 
     public Reconciler(JdbcClient jdbc, Settlement settlement, Applications applications, PaymentRepository payments,
                       PaymentTransitions paymentTransitions, PayoutTransitions payoutTransitions,
-                      IdempotencyStore idempotency, SweepProperties sweep, Clock clock) {
+                      IdempotencyStore idempotency, SweepProperties sweep, Clock clock, PaymentService paymentService) {
+        this.paymentService = paymentService;
         this.jdbc = jdbc;
         this.settlement = settlement;
         this.applications = applications;
@@ -67,13 +70,25 @@ public class Reconciler {
         List<PaymentRecord> open = jdbc.sql("""
                         SELECT p.*, 0 AS amount_refunded FROM payments p
                         WHERE p.status IN ('CREATED', 'PENDING') AND p.updated_at < :before
+                          AND NOT (p.checkout = 'hosted' AND p.status = 'CREATED' AND NOT p.checkout_busy
+                                   AND p.checkout_expires_at > :now)
                         ORDER BY p.updated_at LIMIT :batch""")
                 .param("before", Timestamp.from(now.minus(sweep.pendingAfter()))).param("batch", BATCH)
+                .param("now", Timestamp.from(now))
                 .query(PaymentRecord.class).list();
 
         for (PaymentRecord p : open) {
             Optional<AppPrincipal> app = applications.find(p.applicationId());
             if (app.isEmpty()) {
+                continue;
+            }
+            if (p.status().equals("CREATED") && p.hosted()) {
+                // Waiting for the customer (ADR-0024): expire it, or recover a round a crash interrupted.
+                if (p.checkoutBusy()) {
+                    paymentService.recoverInterruptedCheckout(app.get(), p);
+                } else {
+                    paymentService.expireIfDue(app.get(), p.id(), Cause.sweep);
+                }
                 continue;
             }
             if (p.status().equals("CREATED")) {

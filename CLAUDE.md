@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Guidance for AI coding agents working on Yoon, a self-hosted, open-source payment
-gateway for African payment providers (PayDunya, DexPay, NabooPay, Wave, PI-SPI).
+gateway for African payment providers (PayDunya, DexPay, NabooPay, CinetPay, Wave, Stripe, PI-SPI).
 
 This repository is the gateway. The website (yoonpay.benhattab.pro) is a separate repository,
 checked out next to this one as `../website/`; its rules are in `../website/PLAN.md`.
@@ -32,9 +32,9 @@ cp .env.example .env && docker compose up --build    # Yoon + Postgres on :8080
 | Module | What it holds | May depend on |
 | --- | --- | --- |
 | `yoon-core` | Money, state machines, shadow-ledger model, provider SPI | the JDK only |
-| `yoon-testkit` | `FakeProvider` — scriptable provider for tests | `yoon-core` |
+| `yoon-testkit` | `FakeProvider` — scriptable provider for tests; `ProviderContract` — rules every adapter's tests must pass | `yoon-core`, JUnit API, AssertJ |
 | `yoon-providers/yoon-provider-support` | `ProviderHttp` (outcome classification, optional mutual TLS), `Tls` (PEM → SSLContext), JSON, signatures, credentials | core, Jackson |
-| `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay,wave,pispi}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
+| `yoon-providers/yoon-provider-{paydunya,dexpay,naboopay,cinetpay,wave,stripe,pispi}` | One adapter each | core, support, Jackson, JDK — no Spring (`ProvidersArchitectureTest`) |
 | `yoon-providers/yoon-provider-demo` | Demo provider (`YOON_DEMO_ENABLED`), page in `server/demo` | same |
 | `clients/php` (incl. Symfony bundle `src/Symfony`), `clients/java`, `clients/js`, `clients/python` | Apache-2.0 clients: `generated/` + thin hand-written layer | standalone builds |
 | `clients/java-spring-boot-starter` | Spring Boot 3/4 auto-configuration over `clients/java` | yoon-java; Spring Boot `provided` |
@@ -100,6 +100,9 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - Lists: newest first, keyset pagination on the time-ordered id
   (`starting_after`, `limit` ≤ 100), response `{data, has_more, next_cursor}`.
 - Phone numbers are stored in E.164 (`Phones.normalize`) and always returned masked.
+- Operator read views (`AdminReadController`, `/admin/v1/applications/{application_id}/…`) look up
+  the application from the path and call the `/v1` controller methods: never write separate
+  admin queries.
 
 ### Routing and failover (`Router`, `ProviderRegistry`, `*Service`)
 
@@ -132,6 +135,32 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   (`Propagation.MANDATORY`). Signature: `WebhookSignature`.
 - Anything a human must look at goes through `Alerts.raise` (log + counter).
 
+### Operator dashboard (`server/dashboard`, `static/dashboard`, ADR-0021)
+
+- Static HTML + one vanilla ES module + CSS, no build step, no CDN. It only calls `/admin/v1`
+  with the admin token from `sessionStorage` (never a URL, cookie or `localStorage`).
+- Write API data with `textContent`/DOM nodes only; `DashboardAssetsTest` fails on `innerHTML`.
+- `DashboardFilter` sets the CSP (no inline script/style, same origin only) and returns 404 unless
+  `YOON_DASHBOARD_ENABLED` is true and the admin token is set. Tighten the CSP, never loosen it.
+- Actions in the page are limited to existing operator actions that move no money (replay).
+
+### Hosted checkout (`server/checkout`, `static/checkout`, ADR-0024)
+
+- `checkout: "hosted"` payments start `CREATED` with no provider call; `checkout_url` is the Yoon page
+  (`/checkout/{id}?t=<token>`). The token grants that one checkout only; unknown id, missing and
+  wrong token are the same 404. Until chosen, the response's `method` is `any` (never null:
+  `breaking-changes` CI compares with the last release).
+- A customer's choice first claims the checkout (`PaymentRepository.claimCheckout`, a conditional
+  UPDATE committed before any provider call), then runs `PaymentService.attemptRound` — the same
+  failover loop as direct payments. Never start a provider call without the claim. All refused →
+  release, stays CREATED; Accepted/Unknown → PENDING (no further choice).
+- Expiry (`checkout_expired`) locks the row and skips claimed checkouts; the reconciler must not
+  treat waiting hosted payments as interrupted creations.
+- Same page rules as the dashboard: static, `textContent` only (`CheckoutAssetsTest`), strict CSP
+  from `CheckoutFilter`, nothing stored in the browser, token only in the `Yoon-Checkout-Token` header.
+- `ContractCoverageTest` also covers `/checkout/api/` routes. Public checkout endpoints are
+  rate-limited (`YOON_CHECKOUT_RATE_LIMIT`); tests set it to 0.
+
 ### Idempotency (`IdempotencyStore`)
 
 - Claim the key (`begin`) **before** any provider call; it commits on its own.
@@ -155,8 +184,10 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   it never decides a status.
 - WireMock tests cover: happy path with request assertions, refusal, 5xx,
   timeout, refused connection, every callback variant.
+- Every adapter has a `<Name>ContractTest extends ProviderContract` (`yoon-testkit`): the shared
+  money-safety rules. It says how to make WireMock misbehave and which request paths move money.
 - Adding a provider = one module + factory bean in `ProvidersConfiguration` +
-  docs page + status table test + WireMock tests. If core must change, the SPI
+  docs page + status table test + WireMock tests + contract test. If core must change, the SPI
   is wrong: fix it and write an ADR.
 
 ### Clients (`clients/`)

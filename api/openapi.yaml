@@ -50,6 +50,11 @@ tags:
     description: Endpoints the payment providers call. Not for applications.
   - name: Webhooks to your app
     description: What Yoon POSTs to your application's webhook URL, and how to verify it.
+  - name: Hosted checkout
+    description: |
+      Public endpoints behind the Yoon-hosted checkout page (`/checkout/{id}?t=…`, ADR-0024). Called by
+      the customer's browser with the checkout token, never with an API key. Not part of the client
+      libraries.
   - name: Admin
     description: 'Operator API for the whole instance. Requires `YOON_ADMIN_TOKEN`; disabled (404) without it.'
 
@@ -63,6 +68,11 @@ paths:
         Routes the payment to a configured provider that supports the country, method and
         currency. If that provider definitely refuses, the next one is tried. If its answer is
         unknown (timeout, error), the payment stays `pending` there — no other provider is tried.
+
+        With `checkout: hosted`, `method` is optional and no provider is called yet: the payment
+        is `created` and `checkout_url` is a Yoon page where the customer picks one of the methods
+        your providers support for this country and currency. Send the customer there. Requires
+        `YOON_PUBLIC_URL`; cannot be combined with `provider`.
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
@@ -71,14 +81,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreatePaymentRequest'
-            example:
-              amount: 5000
-              currency: XOF
-              country: SN
-              method: wave
-              customer: { phone: '+221771234567' }
-              reference: order_1042
-              return_url: https://shop.example/orders/1042
+            examples:
+              direct:
+                summary: Your app chose the method
+                value:
+                  amount: 5000
+                  currency: XOF
+                  country: SN
+                  method: wave
+                  customer: { phone: '+221771234567' }
+                  reference: order_1042
+                  return_url: https://shop.example/orders/1042
+              hosted:
+                summary: The customer chooses on the Yoon checkout page
+                value:
+                  amount: 5000
+                  currency: XOF
+                  country: SN
+                  checkout: hosted
+                  description: Order 1042
+                  reference: order_1042
+                  return_url: https://shop.example/orders/1042
       responses:
         '201':
           description: Payment created. Check `status`; `failed` means every provider refused.
@@ -95,7 +118,8 @@ paths:
         '422':
           description: |
             No provider can take this payment. `code` is one of `no_provider_for_method`,
-            `all_providers_unavailable`, `provider_not_configured`.
+            `all_providers_unavailable`, `provider_not_configured`; for a hosted checkout also
+            `public_url_required` (`YOON_PUBLIC_URL` is not set).
           content:
             application/problem+json:
               schema:
@@ -625,6 +649,264 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
 
+  /checkout/api/{id}:
+    get:
+      tags: [Hosted checkout]
+      operationId: getCheckout
+      summary: The checkout page's view of a payment (public, token-scoped)
+      description: |
+        What the customer's browser may know about a hosted-checkout payment: amount, description,
+        status, the methods it may pick, and what to do next. Nothing else. Cheap enough to poll.
+        An unknown id, a missing token and a wrong token are the same 404.
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/CheckoutToken'
+      responses:
+        '200':
+          description: The checkout.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckoutView' }
+        '404': { $ref: '#/components/responses/CheckoutNotFound' }
+        '429': { $ref: '#/components/responses/CheckoutRateLimited' }
+
+  /checkout/api/{id}/attempts:
+    post:
+      tags: [Hosted checkout]
+      operationId: chooseCheckoutMethod
+      summary: The customer picks a method (public, token-scoped)
+      description: |
+        Starts one provider attempt round for the chosen method through Yoon's routing and
+        failover. Only while the payment is `created` and no other round is running: a second
+        click gets 409 `checkout_in_progress`, a payment already with a provider (including an
+        unknown outcome) gets 409 `checkout_not_open`. If every provider refuses, the payment stays
+        `created` and `last_error` says why; the customer may choose again.
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/CheckoutToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckoutAttemptRequest' }
+            example: { method: wave }
+      responses:
+        '200':
+          description: The round ended; the checkout as it is now.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckoutView' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/CheckoutNotFound' }
+        '409':
+          description: |
+            `checkout_in_progress` (another attempt is running), `checkout_not_open` (the payment is
+            no longer waiting for a choice) or `checkout_expired`.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`method_unavailable`: this method is not offered for this payment right now.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/CheckoutRateLimited' }
+
+  /admin/v1/applications:
+    get:
+      tags: [Admin]
+      operationId: adminListApplications
+      summary: Applications on this instance
+      security: [{ adminToken: [] }]
+      responses:
+        '200':
+          description: Every application, by name.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, object, name, created_at]
+                      properties:
+                        id: { type: string, format: uuid }
+                        object: { type: string, const: application }
+                        name: { type: string }
+                        created_at: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/payments:
+    get:
+      tags: [Admin]
+      operationId: adminListPayments
+      summary: One application's payments
+      description: Read-only; the same results the application gets from `GET /v1/payments`.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/PaymentStatus' } }
+        - { name: reference, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of payments, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/payments/{id}/events:
+    get:
+      tags: [Admin]
+      operationId: adminListPaymentEvents
+      summary: Status history of one payment
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/StatusHistory' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/refunds:
+    get:
+      tags: [Admin]
+      operationId: adminListRefunds
+      summary: One application's refunds
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/RefundStatus' } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of refunds, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RefundPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/refunds/{id}/events:
+    get:
+      tags: [Admin]
+      operationId: adminListRefundEvents
+      summary: Status history of one refund
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/StatusHistory' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/payouts:
+    get:
+      tags: [Admin]
+      operationId: adminListApplicationPayouts
+      summary: One application's payouts
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/PayoutStatus' } }
+        - { name: reference, in: query, schema: { type: string } }
+        - { name: needs_review, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of payouts, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PayoutPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/payouts/{id}/events:
+    get:
+      tags: [Admin]
+      operationId: adminListPayoutEvents
+      summary: Status history of one payout
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/StatusHistory' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/balances:
+    get:
+      tags: [Admin]
+      operationId: adminGetBalances
+      summary: One application's balances per provider account
+      description: Yoon's view from its own ledger, not the provider's statement.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+      responses:
+        '200':
+          description: Balances.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [object, note, data]
+                properties:
+                  object: { type: string, const: balances }
+                  note: { type: string }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required: [account, provider, currency, amount]
+                      properties:
+                        account: { type: string }
+                        provider: { type: string }
+                        currency: { type: string }
+                        amount: { type: integer, format: int64 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/ledger/entries:
+    get:
+      tags: [Admin]
+      operationId: adminListLedgerEntries
+      summary: One application's ledger entries
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: provider, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: starting_after, in: query, schema: { type: integer, format: int64 }, description: Cursor from `next_cursor`. }
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of entries, newest first. Positive = debit, negative = credit.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LedgerEntryPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
   /admin/v1/dead-letters:
     get:
       tags: [Admin]
@@ -776,6 +1058,12 @@ components:
       schema: { type: string, enum: ['true'] }
 
   parameters:
+    ApplicationId:
+      name: application_id
+      in: path
+      required: true
+      description: From `GET /admin/v1/applications`.
+      schema: { type: string, format: uuid }
     Id:
       name: id
       in: path
@@ -787,6 +1075,12 @@ components:
       required: true
       description: Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request.
       schema: { type: string, minLength: 1, maxLength: 255 }
+    CheckoutToken:
+      name: Yoon-Checkout-Token
+      in: header
+      required: true
+      description: The `t` value of the checkout page URL. Missing or wrong → 404.
+      schema: { type: string, maxLength: 128 }
     StartingAfter:
       name: starting_after
       in: query
@@ -833,6 +1127,26 @@ components:
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
+    CheckoutNotFound:
+      description: Unknown payment, not a hosted checkout, or missing/wrong token — indistinguishable (`resource_not_found`).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    CheckoutRateLimited:
+      description: Too many checkout requests from this address (`rate_limited`); retry after `Retry-After` seconds.
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    StatusHistory:
+      description: Every status change and ignored late news, oldest first.
+      content:
+        application/json:
+          schema:
+            type: array
+            items: { $ref: '#/components/schemas/StatusEvent' }
     AdminDisabled:
       description: The admin API is disabled (no `YOON_ADMIN_TOKEN`), or the resource does not exist.
       content:
@@ -992,12 +1306,25 @@ components:
 
     CreatePaymentRequest:
       type: object
-      required: [amount, currency, country, method]
+      required: [amount, currency, country]
       properties:
         amount: { type: integer, format: int64, minimum: 1, description: Minor units. }
         currency: { type: string, pattern: '^[A-Z]{3}$', example: XOF }
         country: { type: string, pattern: '^[A-Z]{2}$', example: SN }
-        method: { type: string, maxLength: 32, example: wave, description: 'e.g. wave, orange_money, card' }
+        method:
+          type: string
+          maxLength: 32
+          example: wave
+          description: |
+            e.g. wave, orange_money, free_money, card, pispi. Required unless `checkout` is `hosted`;
+            with `hosted` it limits the checkout page to this one method.
+        checkout:
+          type: string
+          enum: [direct, hosted]
+          default: direct
+          description: |
+            `direct` (default): Yoon calls a provider now. `hosted`: Yoon calls no provider yet and
+            returns `checkout_url`, a Yoon page where the customer picks the method (ADR-0024).
         customer:
           type: object
           properties:
@@ -1019,7 +1346,20 @@ components:
         amount_refunded: { type: integer, format: int64 }
         currency: { type: string }
         country: { type: string }
-        method: { type: string }
+        method:
+          type: string
+          example: wave
+          description: >-
+            The payment method. `any` for a hosted checkout whose customer has not chosen yet
+            (kept a string so clients built against 0.1.0 keep working).
+        checkout:
+          type: string
+          enum: [direct, hosted]
+          description: '`hosted`: the customer picks the method on the Yoon page at `checkout_url`.'
+        checkout_expires_at:
+          type: [string, 'null']
+          format: date-time
+          description: Hosted checkout only. After this an unused checkout fails with `checkout_expired`.
         reference: { type: [string, 'null'] }
         description: { type: [string, 'null'] }
         customer:
@@ -1028,12 +1368,68 @@ components:
             phone: { type: [string, 'null'], example: '+22177***67' }
         provider: { type: [string, 'null'] }
         provider_reference: { type: [string, 'null'] }
-        checkout_url: { type: [string, 'null'], description: Redirect the customer here, if set. }
+        checkout_url:
+          type: [string, 'null']
+          description: |
+            Redirect the customer here, if set. For a hosted checkout, always the Yoon page
+            (`{YOON_PUBLIC_URL}/checkout/{id}?t=…`); it forwards the customer to the provider.
         instructions: { type: [string, 'null'], description: Push/USSD instruction to show the customer, if set. }
         routing_reason: { type: [string, 'null'], description: Why this provider — and any rejections before it. }
         failure: { $ref: '#/components/schemas/Failure' }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+
+    CheckoutView:
+      type: object
+      description: What the hosted checkout page shows. Holds no secret and no other object.
+      required: [id, status, amount, currency, country, description, method, methods, can_choose,
+                 next_action, customer_phone, has_pi_alias, return_url, expires_at, last_error]
+      properties:
+        id: { type: string }
+        status: { $ref: '#/components/schemas/PaymentStatus' }
+        amount: { type: integer, format: int64, description: Minor units. }
+        currency: { type: string }
+        country: { type: string }
+        description: { type: [string, 'null'] }
+        method: { type: [string, 'null'], description: The method chosen last. }
+        methods:
+          type: array
+          items:
+            type: object
+            required: [method, available, needs]
+            properties:
+              method: { type: string, example: wave }
+              available: { type: boolean, description: False while every provider for it is unavailable. }
+              needs:
+                type: string
+                enum: [none, pi_alias]
+                description: '`pi_alias`: ask the customer for their PI-SPI alias (unless `has_pi_alias`).'
+        can_choose: { type: boolean, description: True while the customer may start an attempt. }
+        next_action:
+          type: [object, 'null']
+          required: [type, url, instructions]
+          properties:
+            type: { type: string, enum: [redirect, instructions] }
+            url: { type: [string, 'null'], description: The provider's checkout page. }
+            instructions: { type: [string, 'null'], description: Push/USSD instructions from the provider. }
+        customer_phone: { type: [string, 'null'], example: '+22177***67', description: Masked. }
+        has_pi_alias: { type: boolean }
+        return_url: { type: [string, 'null'], description: "The application's page to go back to." }
+        expires_at: { type: [string, 'null'], format: date-time }
+        last_error:
+          type: [object, 'null']
+          description: Why the last round was refused by every provider (only right after it).
+          required: [code]
+          properties:
+            code: { type: string, example: PHONE_REQUIRED }
+
+    CheckoutAttemptRequest:
+      type: object
+      required: [method]
+      properties:
+        method: { type: string, maxLength: 32 }
+        phone: { type: string, maxLength: 32, description: 'Optional; validated for the payment country.' }
+        pi_alias: { type: string, maxLength: 64 }
 
     CreateRefundRequest:
       type: object

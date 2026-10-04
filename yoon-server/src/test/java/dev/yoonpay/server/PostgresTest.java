@@ -31,6 +31,8 @@ import java.util.UUID;
         "yoon.apps.live.providers.dexpay.credentials.webhook-secret=" + PostgresTest.DEXPAY_WEBHOOK_SECRET,
         "yoon.public-url=https://yoon.example",
         "yoon.demo.enabled=true",
+        // The per-address checkout limit is unit-tested (CheckoutFilterTest); every test request comes from 127.0.0.1.
+        "yoon.checkout.rate-limit=0",
         "yoon.apps.demoapp.providers.demo.priority=1",
 })
 @Import(TestProviders.class)
