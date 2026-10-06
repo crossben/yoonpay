@@ -4,9 +4,9 @@ name: Release
 # Docker Hub, and creates the GitHub release with an SBOM.
 #
 # Repository secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN (Docker Hub access token),
-# PHP_MIRROR_DEPLOY_KEY (SSH key with write access to <owner>/yoon-php, for Packagist),
-# NPM_TOKEN (npm automation token for @yoonpay). PyPI needs no secret: the pypi-client job uses
-# trusted publishing (a pending publisher for `yoonpay` on pypi.org).
+# PHP_MIRROR_DEPLOY_KEY (SSH key with write access to <owner>/yoon-php, for Packagist).
+# npm and PyPI need no secret: both jobs use trusted publishing (configured on npmjs.com for
+# @yoonpay/yoon and on pypi.org for yoonpay).
 # Images: ghcr.io/<repository owner>/yoon and docker.io/<DOCKERHUB_USERNAME>/yoon.
 on:
   push:
@@ -80,14 +80,14 @@ jobs:
           cosign sign --yes "${HUB_IMAGE}@${DIGEST}"
 
   npm-client:
-    # Publishes @yoonpay/yoon from clients/js. Needs the NPM_TOKEN secret (an automation
-    # token for the @yoonpay organisation) — or switch to npm trusted publishing by removing
-    # the token steps and keeping id-token: write, which this workflow already has.
+    # Publishes @yoonpay/yoon from clients/js with npm trusted publishing (OIDC): no token.
+    # The package's trusted publisher on npmjs.com is crossben/yoonpay, workflow release.yml,
+    # no environment, "Allow npm publish". Needs npm >= 11.5.
     needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # npm provenance
+      id-token: write # npm trusted publishing and provenance
     defaults:
       run:
         working-directory: clients/js
@@ -97,12 +97,11 @@ jobs:
         with:
           node-version: '22'
           registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@^11.5.1
       - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run build
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   pypi-client:
     # Publishes yoonpay from clients/python through PyPI trusted publishing — no token. The
