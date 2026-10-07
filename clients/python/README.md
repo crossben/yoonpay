@@ -140,6 +140,49 @@ event = Event.from_json(raw_body)   # event.id, event.type, event.object
 
 `sign_signature(secret, raw_body)` builds a header for your own tests.
 
+## Prompt for an AI coding agent
+
+Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
+
+```text
+Integrate Yoon payments (yoonpay 0.2.x) into this Python app.
+Install: pip install "yoonpay[django]" (or [fastapi], [flask]; Python 3.10+)
+Do:
+1. One shared client: Yoon(os.environ["YOON_URL"], os.environ["YOON_API_KEY"]).
+2. Create a payment keyed on the order: yoon.create_payment({...amount, "currency": "XOF",
+   "country": "SN", "method": "wave", "reference": str(order.id), "return_url": ...},
+   idempotency_key=f"order-{order.id}"); redirect to its checkout_url.
+3. Webhook with this app's framework helper (it verifies the raw body and drops duplicates):
+   Django: @yoon_webhook from yoonpay.django (settings.YOON_WEBHOOK_SECRET); FastAPI:
+   APIRouter(route_class=yoon_webhook_route(secret=...)) and a yoon_event dependency from
+   yoonpay.fastapi; Flask: @yoon_webhook from yoonpay.flask (app.config["YOON_WEBHOOK_SECRET"]).
+   Update the order from the event's type and object.
+4. Errors are YoonException: problem_code, http_status, is_retryable().
+Rules (they protect real money; follow them exactly):
+- Amounts are integers in minor units, never floats: XOF has no minor unit, 5000 = 5 000 XOF.
+- Every write takes an idempotency key tied to the business object ("order-<id>",
+  "refund-<order id>-<n>"). On a retryable error, retry with the SAME key; a new key could
+  charge twice. The client never retries on its own.
+- Store Yoon's payment id on the order. Fulfil ONLY when the webhook says payment.succeeded
+  (or GET the payment and check status == "succeeded"). The customer returning to return_url
+  proves nothing.
+- "pending" means the provider has not answered yet, not failed: show "waiting for payment".
+  payment.failed / payment.expired: let the customer try again (a new order or a new key).
+- Webhooks: verify the signature over the RAW request body (the helper below does it), answer
+  2xx quickly, and make the handler idempotent: the same event can arrive more than once.
+  Events: payment.succeeded, payment.failed, payment.expired, refund.succeeded, refund.failed,
+  payout.paid, payout.failed, payout.needs_review.
+- Never log the API key or full phone numbers; read YOON_URL, YOON_API_KEY and
+  YOON_WEBHOOK_SECRET from the environment.
+- Optional: "checkout": "hosted" (without "method") sends the customer to Yoon's own page to
+  choose Wave, Orange Money, card, …; redirect them to the returned checkout_url.
+Verify: run Yoon with YOON_DEMO_ENABLED=true and YOON_APPS_<APP>_PROVIDERS_DEMO_PRIORITY=1,
+set YOON_APPS_<APP>_WEBHOOK_URL to this app's webhook URL, create a payment, open its
+checkout_url, click Pay, and check the order becomes paid only after the webhook arrives.
+Then click Decline on another payment and check the order is not paid.
+Docs: https://yoonpay.benhattab.pro/docs/
+```
+
 ## Errors
 
 `YoonException` carries `http_status` (`None` when Yoon was not reached), `problem_code` (Yoon's

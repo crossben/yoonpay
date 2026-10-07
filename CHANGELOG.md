@@ -5,6 +5,11 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Clients
+- Every client README has a "Prompt for an AI coding agent": a copy-ready brief that tells a coding
+  agent what to install and write, and the rules that protect money (idempotency keys tied to the
+  order, fulfil only on `payment.succeeded`, raw-body webhook verification, minor units).
+
 ## [0.2.0] - 2026-10-07
 
 Upgrading from 0.1.0: migration `V6` runs on start-up. `/v1` stays compatible: new

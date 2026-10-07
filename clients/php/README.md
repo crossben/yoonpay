@@ -76,6 +76,49 @@ after your controller answered 2xx. Events are unordered: act on the state in `o
 Outside Laravel: `Yoon\Webhook\Signature::verify($secret, $header, $rawBody)` and
 `Yoon\Webhook\Event::fromJson($rawBody)`.
 
+### Prompt for an AI coding agent (Laravel)
+
+Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
+
+```text
+Integrate Yoon payments (yoonpay/yoon-php 0.2.x) into this Laravel app.
+Install: composer require "yoonpay/yoon-php:^0.2"
+Do:
+1. .env: YOON_URL, YOON_API_KEY, YOON_WEBHOOK_SECRET (same value as YOON_APPS_<APP>_WEBHOOK_SECRET
+   on the Yoon side).
+2. Create a payment with the facade, keyed on the order:
+   Yoon::createPayment(['amount' => ..., 'currency' => 'XOF', 'country' => 'SN',
+   'method' => 'wave', 'reference' => (string) $order->id, 'return_url' => route(...)],
+   'order-' . $order->id); redirect to checkout_url, or show instructions.
+3. Webhook: a POST route /yoon/webhook with the yoon.webhook middleware; exclude the path from
+   CSRF (bootstrap/app.php validateCsrfTokens except). In the controller read
+   $request->attributes->get('yoon_event') (Yoon\Webhook\Event) and update the order.
+4. Errors are Yoon\YoonException: problemCode(), isRetryable().
+Rules (they protect real money; follow them exactly):
+- Amounts are integers in minor units, never floats: XOF has no minor unit, 5000 = 5 000 XOF.
+- Every write takes an idempotency key tied to the business object ("order-<id>",
+  "refund-<order id>-<n>"). On a retryable error, retry with the SAME key; a new key could
+  charge twice. The client never retries on its own.
+- Store Yoon's payment id on the order. Fulfil ONLY when the webhook says payment.succeeded
+  (or GET the payment and check status == "succeeded"). The customer returning to return_url
+  proves nothing.
+- "pending" means the provider has not answered yet, not failed: show "waiting for payment".
+  payment.failed / payment.expired: let the customer try again (a new order or a new key).
+- Webhooks: verify the signature over the RAW request body (the helper below does it), answer
+  2xx quickly, and make the handler idempotent: the same event can arrive more than once.
+  Events: payment.succeeded, payment.failed, payment.expired, refund.succeeded, refund.failed,
+  payout.paid, payout.failed, payout.needs_review.
+- Never log the API key or full phone numbers; read YOON_URL, YOON_API_KEY and
+  YOON_WEBHOOK_SECRET from the environment.
+- Optional: "checkout": "hosted" (without "method") sends the customer to Yoon's own page to
+  choose Wave, Orange Money, card, …; redirect them to the returned checkout_url.
+Verify: run Yoon with YOON_DEMO_ENABLED=true and YOON_APPS_<APP>_PROVIDERS_DEMO_PRIORITY=1,
+set YOON_APPS_<APP>_WEBHOOK_URL to this app's webhook URL, create a payment, open its
+checkout_url, click Pay, and check the order becomes paid only after the webhook arrives.
+Then click Decline on another payment and check the order is not paid.
+Docs: https://yoonpay.benhattab.pro/docs/
+```
+
 ## Symfony
 
 The bundle ships in this package (`Yoon\Symfony`); Symfony components are not a dependency of
@@ -140,6 +183,47 @@ older than 300 s), answers already-handled events with 200 without calling your 
 remembers an event id in the cache pool only after your controller answered 2xx: a controller
 that fails or throws gets the retry. Keep the route outside any firewall that requires a login
 or CSRF token. With more than one server, point `webhook.cache` at a shared pool (Redis, …).
+
+### Prompt for an AI coding agent (Symfony)
+
+Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
+
+```text
+Integrate Yoon payments (yoonpay/yoon-php 0.2.x, Symfony bundle) into this Symfony app.
+Install: composer require "yoonpay/yoon-php:^0.2"
+Do:
+1. Register Yoon\Symfony\YoonBundle in config/bundles.php and create config/packages/yoon.yaml
+   (url, api_key, webhook_secret from %env(...)%).
+2. Autowire Yoon\Yoon and create a payment keyed on the order:
+   $yoon->createPayment([...], 'order-' . $order->getId()); redirect to checkout_url.
+3. Webhook controller: #[Route('/yoon/webhook', methods: ['POST'])] and #[YoonWebhook], with a
+   Yoon\Webhook\Event argument; update the order from $event->type() and $event->object()['id'];
+   return a 204. With several servers, point the bundle's webhook cache at a shared pool.
+4. Errors are Yoon\YoonException: problemCode(), isRetryable().
+Rules (they protect real money; follow them exactly):
+- Amounts are integers in minor units, never floats: XOF has no minor unit, 5000 = 5 000 XOF.
+- Every write takes an idempotency key tied to the business object ("order-<id>",
+  "refund-<order id>-<n>"). On a retryable error, retry with the SAME key; a new key could
+  charge twice. The client never retries on its own.
+- Store Yoon's payment id on the order. Fulfil ONLY when the webhook says payment.succeeded
+  (or GET the payment and check status == "succeeded"). The customer returning to return_url
+  proves nothing.
+- "pending" means the provider has not answered yet, not failed: show "waiting for payment".
+  payment.failed / payment.expired: let the customer try again (a new order or a new key).
+- Webhooks: verify the signature over the RAW request body (the helper below does it), answer
+  2xx quickly, and make the handler idempotent: the same event can arrive more than once.
+  Events: payment.succeeded, payment.failed, payment.expired, refund.succeeded, refund.failed,
+  payout.paid, payout.failed, payout.needs_review.
+- Never log the API key or full phone numbers; read YOON_URL, YOON_API_KEY and
+  YOON_WEBHOOK_SECRET from the environment.
+- Optional: "checkout": "hosted" (without "method") sends the customer to Yoon's own page to
+  choose Wave, Orange Money, card, …; redirect them to the returned checkout_url.
+Verify: run Yoon with YOON_DEMO_ENABLED=true and YOON_APPS_<APP>_PROVIDERS_DEMO_PRIORITY=1,
+set YOON_APPS_<APP>_WEBHOOK_URL to this app's webhook URL, create a payment, open its
+checkout_url, click Pay, and check the order becomes paid only after the webhook arrives.
+Then click Decline on another payment and check the order is not paid.
+Docs: https://yoonpay.benhattab.pro/docs/
+```
 
 ## Layout
 
