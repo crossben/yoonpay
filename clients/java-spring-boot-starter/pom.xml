@@ -7,7 +7,7 @@
     <!-- Standalone like clients/java: an Apache-2.0 library for applications, not part of the AGPL server build. -->
     <groupId>io.github.crossben</groupId>
     <artifactId>yoon-spring-boot-starter</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <name>Yoon Spring Boot starter</name>
     <description>Spring Boot auto-configuration for the Yoon Java client: a configured Yoon bean and a webhook verification filter.</description>
     <url>https://github.com/crossben/yoonpay</url>
@@ -36,7 +36,7 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <yoon-java.version>0.1.0</yoon-java.version>
+        <yoon-java.version>0.2.0</yoon-java.version>
         <!-- Built against Spring Boot 4; `-Pboot3` builds and tests against Spring Boot 3. -->
         <spring-boot.version>4.1.1</spring-boot.version>
     </properties>

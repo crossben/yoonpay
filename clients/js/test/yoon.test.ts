@@ -41,7 +41,7 @@ describe("Yoon — request shape", () => {
     const headers = new Headers(init.headers);
     expect(headers.get("authorization")).toBe(`Bearer ${KEY}`);
     expect(headers.get("idempotency-key")).toBe("order-1042");
-    expect(headers.get("user-agent")).toBe("yoon-javascript/0.1.0");
+    expect(headers.get("user-agent")).toBe("yoon-javascript/0.2.0");
     expect(headers.get("content-type")).toContain("application/json");
     expect(JSON.parse(String(init.body))).toMatchObject({ amount: 5000, reference: "order_1042" });
   });

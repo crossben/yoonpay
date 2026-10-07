@@ -8,7 +8,7 @@
     <!-- Published to Maven Central under the GitHub-verified namespace (ADR-0018). -->
     <groupId>io.github.crossben</groupId>
     <artifactId>yoon-java</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <name>Yoon Java client</name>
     <description>Java client for Yoon, the self-hosted payment gateway for African payment providers.</description>
     <url>https://github.com/crossben/yoonpay</url>

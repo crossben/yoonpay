@@ -113,7 +113,8 @@ function table(caption, columns, rows) {
     const head = el('tr', {}, ...columns.map((c) => el('th', { scope: 'col' }, c.label)));
     const body = rows.map((r) => el('tr', {}, ...columns.map((c) => {
         const v = c.value(r);
-        return el('td', { class: c.class || '' }, v instanceof Node ? v : v ?? '');
+        // data-label: on phones each row becomes a card and the label is shown next to the value (CSS).
+        return el('td', { class: c.class || '', 'data-label': c.label }, v instanceof Node ? v : v ?? '');
     })));
     return el('div', { class: 'table-wrap' }, el('table', {}, el('caption', {}, caption), el('thead', {}, head), el('tbody', {}, ...body)));
 }

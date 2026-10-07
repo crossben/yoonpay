@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yoonpay"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python client for Yoon, a self-hosted payment gateway for African payment providers, with Django, FastAPI and Flask helpers."
 readme = "README.md"
 license = "Apache-2.0"

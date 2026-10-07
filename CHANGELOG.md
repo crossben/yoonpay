@@ -5,6 +5,11 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-07
+
+Upgrading from 0.1.0: migration `V6` runs on start-up. `/v1` stays compatible: new
+fields only, and `method` stays a string (`any` for a hosted checkout not chosen yet).
+
 ### API
 - `POST /v1/payments` accepts `checkout: "hosted"`: `method` becomes optional, no provider is called,
   and `checkout_url` points to a Yoon-hosted page where the customer picks the method (ADR-0024).
@@ -21,6 +26,8 @@ never changes incompatibly.
 - Public checkout endpoints are rate-limited per client address (`YOON_CHECKOUT_RATE_LIMIT`,
   default 300/min). Yoon now takes the client address from `X-Forwarded-For` sent by private-network
   proxies (`server.forward-headers-strategy=native`).
+- Dashboard: responsive — tables become cards on phones and tablets (two per row on tablets), ids
+  wrap, tabs scroll in one row; no sideways scrolling from 320 to 1920 px wide.
 - Operator dashboard at `/dashboard` (`YOON_DASHBOARD_ENABLED`, default `true`; needs
   `YOON_ADMIN_TOKEN`): applications, payments, refunds, payouts, payouts needing review,
   dead letters with replay, balances, ledger and status history. Static page with a strict CSP.
@@ -42,6 +49,12 @@ never changes incompatibly.
 - Every adapter now passes a shared money-safety suite, `ProviderContract` (`yoon-testkit`):
   refused connection → rejected; 5xx, dropped connection or timeout after sending → unknown;
   no guessed statuses; unoffered operations send nothing; forged callbacks are invalid.
+
+### Clients
+- All clients are published: `yoonpay/yoon-php` (Packagist), `io.github.crossben:yoon-java` and
+  `io.github.crossben:yoon-spring-boot-starter` (Maven Central), `@yoonpay/yoon` (npm),
+  `yoonpay` (PyPI). The JS client is published with npm trusted publishing (no token).
+- Regenerated for the new API fields (`checkout`, `checkout_expires_at`, operator read models).
 
 ## [0.1.0] - 2026-10-01
 

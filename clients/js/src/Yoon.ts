@@ -18,7 +18,7 @@ import { YoonException } from "./YoonException";
 import { timedFetch } from "./internal/timedFetch";
 
 /** Client version, carried in the User-Agent (`yoon-javascript/<version>`). */
-export const CLIENT_VERSION = "0.1.0";
+export const CLIENT_VERSION = "0.2.0";
 export const USER_AGENT = `yoon-javascript/${CLIENT_VERSION}`;
 
 const DEFAULT_TIMEOUT_MS = 30_000;

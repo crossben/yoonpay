@@ -211,8 +211,9 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   the lowest dependencies and on the latest; `clients/python/e2e/run.py` runs in `clients-e2e`.
 - The Symfony bundle lives in `clients/php/src/Symfony`; `symfony/*` stays out of `require`. CI
   tests it on Symfony 7.x (`php-client`) and 6.4 LTS (`php-client-symfony-lts`).
-- `clients/java-spring-boot-starter` needs `clients/java` installed locally (`mvn install`) until
-  yoon-java is on Maven Central; CI tests it on Spring Boot 3 (`-Pboot3`) and 4.
+- `clients/java-spring-boot-starter` depends on the same version of `yoon-java`, which is only on
+  Maven Central once released: build it after `mvn install` of `clients/java` (CI does). CI tests
+  it on Spring Boot 3 (`-Pboot3`) and 4.
 - The IDE may compile into `target/`: if Maven reports "Unresolved compilation problems",
   run with `clean`.
 
