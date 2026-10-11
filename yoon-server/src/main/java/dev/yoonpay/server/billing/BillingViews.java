@@ -1,5 +1,6 @@
 package dev.yoonpay.server.billing;
 
+import dev.yoonpay.server.config.YoonProperties;
 import dev.yoonpay.server.payment.PaymentRecord;
 import dev.yoonpay.server.payment.PaymentRepository;
 import org.springframework.stereotype.Component;
@@ -50,9 +51,11 @@ public class BillingViews {
     private final InvoiceRepository invoices;
     private final PaymentRepository payments;
     private final ObjectMapper json;
+    private final YoonProperties properties;
 
     public BillingViews(CustomerRepository customers, CatalogRepository catalog, InvoiceRepository invoices,
-                        PaymentRepository payments, ObjectMapper json) {
+                        PaymentRepository payments, ObjectMapper json, YoonProperties properties) {
+        this.properties = properties;
         this.customers = customers;
         this.catalog = catalog;
         this.invoices = invoices;
@@ -87,7 +90,20 @@ public class BillingViews {
                 .map(l -> new LineView(l.description(), l.priceId(), l.amount())).toList();
         return new InvoiceView(i.id(), "invoice", i.number(), i.customerId(), i.subscriptionId(), lower(i.kind()),
                 lower(i.status()), i.amountDue(), i.currency(), lines, i.periodStart(), i.periodEnd(), i.paymentId(),
-                checkoutUrl, null, i.paidAt(), i.voidedAt(), i.createdAt());
+                checkoutUrl, receiptUrl(i), i.paidAt(), i.voidedAt(), i.createdAt());
+    }
+
+    /** The public receipt page (ADR-0027), once paid; relative when no public URL is configured. */
+    public String receiptUrl(InvoiceRecord i) {
+        if (!"PAID".equals(i.status())) {
+            return null;
+        }
+        String path = receiptPath(i);
+        return properties.publicUrl() == null ? path : properties.publicUrl().resolve(path).toString();
+    }
+
+    public static String receiptPath(InvoiceRecord i) {
+        return "/checkout/receipts/" + i.id() + "?t=" + i.receiptToken();
     }
 
     private PriceView price(UUID app, PriceRecord p) {

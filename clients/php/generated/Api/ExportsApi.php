@@ -74,6 +74,9 @@ class ExportsApi
 
     /** @var string[] $contentTypes **/
     public const contentTypes = [
+        'exportInvoices' => [
+            'application/json',
+        ],
         'exportLedger' => [
             'application/json',
         ],
@@ -84,6 +87,9 @@ class ExportsApi
             'application/json',
         ],
         'exportRefunds' => [
+            'application/json',
+        ],
+        'exportSubscriptions' => [
             'application/json',
         ],
     ];
@@ -132,6 +138,302 @@ class ExportsApi
     public function getConfig()
     {
         return $this->config;
+    }
+
+    /**
+     * Operation exportInvoices
+     *
+     * Export invoices as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportInvoices'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return string|\Yoon\Generated\Model\Problem
+     */
+    public function exportInvoices($from = null, $to = null, string $contentType = self::contentTypes['exportInvoices'][0])
+    {
+        list($response) = $this->exportInvoicesWithHttpInfo($from, $to, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation exportInvoicesWithHttpInfo
+     *
+     * Export invoices as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportInvoices'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return array of string|\Yoon\Generated\Model\Problem, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function exportInvoicesWithHttpInfo($from = null, $to = null, string $contentType = self::contentTypes['exportInvoices'][0])
+    {
+        $request = $this->exportInvoicesRequest($from, $to, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        'string',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+            }
+
+            
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                'string',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        'string',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation exportInvoicesAsync
+     *
+     * Export invoices as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportInvoices'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function exportInvoicesAsync($from = null, $to = null, string $contentType = self::contentTypes['exportInvoices'][0])
+    {
+        return $this->exportInvoicesAsyncWithHttpInfo($from, $to, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation exportInvoicesAsyncWithHttpInfo
+     *
+     * Export invoices as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportInvoices'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function exportInvoicesAsyncWithHttpInfo($from = null, $to = null, string $contentType = self::contentTypes['exportInvoices'][0])
+    {
+        $returnType = 'string';
+        $request = $this->exportInvoicesRequest($from, $to, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if ($returnType === '\SplFileObject') {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'exportInvoices'
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportInvoices'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function exportInvoicesRequest($from = null, $to = null, string $contentType = self::contentTypes['exportInvoices'][0])
+    {
+
+
+
+
+        $resourcePath = '/v1/exports/invoices.csv';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+        // query params
+        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
+            $from,
+            'from', // param base name
+            'string', // openApiType
+            'form', // style
+            true, // explode
+            false // required
+        ) ?? []);
+        // query params
+        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
+            $to,
+            'to', // param base name
+            'string', // openApiType
+            'form', // style
+            true, // explode
+            false // required
+        ) ?? []);
+
+
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['text/csv', 'application/problem+json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                $httpBody = \Yoon\Internal\Json::encode($formParams);
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'GET',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
     }
 
     /**
@@ -1233,6 +1535,302 @@ class ExportsApi
 
 
         $resourcePath = '/v1/exports/refunds.csv';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+        // query params
+        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
+            $from,
+            'from', // param base name
+            'string', // openApiType
+            'form', // style
+            true, // explode
+            false // required
+        ) ?? []);
+        // query params
+        $queryParams = array_merge($queryParams, ObjectSerializer::toQueryValue(
+            $to,
+            'to', // param base name
+            'string', // openApiType
+            'form', // style
+            true, // explode
+            false // required
+        ) ?? []);
+
+
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['text/csv', 'application/problem+json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                $httpBody = \Yoon\Internal\Json::encode($formParams);
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'GET',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    /**
+     * Operation exportSubscriptions
+     *
+     * Export subscriptions as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportSubscriptions'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return string|\Yoon\Generated\Model\Problem
+     */
+    public function exportSubscriptions($from = null, $to = null, string $contentType = self::contentTypes['exportSubscriptions'][0])
+    {
+        list($response) = $this->exportSubscriptionsWithHttpInfo($from, $to, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation exportSubscriptionsWithHttpInfo
+     *
+     * Export subscriptions as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportSubscriptions'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return array of string|\Yoon\Generated\Model\Problem, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function exportSubscriptionsWithHttpInfo($from = null, $to = null, string $contentType = self::contentTypes['exportSubscriptions'][0])
+    {
+        $request = $this->exportSubscriptionsRequest($from, $to, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        'string',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+            }
+
+            
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                'string',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        'string',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation exportSubscriptionsAsync
+     *
+     * Export subscriptions as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportSubscriptions'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function exportSubscriptionsAsync($from = null, $to = null, string $contentType = self::contentTypes['exportSubscriptions'][0])
+    {
+        return $this->exportSubscriptionsAsyncWithHttpInfo($from, $to, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation exportSubscriptionsAsyncWithHttpInfo
+     *
+     * Export subscriptions as CSV
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportSubscriptions'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function exportSubscriptionsAsyncWithHttpInfo($from = null, $to = null, string $contentType = self::contentTypes['exportSubscriptions'][0])
+    {
+        $returnType = 'string';
+        $request = $this->exportSubscriptionsRequest($from, $to, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if ($returnType === '\SplFileObject') {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'exportSubscriptions'
+     *
+     * @param  \DateTime|null $from Inclusive, ISO-8601. (optional)
+     * @param  \DateTime|null $to Exclusive, ISO-8601. (optional)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['exportSubscriptions'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function exportSubscriptionsRequest($from = null, $to = null, string $contentType = self::contentTypes['exportSubscriptions'][0])
+    {
+
+
+
+
+        $resourcePath = '/v1/exports/subscriptions.csv';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];

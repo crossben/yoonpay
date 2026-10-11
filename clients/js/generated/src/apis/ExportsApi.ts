@@ -18,6 +18,11 @@ import type {
   Problem,
 } from '../models/index';
 
+export interface ExportInvoicesRequest {
+    from?: string;
+    to?: string;
+}
+
 export interface ExportLedgerRequest {
     from?: string;
     to?: string;
@@ -38,10 +43,66 @@ export interface ExportRefundsRequest {
     to?: string;
 }
 
+export interface ExportSubscriptionsRequest {
+    from?: string;
+    to?: string;
+}
+
 /**
  * 
  */
 export class ExportsApi extends runtime.BaseAPI {
+
+    /**
+     * Created in the window, with number, status, amount, period and the payment that paid it.
+     * Export invoices as CSV
+     */
+    async exportInvoicesRaw(requestParameters: ExportInvoicesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['from'] != null) {
+            queryParameters['from'] = requestParameters['from'];
+        }
+
+        if (requestParameters['to'] != null) {
+            queryParameters['to'] = requestParameters['to'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("apiKey", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/v1/exports/invoices.csv`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<string>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * Created in the window, with number, status, amount, period and the payment that paid it.
+     * Export invoices as CSV
+     */
+    async exportInvoices(requestParameters: ExportInvoicesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportInvoicesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Export ledger entries as CSV
@@ -236,6 +297,57 @@ export class ExportsApi extends runtime.BaseAPI {
      */
     async exportRefunds(requestParameters: ExportRefundsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
         const response = await this.exportRefundsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Created in the window; current status and period, plan slug, price and the customer\'s external id.
+     * Export subscriptions as CSV
+     */
+    async exportSubscriptionsRaw(requestParameters: ExportSubscriptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['from'] != null) {
+            queryParameters['from'] = requestParameters['from'];
+        }
+
+        if (requestParameters['to'] != null) {
+            queryParameters['to'] = requestParameters['to'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("apiKey", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/v1/exports/subscriptions.csv`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<string>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * Created in the window; current status and period, plan slug, price and the customer\'s external id.
+     * Export subscriptions as CSV
+     */
+    async exportSubscriptions(requestParameters: ExportSubscriptionsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportSubscriptionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

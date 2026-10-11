@@ -349,6 +349,57 @@ export interface CheckoutView {
      * @memberof CheckoutView
      */
     last_error: CheckoutViewLastError;
+    /**
+     * 
+     * @type {CheckoutViewBilling}
+     * @memberof CheckoutView
+     */
+    billing?: CheckoutViewBilling;
+}
+
+
+/**
+ * Set when the payment pays a subscription invoice.
+ * @export
+ * @interface CheckoutViewBilling
+ */
+export interface CheckoutViewBilling {
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutViewBilling
+     */
+    invoice_number: string;
+    /**
+     * first, renewal or upgrade (open set).
+     * @type {string}
+     * @memberof CheckoutViewBilling
+     */
+    kind: string;
+    /**
+     * The plan's name.
+     * @type {string}
+     * @memberof CheckoutViewBilling
+     */
+    plan: string;
+    /**
+     * 
+     * @type {Interval}
+     * @memberof CheckoutViewBilling
+     */
+    interval: Interval;
+    /**
+     * 
+     * @type {number}
+     * @memberof CheckoutViewBilling
+     */
+    interval_count: number;
+    /**
+     * Relative; once this payment has paid the invoice.
+     * @type {string}
+     * @memberof CheckoutViewBilling
+     */
+    receipt_url: string | null;
 }
 
 
@@ -437,6 +488,38 @@ export const CheckoutViewNextActionTypeEnum = {
 } as const;
 export type CheckoutViewNextActionTypeEnum = typeof CheckoutViewNextActionTypeEnum[keyof typeof CheckoutViewNextActionTypeEnum];
 
+/**
+ * Exactly one of `periods` and `open`.
+ * @export
+ * @interface CompRequest
+ */
+export interface CompRequest {
+    [key: string]: any | any;
+    /**
+     * The price granted (any price of the application).
+     * @type {string}
+     * @memberof CompRequest
+     */
+    price: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CompRequest
+     */
+    periods?: number;
+    /**
+     * true: no end date (current_period_end null) until canceled.
+     * @type {boolean}
+     * @memberof CompRequest
+     */
+    open?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompRequest
+     */
+    note: string;
+}
 /**
  * 
  * @export
@@ -1330,7 +1413,7 @@ export interface Invoice {
      */
     checkout_url?: string | null;
     /**
-     * 
+     * The public payment receipt (token in the URL), once paid. A receipt, not a tax invoice.
      * @type {string}
      * @memberof Invoice
      */
@@ -2232,6 +2315,120 @@ export interface Problem {
      * @memberof Problem
      */
     code: string;
+}
+/**
+ * A paid invoice as its public receipt shows it. Not a tax invoice; no contact details.
+ * @export
+ * @interface ReceiptView
+ */
+export interface ReceiptView {
+    [key: string]: any | any;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    number: string;
+    /**
+     * The application's name.
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    merchant: string;
+    /**
+     * The customer's name
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    customer: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    plan: string;
+    /**
+     * 
+     * @type {Interval}
+     * @memberof ReceiptView
+     */
+    interval: Interval;
+    /**
+     * 
+     * @type {number}
+     * @memberof ReceiptView
+     */
+    interval_count: number;
+    /**
+     * 
+     * @type {Array<ReceiptViewLinesInner>}
+     * @memberof ReceiptView
+     */
+    lines: Array<ReceiptViewLinesInner>;
+    /**
+     * Minor units.
+     * @type {number}
+     * @memberof ReceiptView
+     */
+    amount: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    period_start: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    period_end: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    paid_at: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    method: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    payment: string | null;
+}
+
+
+/**
+ * 
+ * @export
+ * @interface ReceiptViewLinesInner
+ */
+export interface ReceiptViewLinesInner {
+    [key: string]: any | any;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptViewLinesInner
+     */
+    description: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ReceiptViewLinesInner
+     */
+    amount: number;
 }
 /**
  * 

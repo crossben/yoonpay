@@ -34,9 +34,9 @@ Every write takes `Idempotency-Key`. Lists: newest first, `starting_after`, `lim
 | GET | `/v1/invoices` | `?customer=&subscription=&status=` |
 | GET | `/v1/invoices/{id}` | `receipt_url` once paid |
 | GET | `/v1/exports/subscriptions.csv`, `/v1/exports/invoices.csv` | like the other exports |
-| GET | `/receipts/{invoice}?t=` | public, token-scoped HTML receipt (ADR-0027) |
+| GET | `/checkout/receipts/{invoice}?t=` | public, token-scoped HTML receipt (ADR-0027) |
 | GET | `/admin/v1/applications/{app}/{plans,subscriptions,invoices}` (+ `/{id}/events`) | operator read views, delegating to `/v1` |
-| POST | `/admin/v1/applications/{app}/subscriptions/{id}/comp` | `{price, periods, note}` |
+| POST | `/admin/v1/applications/{app}/{subscriptions,customers}/{id}/comp` | `{price, periods \| open, note}` |
 
 Additive fields: `Payment.customer`, `Payment.subscription`, `Payment.invoice` (nullable
 strings). New event types: `subscription.{created,activated,renewed,past_due,expired,canceled,changed,renewal_upcoming}`,
@@ -151,6 +151,7 @@ subscription"; amounts `bigint CHECK (> 0)`; status `CHECK` lists.
 - M2 customers, plans, prices, V7 schema, open-set client enums — done.
 - M3 subscriptions, invoices, payment hook, events — done.
 - M4 billing sweep (reminders, period end, grace end, incomplete expiry) — done.
+- M5 receipt page, plan on the checkout, dashboard tabs, comp (CLI + operator API), CSV exports — done.
 
 ## 6. Decisions from review (2026-10-10)
 1. `past_due` is entitled (grace means "still works, pay soon").

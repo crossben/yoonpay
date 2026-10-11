@@ -559,7 +559,7 @@ public class Invoice {
   }
 
   /**
-   * Get receiptUrl
+   * The public payment receipt (token in the URL), once paid. A receipt, not a tax invoice.
    * @return receiptUrl
    */
   @jakarta.annotation.Nullable

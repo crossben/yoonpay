@@ -43,7 +43,7 @@ class Invoice(BaseModel):
     period_end: Optional[datetime] = Field(default=None, description="Set when paid.")
     payment: Optional[StrictStr] = Field(default=None, description="The hosted payment that pays it.")
     checkout_url: Optional[StrictStr] = Field(default=None, description="Where the customer pays")
-    receipt_url: Optional[StrictStr] = None
+    receipt_url: Optional[StrictStr] = Field(default=None, description="The public payment receipt (token in the URL), once paid. A receipt, not a tax invoice.")
     paid_at: Optional[datetime] = None
     voided_at: Optional[datetime] = None
     created_at: datetime

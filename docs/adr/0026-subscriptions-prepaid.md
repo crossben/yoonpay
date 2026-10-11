@@ -113,12 +113,15 @@ raw value; JS has no runtime checks), with a test in each client. CI lowers that
 (`api/oasdiff/severity-levels.txt`); removing a value, or adding one to a request, still fails.
 
 ### Operator
-- `yoon billing comp <app> <subscription or customer> <price> <periods | open>` (CLI) and
-  `POST /admin/v1/applications/{app}/subscriptions/{id}/comp`: adds paid-looking periods with
-  **no payment**, `comp: true`, recorded in `status_events` with the operator as cause. No ledger
-  posting (no money moved). `open` grants without an end date (`current_period_end` null:
-  sweeps skip it) until an operator ends it — for "contact us" plans.
-- Dashboard: plans, subscriptions (with history) and invoices tabs; read-only apart from comp.
+- `yoon billing comp <app> <sub_… | cus_…> <price> <periods | open> <note>` (CLI) and
+  `POST /admin/v1/applications/{app}/subscriptions/{id}/comp` (or `/customers/{id}/comp`, which
+  creates the subscription), with an `Idempotency-Key`: adds periods with **no payment**, stacked
+  like a renewal, `comp: true`, recorded in `status_events` with cause `admin` and the operator's
+  note; an open invoice is voided. No ledger posting (no money moved). `open` grants without an
+  end date (`current_period_end` null: sweeps skip it) until the subscription is canceled — for
+  "contact us" plans. A later paid period sets `comp` back to false.
+- Dashboard: plans, subscriptions (with history) and invoices tabs, read-only (comp stays in the
+  CLI and the operator API, like resolving a payout).
 - CSV exports: `subscriptions.csv`, `invoices.csv`.
 
 ## Consequences

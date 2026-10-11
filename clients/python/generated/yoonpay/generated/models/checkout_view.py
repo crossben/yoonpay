@@ -20,6 +20,7 @@ import json
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
+from yoonpay.generated.models.checkout_view_billing import CheckoutViewBilling
 from yoonpay.generated.models.checkout_view_last_error import CheckoutViewLastError
 from yoonpay.generated.models.checkout_view_methods_inner import CheckoutViewMethodsInner
 from yoonpay.generated.models.checkout_view_next_action import CheckoutViewNextAction
@@ -46,7 +47,8 @@ class CheckoutView(BaseModel):
     return_url: Optional[StrictStr] = Field(description="The application's page to go back to.")
     expires_at: Optional[datetime]
     last_error: CheckoutViewLastError
-    __properties: ClassVar[List[str]] = ["id", "status", "amount", "currency", "country", "description", "method", "methods", "can_choose", "next_action", "customer_phone", "has_pi_alias", "return_url", "expires_at", "last_error"]
+    billing: Optional[CheckoutViewBilling] = None
+    __properties: ClassVar[List[str]] = ["id", "status", "amount", "currency", "country", "description", "method", "methods", "can_choose", "next_action", "customer_phone", "has_pi_alias", "return_url", "expires_at", "last_error", "billing"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -100,6 +102,9 @@ class CheckoutView(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of last_error
         if self.last_error:
             _dict['last_error'] = self.last_error.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of billing
+        if self.billing:
+            _dict['billing'] = self.billing.to_dict()
         # set to None if description (nullable) is None
         # and model_fields_set contains the field
         if self.description is None and "description" in self.model_fields_set:
@@ -151,7 +156,8 @@ class CheckoutView(BaseModel):
             "has_pi_alias": obj.get("has_pi_alias"),
             "return_url": obj.get("return_url"),
             "expires_at": obj.get("expires_at"),
-            "last_error": CheckoutViewLastError.from_dict(obj["last_error"]) if obj.get("last_error") is not None else None
+            "last_error": CheckoutViewLastError.from_dict(obj["last_error"]) if obj.get("last_error") is not None else None,
+            "billing": CheckoutViewBilling.from_dict(obj["billing"]) if obj.get("billing") is not None else None
         })
         return _obj
 

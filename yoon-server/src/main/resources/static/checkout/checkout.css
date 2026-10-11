@@ -116,3 +116,24 @@ button:disabled { opacity: .6; cursor: progress; }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 }
+
+.billing { margin: .4rem 0 0; font-size: .9rem; }
+
+/* Receipt page (ADR-0027) */
+.receipt-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: baseline; }
+.receipt-head h1 { margin: 0; font-size: 1.3rem; }
+.notice { font-size: .85rem; margin: .25rem 0 0; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; margin: 1rem 0 0; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+.lines { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.lines td { padding: .5rem 0; border-top: 1px solid var(--border); vertical-align: top; }
+.lines td.num { text-align: right; white-space: nowrap; padding-left: 1rem; }
+.lines tr.total td { font-weight: 700; }
+.actions { display: flex; gap: .5rem; justify-content: center; }
+
+@media print {
+    .top button, .actions, footer { display: none; }
+    body { background: #fff; color: #000; }
+    .card { border: none; box-shadow: none; }
+}

@@ -23,9 +23,11 @@ from yoonpay.generated.models.cancel_subscription_request import CancelSubscript
 from yoonpay.generated.models.change_subscription_request import ChangeSubscriptionRequest
 from yoonpay.generated.models.checkout_attempt_request import CheckoutAttemptRequest
 from yoonpay.generated.models.checkout_view import CheckoutView
+from yoonpay.generated.models.checkout_view_billing import CheckoutViewBilling
 from yoonpay.generated.models.checkout_view_last_error import CheckoutViewLastError
 from yoonpay.generated.models.checkout_view_methods_inner import CheckoutViewMethodsInner
 from yoonpay.generated.models.checkout_view_next_action import CheckoutViewNextAction
+from yoonpay.generated.models.comp_request import CompRequest
 from yoonpay.generated.models.create_customer_request import CreateCustomerRequest
 from yoonpay.generated.models.create_payment_request import CreatePaymentRequest
 from yoonpay.generated.models.create_payment_request_customer import CreatePaymentRequestCustomer
@@ -71,6 +73,8 @@ from yoonpay.generated.models.plan_ref import PlanRef
 from yoonpay.generated.models.price import Price
 from yoonpay.generated.models.price_input import PriceInput
 from yoonpay.generated.models.problem import Problem
+from yoonpay.generated.models.receipt_view import ReceiptView
+from yoonpay.generated.models.receipt_view_lines_inner import ReceiptViewLinesInner
 from yoonpay.generated.models.receive_provider_callback200_response import ReceiveProviderCallback200Response
 from yoonpay.generated.models.refund import Refund
 from yoonpay.generated.models.refund_page import RefundPage

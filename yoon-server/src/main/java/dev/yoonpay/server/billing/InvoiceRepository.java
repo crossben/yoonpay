@@ -60,6 +60,11 @@ public class InvoiceRepository {
                 .param("app", app).param("id", id).query(InvoiceRecord.class).optional();
     }
 
+    /** Unscoped: only for the public receipt page, which then checks the receipt token. */
+    public Optional<InvoiceRecord> findForReceipt(String id) {
+        return jdbc.sql("SELECT * FROM invoices WHERE id = :id").param("id", id).query(InvoiceRecord.class).optional();
+    }
+
     public Optional<InvoiceRecord> lock(UUID app, String id) {
         return jdbc.sql("SELECT * FROM invoices WHERE application_id = :app AND id = :id FOR UPDATE")
                 .param("app", app).param("id", id).query(InvoiceRecord.class).optional();

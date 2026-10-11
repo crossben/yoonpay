@@ -2,6 +2,9 @@ package dev.yoonpay.server.checkout;
 
 import dev.yoonpay.server.auth.AppPrincipal;
 import dev.yoonpay.server.auth.Applications;
+import dev.yoonpay.server.billing.BillingViews;
+import dev.yoonpay.server.billing.CatalogRepository;
+import dev.yoonpay.server.billing.InvoiceRepository;
 import dev.yoonpay.server.lifecycle.StatusEvents.Cause;
 import dev.yoonpay.server.payment.PaymentRecord;
 import dev.yoonpay.server.payment.PaymentRepository;
@@ -23,6 +26,7 @@ import java.security.MessageDigest;
 import java.time.Clock;
 import java.util.Currency;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The public hosted checkout (ADR-0024): the page, its view of the payment and the customer's
@@ -37,9 +41,14 @@ public class CheckoutController {
     private final PaymentRepository payments;
     private final PaymentService service;
     private final Applications applications;
+    private final InvoiceRepository invoices;
+    private final CatalogRepository catalog;
     private final Clock clock;
 
-    public CheckoutController(PaymentRepository payments, PaymentService service, Applications applications, Clock clock) {
+    public CheckoutController(PaymentRepository payments, PaymentService service, Applications applications,
+                              InvoiceRepository invoices, CatalogRepository catalog, Clock clock) {
+        this.invoices = invoices;
+        this.catalog = catalog;
         this.payments = payments;
         this.service = service;
         this.applications = applications;
@@ -82,7 +91,18 @@ public class CheckoutController {
         List<PaymentService.MethodOption> methods = canChoose
                 ? service.collectMethods(app, p.country(), Currency.getInstance(p.currency()), p.checkoutMethod())
                 : List.of();
-        return CheckoutView.of(p, methods, canChoose, lastError);
+        return CheckoutView.of(p, methods, canChoose, lastError, billing(app, p));
+    }
+
+    private CheckoutView.Billing billing(AppPrincipal app, PaymentRecord p) {
+        return invoices.invoiceOfPayment(p.id()).flatMap(id -> invoices.find(app.id(), id)).map(i -> {
+            var price = catalog.findPrice(app.id(), i.priceId()).orElseThrow();
+            var plan = catalog.findPlan(app.id(), price.planId()).orElseThrow();
+            // The receipt belongs to the payment that paid the invoice, not to an earlier, abandoned one.
+            String receipt = "PAID".equals(i.status()) && p.id().equals(i.paymentId()) ? BillingViews.receiptPath(i) : null;
+            return new CheckoutView.Billing(i.number(), i.kind().toLowerCase(Locale.ROOT), plan.name(),
+                    price.interval().toLowerCase(Locale.ROOT), price.intervalCount(), receipt);
+        }).orElse(null);
     }
 
     private PaymentRecord authorize(String id, String token) {

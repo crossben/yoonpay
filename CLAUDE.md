@@ -183,6 +183,11 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   then each is handled in its own transaction that locks the subscription and **re-checks the
   condition under the lock** (a payment may have moved the period meanwhile). Time comes from the
   injected `Clock`; tests age rows in SQL and call the stage methods directly (`BillingSweepTest`).
+- Comp (`CompService`) is the only way to add periods without a payment: one transaction
+  (subscription created for a `cus_` target, lock, void the open invoice, transition with cause
+  `admin`). The admin endpoint requires an `Idempotency-Key`: a retried comp must not stack twice.
+- Receipts live under `/checkout/receipts/` so `CheckoutFilter` (CSP, no-store, rate limit)
+  covers them; anything that is not a paid invoice with the right token is the same 404.
 
 ### Idempotency (`IdempotencyStore`)
 

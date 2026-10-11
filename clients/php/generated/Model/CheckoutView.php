@@ -72,7 +72,8 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
         'has_pi_alias' => 'bool',
         'return_url' => 'string',
         'expires_at' => '\DateTime',
-        'last_error' => '\Yoon\Generated\Model\CheckoutViewLastError'
+        'last_error' => '\Yoon\Generated\Model\CheckoutViewLastError',
+        'billing' => '\Yoon\Generated\Model\CheckoutViewBilling'
     ];
 
     /**
@@ -97,7 +98,8 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
         'has_pi_alias' => null,
         'return_url' => null,
         'expires_at' => 'date-time',
-        'last_error' => null
+        'last_error' => null,
+        'billing' => null
     ];
 
     /**
@@ -120,7 +122,8 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
         'has_pi_alias' => false,
         'return_url' => true,
         'expires_at' => true,
-        'last_error' => false
+        'last_error' => false,
+        'billing' => false
     ];
 
     /**
@@ -223,7 +226,8 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
         'has_pi_alias' => 'has_pi_alias',
         'return_url' => 'return_url',
         'expires_at' => 'expires_at',
-        'last_error' => 'last_error'
+        'last_error' => 'last_error',
+        'billing' => 'billing'
     ];
 
     /**
@@ -246,7 +250,8 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
         'has_pi_alias' => 'setHasPiAlias',
         'return_url' => 'setReturnUrl',
         'expires_at' => 'setExpiresAt',
-        'last_error' => 'setLastError'
+        'last_error' => 'setLastError',
+        'billing' => 'setBilling'
     ];
 
     /**
@@ -269,7 +274,8 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
         'has_pi_alias' => 'getHasPiAlias',
         'return_url' => 'getReturnUrl',
         'expires_at' => 'getExpiresAt',
-        'last_error' => 'getLastError'
+        'last_error' => 'getLastError',
+        'billing' => 'getBilling'
     ];
 
     /**
@@ -344,6 +350,7 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('return_url', $data ?? [], null);
         $this->setIfExists('expires_at', $data ?? [], null);
         $this->setIfExists('last_error', $data ?? [], null);
+        $this->setIfExists('billing', $data ?? [], null);
     }
 
     /**
@@ -869,6 +876,33 @@ class CheckoutView implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable last_error cannot be null');
         }
         $this->container['last_error'] = $last_error;
+
+        return $this;
+    }
+
+    /**
+     * Gets billing
+     *
+     * @return \Yoon\Generated\Model\CheckoutViewBilling|null
+     */
+    public function getBilling()
+    {
+        return $this->container['billing'];
+    }
+
+    /**
+     * Sets billing
+     *
+     * @param \Yoon\Generated\Model\CheckoutViewBilling|null $billing billing
+     *
+     * @return self
+     */
+    public function setBilling($billing)
+    {
+        if (is_null($billing)) {
+            throw new \InvalidArgumentException('non-nullable billing cannot be null');
+        }
+        $this->container['billing'] = $billing;
 
         return $this;
     }

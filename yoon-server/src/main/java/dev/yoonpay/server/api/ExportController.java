@@ -111,6 +111,74 @@ public class ExportController {
         }
     }
 
+    record SubscriptionRow(String id, Instant createdAt, String customerId, String externalId, String plan,
+                           String priceId, String status, Instant currentPeriodStart, Instant currentPeriodEnd,
+                           boolean cancelAtPeriodEnd, Instant canceledAt, boolean comp, long amount, String currency,
+                           String interval, int intervalCount) {
+    }
+
+    @GetMapping("/v1/exports/subscriptions.csv")
+    @Transactional(readOnly = true)
+    public void subscriptions(AppPrincipal app, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+                              HttpServletResponse response) throws IOException {
+        try (PrintWriter out = csv(response, "subscriptions");
+             Stream<SubscriptionRow> rows = jdbc.sql("""
+                             SELECT s.id, s.created_at, s.customer_id, c.external_id, pl.slug AS plan, s.price_id,
+                                    s.status, s.current_period_start, s.current_period_end, s.cancel_at_period_end,
+                                    s.canceled_at, s.comp, pr.amount, pr.currency, pr.interval, pr.interval_count
+                             FROM subscriptions s
+                             JOIN customers c ON c.id = s.customer_id
+                             JOIN prices pr ON pr.id = s.price_id
+                             JOIN plans pl ON pl.id = pr.plan_id
+                             WHERE s.application_id = :app
+                               AND (CAST(:from AS TIMESTAMPTZ) IS NULL OR s.created_at >= :from)
+                               AND (CAST(:to AS TIMESTAMPTZ) IS NULL OR s.created_at < :to)
+                             ORDER BY s.id""")
+                     .param("app", app.id())
+                     .param("from", from == null ? null : Timestamp.from(from))
+                     .param("to", to == null ? null : Timestamp.from(to))
+                     .query(SubscriptionRow.class).stream()) {
+            row(out, "id", "created_at", "customer", "customer_external_id", "plan", "price", "status",
+                    "current_period_start", "current_period_end", "cancel_at_period_end", "canceled_at", "comp",
+                    "amount", "currency", "interval", "interval_count");
+            rows.forEach(r -> row(out, r.id(), r.createdAt(), r.customerId(), r.externalId(), r.plan(), r.priceId(),
+                    r.status().toLowerCase(), r.currentPeriodStart(), r.currentPeriodEnd(), r.cancelAtPeriodEnd(),
+                    r.canceledAt(), r.comp(), r.amount(), r.currency(), r.interval().toLowerCase(), r.intervalCount()));
+        }
+    }
+
+    record InvoiceRow(String id, String number, Instant createdAt, String customerId, String subscriptionId,
+                      String kind, String status, long amountDue, String currency, Instant periodStart,
+                      Instant periodEnd, String paymentId, Instant paidAt, Instant voidedAt) {
+    }
+
+    @GetMapping("/v1/exports/invoices.csv")
+    @Transactional(readOnly = true)
+    public void invoices(AppPrincipal app, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+                         HttpServletResponse response) throws IOException {
+        try (PrintWriter out = csv(response, "invoices");
+             Stream<InvoiceRow> rows = jdbc.sql("""
+                             SELECT id, number, created_at, customer_id, subscription_id, kind, status, amount_due,
+                                    currency, period_start, period_end, payment_id, paid_at, voided_at
+                             FROM invoices
+                             WHERE application_id = :app
+                               AND (CAST(:from AS TIMESTAMPTZ) IS NULL OR created_at >= :from)
+                               AND (CAST(:to AS TIMESTAMPTZ) IS NULL OR created_at < :to)
+                             ORDER BY id""")
+                     .param("app", app.id())
+                     .param("from", from == null ? null : Timestamp.from(from))
+                     .param("to", to == null ? null : Timestamp.from(to))
+                     .query(InvoiceRow.class).stream()) {
+            row(out, "id", "number", "created_at", "customer", "subscription", "kind", "status", "amount_due",
+                    "currency", "period_start", "period_end", "payment", "paid_at", "voided_at");
+            rows.forEach(r -> row(out, r.id(), r.number(), r.createdAt(), r.customerId(), r.subscriptionId(),
+                    r.kind().toLowerCase(), r.status().toLowerCase(), r.amountDue(), r.currency(), r.periodStart(),
+                    r.periodEnd(), r.paymentId(), r.paidAt(), r.voidedAt()));
+        }
+    }
+
     private static PrintWriter csv(HttpServletResponse response, String name) throws IOException {
         response.setContentType("text/csv;charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + name + ".csv\"");

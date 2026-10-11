@@ -9,10 +9,12 @@ const STATUSES = {
     payments: ['created', 'pending', 'succeeded', 'failed', 'expired'],
     refunds: ['created', 'pending', 'unknown', 'refunded', 'failed'],
     payouts: ['created', 'processing', 'unknown', 'paid', 'failed'],
+    subscriptions: ['incomplete', 'active', 'past_due', 'expired', 'canceled'],
+    invoices: ['open', 'paid', 'void', 'uncollectible'],
 };
-const GOOD = new Set(['succeeded', 'refunded', 'paid', 'delivered', 'apply']);
-const BAD = new Set(['failed', 'expired', 'dead']);
-const WARN = new Set(['unknown', 'pending', 'processing', 'ignore']);
+const GOOD = new Set(['succeeded', 'refunded', 'paid', 'delivered', 'apply', 'active']);
+const BAD = new Set(['failed', 'expired', 'dead', 'void']);
+const WARN = new Set(['unknown', 'pending', 'processing', 'ignore', 'past_due', 'incomplete', 'open']);
 
 const $ = (id) => document.getElementById(id);
 
@@ -119,6 +121,11 @@ function table(caption, columns, rows) {
     return el('div', { class: 'table-wrap' }, el('table', {}, el('caption', {}, caption), el('thead', {}, head), el('tbody', {}, ...body)));
 }
 
+/** "month", "3 months" for a price. */
+function every(p) {
+    return p.interval_count === 1 ? p.interval : `${p.interval_count} ${p.interval}s`;
+}
+
 function idButton(kind, id) {
     return el('button', { type: 'button', class: 'link', title: 'Show status history', onclick: () => showHistory(kind, id) }, id);
 }
@@ -168,6 +175,48 @@ const VIEWS = {
         scope: 'app',
         load: (cursor, status) => api(appPath(`/payouts${query({ status, starting_after: cursor, limit: PAGE_SIZE })}`)),
         render: (page) => payoutTable('Payouts', page.data, true),
+    },
+    plans: {
+        scope: 'app',
+        load: (cursor) => api(appPath(`/plans${query({ starting_after: cursor, limit: PAGE_SIZE })}`)),
+        render: (page) => table('Plans', [
+            { label: 'Plan', value: (r) => `${r.name} (${r.slug})` },
+            { label: 'Active', value: (r) => (r.active ? 'yes' : 'archived') },
+            { label: 'Prices', class: 'wrap', value: (r) => r.prices
+                .map((p) => `${money(p.amount, p.currency)} / ${every(p)}${p.active ? '' : ' (archived)'}`).join(' · ') },
+            { label: 'Features', class: 'wrap', value: (r) => (r.features ? JSON.stringify(r.features) : '') },
+            { label: 'Created', value: (r) => when(r.created_at) },
+        ], page.data),
+    },
+    subscriptions: {
+        scope: 'app',
+        load: (cursor, status) => api(appPath(`/subscriptions${query({ status, starting_after: cursor, limit: PAGE_SIZE })}`)),
+        render: (page) => el('div', {},
+            el('p', { class: 'muted' }, 'To grant periods without payment (comp), use the CLI or the operator API (see the runbook).'),
+            table('Subscriptions', [
+                { label: 'Id', value: (r) => idButton('subscriptions', r.id) },
+                { label: 'Status', value: (r) => badge(r.status) },
+                { label: 'Customer', value: (r) => r.customer.external_id },
+                { label: 'Plan', value: (r) => `${r.price.plan.name} — ${money(r.price.amount, r.price.currency)} / ${every(r.price)}` },
+                { label: 'Paid until', value: (r) => (r.current_period_end ? when(r.current_period_end) : (r.status === 'active' ? 'open-ended' : '')) },
+                { label: 'Notes', class: 'wrap', value: (r) => [r.comp ? 'comp' : '', r.cancel_at_period_end ? 'ends at period end' : '',
+                    r.pending_change ? `changes to ${r.pending_change.price.plan.name}` : ''].filter(Boolean).join(', ') },
+                { label: 'Created', value: (r) => when(r.created_at) },
+            ], page.data)),
+    },
+    invoices: {
+        scope: 'app',
+        load: (cursor, status) => api(appPath(`/invoices${query({ status, starting_after: cursor, limit: PAGE_SIZE })}`)),
+        render: (page) => table('Invoices', [
+            { label: 'Number', value: (r) => r.number },
+            { label: 'Status', value: (r) => badge(r.status) },
+            { label: 'Kind', value: (r) => r.kind },
+            { label: 'Amount', class: 'num', value: (r) => money(r.amount_due, r.currency) },
+            { label: 'Subscription', value: (r) => idButton('subscriptions', r.subscription) },
+            { label: 'Payment', value: (r) => (r.payment ? idButton('payments', r.payment) : '') },
+            { label: 'Period', value: (r) => (r.period_start ? `${when(r.period_start)} → ${when(r.period_end)}` : '') },
+            { label: 'Created', value: (r) => when(r.created_at) },
+        ], page.data),
     },
     review: {
         scope: 'instance',

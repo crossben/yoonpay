@@ -977,6 +977,28 @@ paths:
         '200': { $ref: '#/components/responses/Csv' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /v1/exports/subscriptions.csv:
+    get:
+      tags: [Exports]
+      operationId: exportSubscriptions
+      summary: Export subscriptions as CSV
+      description: Created in the window; current status and period, plan slug, price and the customer's external id.
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/exports/invoices.csv:
+    get:
+      tags: [Exports]
+      operationId: exportInvoices
+      summary: Export invoices as CSV
+      description: Created in the window, with number, status, amount, period and the payment that paid it.
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
   /v1/providers:
     get:
       tags: [Meta]
@@ -1159,6 +1181,28 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CheckoutView' }
+        '404': { $ref: '#/components/responses/CheckoutNotFound' }
+        '429': { $ref: '#/components/responses/CheckoutRateLimited' }
+
+  /checkout/api/receipts/{id}:
+    get:
+      tags: [Hosted checkout]
+      operationId: getReceipt
+      summary: A paid invoice's receipt (public, token-scoped)
+      description: |
+        Backs the receipt page `/checkout/receipts/{invoice}?t=…` (ADR-0027). The token is the one
+        in the invoice's `receipt_url`. An unknown id, a wrong token and an invoice that is not paid
+        are the same 404.
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/CheckoutToken'
+      responses:
+        '200':
+          description: The receipt.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReceiptView' }
         '404': { $ref: '#/components/responses/CheckoutNotFound' }
         '429': { $ref: '#/components/responses/CheckoutRateLimited' }
 
@@ -1394,6 +1438,155 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/LedgerEntryPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/plans:
+    get:
+      tags: [Admin]
+      operationId: adminListApplicationPlans
+      summary: One application's plans
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: active, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of plans, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/subscriptions:
+    get:
+      tags: [Admin]
+      operationId: adminListApplicationSubscriptions
+      summary: One application's subscriptions
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: customer, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/SubscriptionStatus' } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of subscriptions, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubscriptionPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/subscriptions/{id}/events:
+    get:
+      tags: [Admin]
+      operationId: adminListSubscriptionEvents
+      summary: Status history of one subscription
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/StatusHistory' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+
+  /admin/v1/applications/{application_id}/subscriptions/{id}/comp:
+    post:
+      tags: [Admin]
+      operationId: adminCompSubscription
+      summary: Grant periods without payment (comp)
+      description: |
+        Makes the subscription `active` for `periods` periods of `price` (stacked after a current
+        paid period, like a renewal) or, with `open: true`, without an end date until an operator
+        cancels it. No payment and no ledger posting; an open invoice is voided. The history keeps
+        the note with cause `admin`; the application gets `subscription.activated` or
+        `subscription.renewed`.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompRequest' }
+      responses:
+        '200':
+          description: The comped subscription (`comp` true, `active`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`price_not_found`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/applications/{application_id}/customers/{id}/comp:
+    post:
+      tags: [Admin]
+      operationId: adminCompCustomer
+      summary: Grant a customer a new comped subscription
+      description: Like the subscription comp, on a new subscription created for this customer.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompRequest' }
+      responses:
+        '200':
+          description: The comped subscription (`comp` true, `active`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`price_not_found`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/applications/{application_id}/invoices:
+    get:
+      tags: [Admin]
+      operationId: adminListApplicationInvoices
+      summary: One application's invoices
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: customer, in: query, schema: { type: string } }
+        - { name: subscription, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/InvoiceStatus' } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of invoices, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvoicePage' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/AdminDisabled' }
@@ -1866,7 +2059,9 @@ components:
         period_end: { type: [string, 'null'], format: date-time, description: Set when paid. }
         payment: { type: [string, 'null'], description: The hosted payment that pays it. }
         checkout_url: { type: [string, 'null'], description: Where the customer pays, while the invoice is open and its checkout usable. }
-        receipt_url: { type: [string, 'null'] }
+        receipt_url:
+          type: [string, 'null']
+          description: The public payment receipt (token in the URL), once paid. A receipt, not a tax invoice.
         paid_at: { type: [string, 'null'], format: date-time }
         voided_at: { type: [string, 'null'], format: date-time }
         created_at: { type: string, format: date-time }
@@ -2200,6 +2395,58 @@ components:
           required: [code]
           properties:
             code: { type: string, example: PHONE_REQUIRED }
+        billing:
+          type: [object, 'null']
+          description: Set when the payment pays a subscription invoice.
+          required: [invoice_number, kind, plan, interval, interval_count, receipt_url]
+          properties:
+            invoice_number: { type: string, example: INV-2026-000001 }
+            kind: { type: string, description: 'first, renewal or upgrade (open set).' }
+            plan: { type: string, description: The plan's name. }
+            interval: { $ref: '#/components/schemas/Interval' }
+            interval_count: { type: integer }
+            receipt_url: { type: [string, 'null'], description: 'Relative; once this payment has paid the invoice.' }
+
+    CompRequest:
+      type: object
+      additionalProperties: false
+      description: Exactly one of `periods` and `open`.
+      required: [price, note]
+      properties:
+        price: { type: string, description: The price granted (any price of the application). }
+        periods: { type: integer, minimum: 1, maximum: 120 }
+        open: { type: boolean, description: 'true: no end date (current_period_end null) until canceled.' }
+        note: { type: string, minLength: 1, maxLength: 500, example: 'Partner school, approved by Awa' }
+
+    ReceiptView:
+      type: object
+      additionalProperties: false
+      description: A paid invoice as its public receipt shows it. Not a tax invoice; no contact details.
+      required: [number, merchant, customer, plan, interval, interval_count, lines, amount, currency,
+                 period_start, period_end, paid_at, method, payment]
+      properties:
+        number: { type: string }
+        merchant: { type: [string, 'null'], description: The application's name. }
+        customer: { type: [string, 'null'], description: The customer's name, if known. }
+        plan: { type: string }
+        interval: { $ref: '#/components/schemas/Interval' }
+        interval_count: { type: integer }
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [description, amount]
+            properties:
+              description: { type: string }
+              amount: { type: integer, format: int64 }
+        amount: { type: integer, format: int64, description: Minor units. }
+        currency: { type: string }
+        period_start: { type: [string, 'null'], format: date-time }
+        period_end: { type: [string, 'null'], format: date-time }
+        paid_at: { type: [string, 'null'], format: date-time }
+        method: { type: [string, 'null'] }
+        payment: { type: [string, 'null'] }
 
     CheckoutAttemptRequest:
       type: object

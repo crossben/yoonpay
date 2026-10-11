@@ -19,4 +19,9 @@ public class Applications {
         return jdbc.sql("SELECT id, name FROM applications WHERE id = :id")
                 .param("id", id).query(AppPrincipal.class).optional();
     }
+
+    public Optional<AppPrincipal> findByName(String name) {
+        return jdbc.sql("SELECT id, name FROM applications WHERE name = :name")
+                .param("name", name).query(AppPrincipal.class).optional();
+    }
 }

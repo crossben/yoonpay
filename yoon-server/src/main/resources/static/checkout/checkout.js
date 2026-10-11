@@ -19,6 +19,8 @@ const TEXT = {
         busy: 'A payment attempt is already running. Please wait.', tooMany: 'Too many requests. Wait a moment and try again.',
         network: 'Connection problem. Check your connection and try again.', invalid: 'Check the details you entered.',
         noMethods: 'No payment method is available right now.', otherLang: 'Français',
+        receipt: 'View the receipt', invoice: 'Invoice', upgrade: 'plan change',
+        day: ['day', 'days'], week: ['week', 'weeks'], month: ['month', 'months'], year: ['year', 'years'],
     },
     fr: {
         secure: 'Paiement sécurisé', toPay: 'Montant à payer', choose: 'Choisissez votre moyen de paiement', pay: 'Payer',
@@ -36,6 +38,8 @@ const TEXT = {
         busy: 'Une tentative de paiement est déjà en cours. Patientez.', tooMany: 'Trop de requêtes. Patientez un instant puis réessayez.',
         network: 'Problème de connexion. Vérifiez votre connexion et réessayez.', invalid: 'Vérifiez les informations saisies.',
         noMethods: "Aucun moyen de paiement n'est disponible pour le moment.", otherLang: 'English',
+        receipt: 'Voir le reçu', invoice: 'Facture', upgrade: 'changement de formule',
+        day: ['jour', 'jours'], week: ['semaine', 'semaines'], month: ['mois', 'mois'], year: ['an', 'ans'],
     },
 };
 
@@ -65,6 +69,18 @@ let pollTimer = null;
 let message = null; // { key, kind }
 
 const t = (key) => TEXT[lang][key] || TEXT.en[key] || key;
+
+/** "OSIG Pro · 3 months · Invoice INV-2026-000001" (one period of a subscription). */
+function billingLine(b) {
+    const unit = TEXT[lang][b.interval] || TEXT.en[b.interval];
+    const every = unit
+        ? (b.interval_count === 1 ? `1 ${unit[0]}` : `${b.interval_count} ${unit[1]}`)
+        : `${b.interval_count} ${b.interval}`;
+    const parts = [b.plan, every];
+    if (b.kind === 'upgrade') parts.push(t('upgrade'));
+    parts.push(`${t('invoice')} ${b.invoice_number}`);
+    return parts.join(' · ');
+}
 
 function methodName(m) {
     const known = METHOD_NAMES[m];
@@ -201,6 +217,13 @@ function render() {
     $('amount').textContent = formatAmount(view.amount, view.currency);
     $('description').hidden = !view.description;
     $('description').textContent = view.description || '';
+
+    const billing = view.billing;
+    $('billing').hidden = !billing;
+    $('billing').textContent = billing ? billingLine(billing) : '';
+    const receipt = billing && view.status === 'succeeded' ? safeHttpUrl(billing.receipt_url) : null;
+    $('receipt-wrap').hidden = !receipt;
+    if (receipt) $('receipt').href = receipt;
 
     const back = safeHttpUrl(view.return_url);
     $('return-wrap').hidden = !back || view.status === 'created';

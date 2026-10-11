@@ -103,6 +103,7 @@ public class BillingPayments {
         fields.put("billing_anchor", anchor);
         fields.put("cancel_at_period_end", false); // paying again means the customer wants to continue
         fields.put("canceled_at", null);
+        fields.put("comp", false); // a paid period: no longer operator-granted
         boolean priceChanged = !invoice.priceId().equals(s.priceId());
         if (priceChanged || invoice.priceId().equals(s.pendingPriceId())) {
             fields.put("price_id", invoice.priceId());

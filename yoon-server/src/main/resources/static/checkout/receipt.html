@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="color-scheme" content="light dark">
+    <title>Receipt</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/checkout/checkout.css">
+    <script type="module" src="/checkout/receipt.js"></script>
+</head>
+<body>
+<header class="top">
+    <span class="brand" id="merchant" data-i18n="title">Payment receipt</span>
+    <button type="button" id="lang" class="secondary small" aria-label="Français">FR</button>
+</header>
+
+<main id="main">
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <section id="receipt" class="card" hidden aria-labelledby="title">
+        <div class="receipt-head">
+            <h1 id="title" data-i18n="title">Payment receipt</h1>
+            <span id="number" class="muted"></span>
+        </div>
+        <p class="notice muted" data-i18n="notTax">Payment receipt — not a tax invoice.</p>
+
+        <dl class="facts">
+            <dt data-i18n="paidOn">Paid on</dt><dd id="paid-at"></dd>
+            <dt data-i18n="customer" id="customer-label">Customer</dt><dd id="customer"></dd>
+            <dt data-i18n="plan">Plan</dt><dd id="plan"></dd>
+            <dt data-i18n="period" id="period-label">Period</dt><dd id="period"></dd>
+            <dt data-i18n="method" id="method-label">Paid with</dt><dd id="method"></dd>
+            <dt data-i18n="reference">Reference</dt><dd id="payment"></dd>
+        </dl>
+
+        <table class="lines">
+            <tbody id="lines"></tbody>
+        </table>
+    </section>
+
+    <p class="actions" id="actions" hidden>
+        <button type="button" id="print" class="secondary" data-i18n="print">Print or save as PDF</button>
+    </p>
+</main>
+
+<footer class="muted">
+    <span data-i18n="footer">Payment processed by Yoon</span>
+</footer>
+</body>
+</html>

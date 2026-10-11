@@ -154,6 +154,136 @@ public class ExportsApi {
   }
 
   /**
+   * Export invoices as CSV
+   * Created in the window, with number, status, amount, period and the payment that paid it.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @return String
+   * @throws ApiException if fails to make API call
+   */
+  public String exportInvoices(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to) throws ApiException {
+    return exportInvoices(from, to, null);
+  }
+
+  /**
+   * Export invoices as CSV
+   * Created in the window, with number, status, amount, period and the payment that paid it.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @param headers Optional headers to include in the request
+   * @return String
+   * @throws ApiException if fails to make API call
+   */
+  public String exportInvoices(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to, Map<String, String> headers) throws ApiException {
+    ApiResponse<String> localVarResponse = exportInvoicesWithHttpInfo(from, to, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * Export invoices as CSV
+   * Created in the window, with number, status, amount, period and the payment that paid it.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @return ApiResponse&lt;String&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<String> exportInvoicesWithHttpInfo(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to) throws ApiException {
+    return exportInvoicesWithHttpInfo(from, to, null);
+  }
+
+  /**
+   * Export invoices as CSV
+   * Created in the window, with number, status, amount, period and the payment that paid it.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;String&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<String> exportInvoicesWithHttpInfo(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = exportInvoicesRequestBuilder(from, to, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("exportInvoices", localVarResponse);
+        }
+        if (localVarResponse.body() == null) {
+          return new ApiResponse<String>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<String>() {});
+        
+        localVarResponse.body().close();
+
+        return new ApiResponse<String>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder exportInvoicesRequestBuilder(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to, Map<String, String> headers) throws ApiException {
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/v1/exports/invoices.csv";
+
+    List<Pair> localVarQueryParams = new ArrayList<>();
+    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+    String localVarQueryParameterBaseName;
+    localVarQueryParameterBaseName = "from";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("from", from));
+    localVarQueryParameterBaseName = "to";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("to", to));
+
+    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+      StringJoiner queryJoiner = new StringJoiner("&");
+      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+      if (localVarQueryStringJoiner.length() != 0) {
+        queryJoiner.add(localVarQueryStringJoiner.toString());
+      }
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+    } else {
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+    }
+
+    localVarRequestBuilder.header("Accept", "text/csv, application/problem+json");
+
+    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
    * Export ledger entries as CSV
    * 
    * @param from Inclusive, ISO-8601. (optional)
@@ -639,6 +769,136 @@ public class ExportsApi {
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
     String localVarPath = "/v1/exports/refunds.csv";
+
+    List<Pair> localVarQueryParams = new ArrayList<>();
+    StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
+    String localVarQueryParameterBaseName;
+    localVarQueryParameterBaseName = "from";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("from", from));
+    localVarQueryParameterBaseName = "to";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("to", to));
+
+    if (!localVarQueryParams.isEmpty() || localVarQueryStringJoiner.length() != 0) {
+      StringJoiner queryJoiner = new StringJoiner("&");
+      localVarQueryParams.forEach(p -> queryJoiner.add(p.getName() + '=' + p.getValue()));
+      if (localVarQueryStringJoiner.length() != 0) {
+        queryJoiner.add(localVarQueryStringJoiner.toString());
+      }
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath + '?' + queryJoiner.toString()));
+    } else {
+      localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+    }
+
+    localVarRequestBuilder.header("Accept", "text/csv, application/problem+json");
+
+    localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * Export subscriptions as CSV
+   * Created in the window; current status and period, plan slug, price and the customer&#39;s external id.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @return String
+   * @throws ApiException if fails to make API call
+   */
+  public String exportSubscriptions(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to) throws ApiException {
+    return exportSubscriptions(from, to, null);
+  }
+
+  /**
+   * Export subscriptions as CSV
+   * Created in the window; current status and period, plan slug, price and the customer&#39;s external id.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @param headers Optional headers to include in the request
+   * @return String
+   * @throws ApiException if fails to make API call
+   */
+  public String exportSubscriptions(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to, Map<String, String> headers) throws ApiException {
+    ApiResponse<String> localVarResponse = exportSubscriptionsWithHttpInfo(from, to, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * Export subscriptions as CSV
+   * Created in the window; current status and period, plan slug, price and the customer&#39;s external id.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @return ApiResponse&lt;String&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<String> exportSubscriptionsWithHttpInfo(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to) throws ApiException {
+    return exportSubscriptionsWithHttpInfo(from, to, null);
+  }
+
+  /**
+   * Export subscriptions as CSV
+   * Created in the window; current status and period, plan slug, price and the customer&#39;s external id.
+   * @param from Inclusive, ISO-8601. (optional)
+   * @param to Exclusive, ISO-8601. (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;String&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<String> exportSubscriptionsWithHttpInfo(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = exportSubscriptionsRequestBuilder(from, to, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("exportSubscriptions", localVarResponse);
+        }
+        if (localVarResponse.body() == null) {
+          return new ApiResponse<String>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<String>() {});
+        
+        localVarResponse.body().close();
+
+        return new ApiResponse<String>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder exportSubscriptionsRequestBuilder(@jakarta.annotation.Nullable OffsetDateTime from, @jakarta.annotation.Nullable OffsetDateTime to, Map<String, String> headers) throws ApiException {
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/v1/exports/subscriptions.csv";
 
     List<Pair> localVarQueryParams = new ArrayList<>();
     StringJoiner localVarQueryStringJoiner = new StringJoiner("&");

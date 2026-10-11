@@ -73,11 +73,15 @@ once, in Java, instead of in every project.
     period; paying in grace does not get the grace days free; paying after expiry starts at the
     payment. Upgrades apply now and turn unused time into extra days; downgrades and cheaper
     periods apply at the period end. Cancel now or at the period end, resume;
-  - invoices numbered without gaps per application (billing records, not tax invoices);
+  - invoices numbered without gaps per application (billing records, not tax invoices), each
+    with a printable payment receipt page (French/English) once paid; the checkout shows the
+    plan, interval and invoice number;
   - events `subscription.*` and `invoice.*` carry the full object, so entitlements can be driven
     from webhooks alone. A sweep every minute sends
     renewal reminders, moves ended periods to `past_due` (with a renewal invoice) and expires
-    subscriptions after grace.
+    subscriptions after grace;
+  - operators grant periods without payment (comp: some periods, or open-ended for "contact us"
+    plans) from the CLI or the operator API; CSV exports `subscriptions.csv` and `invoices.csv`.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
@@ -130,7 +134,8 @@ never a second one while a provider may have the payment. Until the customer cho
 ## Operator dashboard
 
 Open `https://<your yoon>/dashboard` and paste `YOON_ADMIN_TOKEN`. You see your applications;
-payments, refunds and payouts per application (filter by status, newest first, paginated);
+payments, refunds, payouts, subscriptions, invoices and plans per application (filter by
+status, newest first, paginated);
 payouts needing review; webhook dead letters, which you can replay; balances and ledger
 entries; and the status history of any record. Phone numbers stay masked. The token is kept
 only in that browser tab (session storage) and sent in the `Authorization` header, never in
@@ -274,6 +279,8 @@ docker compose run --rm yoon apps create <name>      # new application + API key
 docker compose run --rm yoon apps list               # applications and key prefixes
 docker compose run --rm yoon apps add-key <name>     # rotate: issue another key
 docker compose run --rm yoon apps revoke-key <prefix>
+# grant periods without payment (sub_… or cus_…, a number of periods or "open", and a note)
+docker compose run --rm yoon billing comp <app> <sub_…|cus_…> <price_…> <periods|open> <note…>
 ```
 
 ## Contributing and security

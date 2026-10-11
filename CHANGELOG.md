@@ -24,6 +24,16 @@ never changes incompatibly.
   becomes `past_due` with a renewal invoice; after grace → `expired` (the invoice stays payable);
   an unpaid first invoice older than the invoice TTL → `expired`. Each row is re-checked under its
   lock; failures count in `yoon.billing.sweep.errors`.
+- Receipts: a paid invoice's `receipt_url` opens a printable payment receipt (French/English,
+  "not a tax invoice") at `/checkout/receipts/{id}?t=…`, under the checkout page's rules (strict
+  CSP, no cache, rate limit, the same 404 for every refusal). The checkout of an invoice shows the
+  plan, interval and invoice number (`billing` in the checkout view) and links the receipt once paid.
+- Comp: `billing comp` (CLI) and `POST /admin/v1/applications/{app}/{subscriptions,customers}/{id}/comp`
+  grant periods (or an open-ended period) without payment or ledger posting, with a note in the
+  history (cause `admin`).
+- Operator views `/admin/v1/applications/{app}/{plans,subscriptions,invoices}` and
+  `subscriptions/{id}/events`; dashboard tabs Subscriptions, Invoices and Plans (read-only).
+- CSV exports `GET /v1/exports/subscriptions.csv` and `/v1/exports/invoices.csv`.
 - Invoice numbers `<PREFIX>-<year>-<000001>`, gap-free per application.
 - Per-application billing settings: `YOON_APPS_<APP>_BILLING_GRACE_DAYS` (3),
   `_REMINDER_DAYS` (3), `_TIMEZONE` (Africa/Dakar), `_INVOICE_PREFIX` (INV), `_INVOICE_TTL` (7d).

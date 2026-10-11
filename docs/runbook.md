@@ -62,11 +62,12 @@ status API anyway.
 
 ## Operator dashboard
 
-Open `$YOON/dashboard` and paste the admin token. It shows applications; payments, refunds and
-payouts per application (filter by status, newest first); payouts needing review; dead letters
+Open `$YOON/dashboard` and paste the admin token. It shows applications; payments, refunds,
+payouts, subscriptions, invoices and plans per application (filter by status, newest first); payouts needing review; dead letters
 (with **Replay**); balances and ledger entries; and the status history of any record (click its id).
 The token stays in that browser tab's session storage; **Sign out** or closing the tab forgets it.
-The dashboard does not resolve payouts: use `POST /admin/v1/payouts/{id}/resolve` below.
+The dashboard does not resolve payouts or grant comps: use `POST /admin/v1/payouts/{id}/resolve`
+and the comp command below.
 
 It exists only with `YOON_ADMIN_TOKEN` set; `YOON_DASHBOARD_ENABLED=false` removes it (404). The
 same data is available with curl, e.g.
@@ -96,6 +97,25 @@ the status.
 - The token in the page URL grants that one checkout only (see it, choose a method while the
   payment waits). It is part of `checkout_url` in the API and in webhook payloads; treat it like the
   order link it is.
+
+## Grant periods without payment (comp)
+
+For partners, support gestures or "contact us" plans. No payment and no ledger posting are
+made; the subscription's history keeps your note with cause `admin`, and the application gets
+`subscription.activated` (or `subscription.renewed` if it was already active).
+
+```sh
+# 3 months of price_… on an existing subscription (stacked after a paid period, like a renewal)
+docker compose run --rm yoon billing comp shop sub_… price_… 3 "partner school, approved by Awa"
+# a new subscription for a customer, without an end date
+docker compose run --rm yoon billing comp shop cus_… price_… open "enterprise contract 2026-14"
+```
+
+Or `POST /admin/v1/applications/{app}/subscriptions/{id}/comp` (or `/customers/{id}/comp`) with
+`{"price": "price_…", "periods": 3, "note": "…"}` or `{"price": "price_…", "open": true, "note": "…"}`
+and an `Idempotency-Key` (a retry with the same key grants once). An open invoice is voided. An
+open-ended comp lasts until the application cancels it (`POST /v1/subscriptions/{id}/cancel`
+with `{"at_period_end": false}`). When the customer later pays a period, `comp` turns false.
 
 ## Rotate the admin token
 

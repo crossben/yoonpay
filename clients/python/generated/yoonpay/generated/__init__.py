@@ -47,9 +47,11 @@ __all__ = [
     "ChangeSubscriptionRequest",
     "CheckoutAttemptRequest",
     "CheckoutView",
+    "CheckoutViewBilling",
     "CheckoutViewLastError",
     "CheckoutViewMethodsInner",
     "CheckoutViewNextAction",
+    "CompRequest",
     "CreateCustomerRequest",
     "CreatePaymentRequest",
     "CreatePaymentRequestCustomer",
@@ -95,6 +97,8 @@ __all__ = [
     "Price",
     "PriceInput",
     "Problem",
+    "ReceiptView",
+    "ReceiptViewLinesInner",
     "ReceiveProviderCallback200Response",
     "Refund",
     "RefundPage",
@@ -146,9 +150,11 @@ from yoonpay.generated.models.cancel_subscription_request import CancelSubscript
 from yoonpay.generated.models.change_subscription_request import ChangeSubscriptionRequest as ChangeSubscriptionRequest
 from yoonpay.generated.models.checkout_attempt_request import CheckoutAttemptRequest as CheckoutAttemptRequest
 from yoonpay.generated.models.checkout_view import CheckoutView as CheckoutView
+from yoonpay.generated.models.checkout_view_billing import CheckoutViewBilling as CheckoutViewBilling
 from yoonpay.generated.models.checkout_view_last_error import CheckoutViewLastError as CheckoutViewLastError
 from yoonpay.generated.models.checkout_view_methods_inner import CheckoutViewMethodsInner as CheckoutViewMethodsInner
 from yoonpay.generated.models.checkout_view_next_action import CheckoutViewNextAction as CheckoutViewNextAction
+from yoonpay.generated.models.comp_request import CompRequest as CompRequest
 from yoonpay.generated.models.create_customer_request import CreateCustomerRequest as CreateCustomerRequest
 from yoonpay.generated.models.create_payment_request import CreatePaymentRequest as CreatePaymentRequest
 from yoonpay.generated.models.create_payment_request_customer import CreatePaymentRequestCustomer as CreatePaymentRequestCustomer
@@ -194,6 +200,8 @@ from yoonpay.generated.models.plan_ref import PlanRef as PlanRef
 from yoonpay.generated.models.price import Price as Price
 from yoonpay.generated.models.price_input import PriceInput as PriceInput
 from yoonpay.generated.models.problem import Problem as Problem
+from yoonpay.generated.models.receipt_view import ReceiptView as ReceiptView
+from yoonpay.generated.models.receipt_view_lines_inner import ReceiptViewLinesInner as ReceiptViewLinesInner
 from yoonpay.generated.models.receive_provider_callback200_response import ReceiveProviderCallback200Response as ReceiveProviderCallback200Response
 from yoonpay.generated.models.refund import Refund as Refund
 from yoonpay.generated.models.refund_page import RefundPage as RefundPage

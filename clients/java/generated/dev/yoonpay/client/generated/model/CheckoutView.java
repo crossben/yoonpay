@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
+import dev.yoonpay.client.generated.model.CheckoutViewBilling;
 import dev.yoonpay.client.generated.model.CheckoutViewLastError;
 import dev.yoonpay.client.generated.model.CheckoutViewMethodsInner;
 import dev.yoonpay.client.generated.model.CheckoutViewNextAction;
@@ -55,7 +56,8 @@ import dev.yoonpay.client.generated.ApiClient;
   CheckoutView.JSON_PROPERTY_HAS_PI_ALIAS,
   CheckoutView.JSON_PROPERTY_RETURN_URL,
   CheckoutView.JSON_PROPERTY_EXPIRES_AT,
-  CheckoutView.JSON_PROPERTY_LAST_ERROR
+  CheckoutView.JSON_PROPERTY_LAST_ERROR,
+  CheckoutView.JSON_PROPERTY_BILLING
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class CheckoutView {
@@ -118,6 +120,10 @@ public class CheckoutView {
   public static final String JSON_PROPERTY_LAST_ERROR = "last_error";
   @jakarta.annotation.Nonnull
   private CheckoutViewLastError lastError;
+
+  public static final String JSON_PROPERTY_BILLING = "billing";
+  @jakarta.annotation.Nullable
+  private CheckoutViewBilling billing;
 
   public CheckoutView() { 
   }
@@ -490,6 +496,30 @@ public class CheckoutView {
   }
 
 
+  public CheckoutView billing(@jakarta.annotation.Nullable CheckoutViewBilling billing) {
+    this.billing = billing;
+    return this;
+  }
+
+  /**
+   * Get billing
+   * @return billing
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_BILLING, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public CheckoutViewBilling getBilling() {
+    return billing;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_BILLING, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setBilling(@jakarta.annotation.Nullable CheckoutViewBilling billing) {
+    this.billing = billing;
+  }
+
+
   /**
    * Return true if this CheckoutView object is equal to o.
    */
@@ -516,12 +546,13 @@ public class CheckoutView {
         Objects.equals(this.hasPiAlias, checkoutView.hasPiAlias) &&
         Objects.equals(this.returnUrl, checkoutView.returnUrl) &&
         Objects.equals(this.expiresAt, checkoutView.expiresAt) &&
-        Objects.equals(this.lastError, checkoutView.lastError);
+        Objects.equals(this.lastError, checkoutView.lastError) &&
+        Objects.equals(this.billing, checkoutView.billing);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, status, amount, currency, country, description, method, methods, canChoose, nextAction, customerPhone, hasPiAlias, returnUrl, expiresAt, lastError);
+    return Objects.hash(id, status, amount, currency, country, description, method, methods, canChoose, nextAction, customerPhone, hasPiAlias, returnUrl, expiresAt, lastError, billing);
   }
 
   @Override
@@ -543,6 +574,7 @@ public class CheckoutView {
     sb.append("    returnUrl: ").append(toIndentedString(returnUrl)).append("\n");
     sb.append("    expiresAt: ").append(toIndentedString(expiresAt)).append("\n");
     sb.append("    lastError: ").append(toIndentedString(lastError)).append("\n");
+    sb.append("    billing: ").append(toIndentedString(billing)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -668,6 +700,11 @@ public class CheckoutView {
     // add `last_error` to the URL query string
     if (getLastError() != null) {
       joiner.add(getLastError().toUrlQueryString(prefix + "last_error" + suffix));
+    }
+
+    // add `billing` to the URL query string
+    if (getBilling() != null) {
+      joiner.add(getBilling().toUrlQueryString(prefix + "billing" + suffix));
     }
 
     return joiner.toString();

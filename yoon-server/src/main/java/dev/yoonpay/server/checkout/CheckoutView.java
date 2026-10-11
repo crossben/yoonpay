@@ -26,7 +26,13 @@ public record CheckoutView(
         boolean hasPiAlias,
         String returnUrl,
         Instant expiresAt,
-        LastError lastError) {
+        LastError lastError,
+        Billing billing) {
+
+    /** Set when the payment pays an invoice: what the customer is buying, and its receipt once paid. */
+    public record Billing(String invoiceNumber, String kind, String plan, String interval, int intervalCount,
+                          String receiptUrl) {
+    }
 
     /** {@code redirect} to the provider's page, or {@code instructions} to show (push / USSD). */
     public record NextAction(String type, String url, String instructions) {
@@ -35,7 +41,8 @@ public record CheckoutView(
     public record LastError(String code) {
     }
 
-    static CheckoutView of(PaymentRecord p, List<MethodOption> methods, boolean canChoose, String lastError) {
+    static CheckoutView of(PaymentRecord p, List<MethodOption> methods, boolean canChoose, String lastError,
+                           Billing billing) {
         NextAction next = null;
         if (p.status().equals("PENDING")) {
             if (p.checkoutUrl() != null) {
@@ -47,6 +54,6 @@ public record CheckoutView(
         return new CheckoutView(p.id(), p.status().toLowerCase(java.util.Locale.ROOT), p.amount(), p.currency(), p.country(),
                 p.description(), p.method(), methods, canChoose, next, Phones.mask(p.customerPhone()),
                 p.customerPiAlias() != null, p.returnUrl(), p.checkoutExpiresAt(),
-                lastError == null ? null : new LastError(lastError));
+                lastError == null ? null : new LastError(lastError), billing);
     }
 }

@@ -41,8 +41,9 @@ subscription whose first invoice stays unpaid for the application's invoice TTL 
 expires (ADR-0026).
 
 ### Receipts
-`GET /receipts/{invoice id}?t=<token>` on the hosted-checkout domain: a static HTML receipt,
-FR/EN (Accept-Language + toggle), printable (print stylesheet), same rules as the checkout page
+`GET /checkout/receipts/{invoice id}?t=<token>` on the hosted-checkout pages (data from
+`GET /checkout/api/receipts/{id}` with the token in the `Yoon-Checkout-Token` header): a static HTML receipt,
+FR/EN (the browser's languages + toggle), printable (print stylesheet), same rules as the checkout page
 (strict CSP, `textContent` only, no browser storage, token-scoped, identical 404s). The invoice
 response carries `receipt_url` once paid. PDF is deferred to 0.4.0 (it would add a rendering
 dependency to the server image; "Print → Save as PDF" covers it meanwhile).

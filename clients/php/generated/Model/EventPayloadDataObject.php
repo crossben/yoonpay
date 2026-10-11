@@ -2070,7 +2070,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets receipt_url
      *
-     * @param string|null $receipt_url receipt_url
+     * @param string|null $receipt_url The public payment receipt (token in the URL), once paid. A receipt, not a tax invoice.
      *
      * @return self
      */

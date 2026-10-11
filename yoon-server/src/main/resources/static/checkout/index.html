@@ -22,6 +22,7 @@
         <p class="muted label" data-i18n="toPay">Amount to pay</p>
         <h1 id="amount" class="amount">…</h1>
         <p id="description" class="description" hidden></p>
+        <p id="billing" class="muted billing" hidden></p>
     </section>
 
     <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -51,6 +52,10 @@
         <p id="instructions" class="instructions"></p>
         <a id="provider-link" class="button primary" hidden data-i18n="continue">Continue to payment</a>
     </section>
+
+    <p id="receipt-wrap" class="return" hidden>
+        <a id="receipt" class="button secondary" data-i18n="receipt">View the receipt</a>
+    </p>
 
     <p id="return-wrap" class="return" hidden>
         <a id="return" class="button secondary" data-i18n="back">Return to the shop</a>
