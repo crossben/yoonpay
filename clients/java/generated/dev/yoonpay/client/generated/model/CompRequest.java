@@ -29,17 +29,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 
 import dev.yoonpay.client.generated.ApiClient;
 /**
- * Exactly one of &#x60;periods&#x60; and &#x60;open&#x60;.
+ * Exactly one of &#x60;periods&#x60;, &#x60;until&#x60; and &#x60;open&#x60;.
  */
 @JsonPropertyOrder({
   CompRequest.JSON_PROPERTY_PRICE,
   CompRequest.JSON_PROPERTY_PERIODS,
+  CompRequest.JSON_PROPERTY_UNTIL,
   CompRequest.JSON_PROPERTY_OPEN,
   CompRequest.JSON_PROPERTY_NOTE
 })
@@ -52,6 +54,10 @@ public class CompRequest {
   public static final String JSON_PROPERTY_PERIODS = "periods";
   @jakarta.annotation.Nullable
   private Integer periods;
+
+  public static final String JSON_PROPERTY_UNTIL = "until";
+  @jakarta.annotation.Nullable
+  private OffsetDateTime until;
 
   public static final String JSON_PROPERTY_OPEN = "open";
   @jakarta.annotation.Nullable
@@ -111,6 +117,30 @@ public class CompRequest {
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setPeriods(@jakarta.annotation.Nullable Integer periods) {
     this.periods = periods;
+  }
+
+
+  public CompRequest until(@jakarta.annotation.Nullable OffsetDateTime until) {
+    this.until = until;
+    return this;
+  }
+
+  /**
+   * Grant time up to this instant instead of whole periods — e.g. what a customer already paid for before migrating to Yoon. After the paid period, if any; later renewals fall on its day of the month. 
+   * @return until
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_UNTIL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public OffsetDateTime getUntil() {
+    return until;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_UNTIL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setUntil(@jakarta.annotation.Nullable OffsetDateTime until) {
+    this.until = until;
   }
 
 
@@ -219,6 +249,7 @@ public class CompRequest {
     CompRequest compRequest = (CompRequest) o;
     return Objects.equals(this.price, compRequest.price) &&
         Objects.equals(this.periods, compRequest.periods) &&
+        Objects.equals(this.until, compRequest.until) &&
         Objects.equals(this.open, compRequest.open) &&
         Objects.equals(this.note, compRequest.note)&&
         Objects.equals(this.additionalProperties, compRequest.additionalProperties);
@@ -226,7 +257,7 @@ public class CompRequest {
 
   @Override
   public int hashCode() {
-    return Objects.hash(price, periods, open, note, additionalProperties);
+    return Objects.hash(price, periods, until, open, note, additionalProperties);
   }
 
   @Override
@@ -235,6 +266,7 @@ public class CompRequest {
     sb.append("class CompRequest {\n");
     sb.append("    price: ").append(toIndentedString(price)).append("\n");
     sb.append("    periods: ").append(toIndentedString(periods)).append("\n");
+    sb.append("    until: ").append(toIndentedString(until)).append("\n");
     sb.append("    open: ").append(toIndentedString(open)).append("\n");
     sb.append("    note: ").append(toIndentedString(note)).append("\n");
     sb.append("    additionalProperties: ").append(toIndentedString(additionalProperties)).append("\n");
@@ -293,6 +325,11 @@ public class CompRequest {
     // add `periods` to the URL query string
     if (getPeriods() != null) {
       joiner.add(String.format(Locale.ROOT, "%speriods%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getPeriods()))));
+    }
+
+    // add `until` to the URL query string
+    if (getUntil() != null) {
+      joiner.add(String.format(Locale.ROOT, "%suntil%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getUntil()))));
     }
 
     // add `open` to the URL query string

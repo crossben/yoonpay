@@ -47,7 +47,7 @@ class OutboxTest extends ApiTest {
     void events_are_delivered_signed_and_verifiable() {
         String paymentId = failedPayment("shop");
 
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
 
         var d = RECEIVER.received().getFirst();
         assertThat(d.header("Yoon-Event-Type")).isEqualTo("payment.failed");
@@ -69,14 +69,14 @@ class OutboxTest extends ApiTest {
     @Test
     void a_redelivered_event_is_signed_with_the_time_it_is_sent() {
         String paymentId = failedPayment("shop");
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
         String eventId = eventFor("shop", paymentId);
         // The event was created and first signed long ago.
         jdbc.sql("UPDATE outbound_events SET created_at = now() - interval '2 hours' WHERE id = :id").param("id", eventId).update();
         RECEIVER.reset();
 
         post("shop", "/v1/events/" + eventId + "/redeliver", Map.of());
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
 
         var d = RECEIVER.received().getFirst();
         assertThat(d.header("Yoon-Event-Id")).as("same id: receivers deduplicate on it").isEqualTo(eventId);
@@ -89,8 +89,8 @@ class OutboxTest extends ApiTest {
         String paymentId = failedPayment("shop");
         RECEIVER.respondWith(500);
 
-        delivery.deliverDue(50);
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
+        deliverAllDue(delivery);
 
         assertThat(RECEIVER.received()).hasSize(1);
         Response event = get("shop", "/v1/events/" + eventFor("shop", paymentId));
@@ -100,7 +100,7 @@ class OutboxTest extends ApiTest {
 
         RECEIVER.respondWith(200);
         jdbc.sql("UPDATE outbound_events SET next_attempt_at = now() WHERE resource_id = :id").param("id", paymentId).update();
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
 
         assertThat(RECEIVER.received()).hasSize(2);
         assertThat(get("shop", "/v1/events/" + eventFor("shop", paymentId)).json().path("delivery").path("status").asString())
@@ -114,7 +114,7 @@ class OutboxTest extends ApiTest {
         RECEIVER.respondWith(503);
         for (int i = 0; i < OutboxDelivery.MAX_ATTEMPTS; i++) {
             jdbc.sql("UPDATE outbound_events SET next_attempt_at = now() WHERE id = :id").param("id", eventId).update();
-            delivery.deliverDue(50);
+            deliverAllDue(delivery);
         }
 
         assertThat(get("shop", "/v1/events/" + eventId).json().path("delivery").path("status").asString()).isEqualTo("dead");
@@ -124,7 +124,7 @@ class OutboxTest extends ApiTest {
         RECEIVER.respondWith(200);
         Response replay = admin("POST", "/admin/v1/dead-letters/" + eventId + "/replay", null);
         assertThat(replay.status()).isEqualTo(202);
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
 
         assertThat(get("shop", "/v1/events/" + eventId).json().path("delivery").path("status").asString()).isEqualTo("delivered");
         assertThat(admin("POST", "/admin/v1/dead-letters/" + eventId + "/replay", null).text("code")).isEqualTo("not_dead");
@@ -132,6 +132,8 @@ class OutboxTest extends ApiTest {
 
     @Test
     void concurrent_workers_never_deliver_the_same_event_twice() throws Exception {
+        deliverAllDue(delivery);   // events left by other test classes: count only this test's 20
+        RECEIVER.reset();
         for (int i = 0; i < 20; i++) {
             failedPayment("shop");
         }
@@ -176,11 +178,11 @@ class OutboxTest extends ApiTest {
     @Test
     void an_application_can_ask_for_an_event_again() {
         String paymentId = failedPayment("shop");
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
         String eventId = eventFor("shop", paymentId);
 
         Response r = post("shop", "/v1/events/" + eventId + "/redeliver", null);
-        delivery.deliverDue(50);
+        deliverAllDue(delivery);
 
         assertThat(r.status()).isEqualTo(202);
         assertThat(RECEIVER.received()).filteredOn(d -> d.header("Yoon-Event-Id").equals(eventId)).hasSize(2);

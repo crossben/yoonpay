@@ -35,7 +35,7 @@ use \Yoon\Generated\ObjectSerializer;
  * CompRequest Class Doc Comment
  *
  * @category Class
- * @description Exactly one of &#x60;periods&#x60; and &#x60;open&#x60;.
+ * @description Exactly one of &#x60;periods&#x60;, &#x60;until&#x60; and &#x60;open&#x60;.
  * @package  Yoon\Generated
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
@@ -60,6 +60,7 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
     protected static $openAPITypes = [
         'price' => 'string',
         'periods' => 'int',
+        'until' => '\DateTime',
         'open' => 'bool',
         'note' => 'string'
     ];
@@ -74,6 +75,7 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
     protected static $openAPIFormats = [
         'price' => null,
         'periods' => null,
+        'until' => 'date-time',
         'open' => null,
         'note' => null
     ];
@@ -86,6 +88,7 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
     protected static array $openAPINullables = [
         'price' => false,
         'periods' => false,
+        'until' => false,
         'open' => false,
         'note' => false
     ];
@@ -178,6 +181,7 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
     protected static $attributeMap = [
         'price' => 'price',
         'periods' => 'periods',
+        'until' => 'until',
         'open' => 'open',
         'note' => 'note'
     ];
@@ -190,6 +194,7 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
     protected static $setters = [
         'price' => 'setPrice',
         'periods' => 'setPeriods',
+        'until' => 'setUntil',
         'open' => 'setOpen',
         'note' => 'setNote'
     ];
@@ -202,6 +207,7 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
     protected static $getters = [
         'price' => 'getPrice',
         'periods' => 'getPeriods',
+        'until' => 'getUntil',
         'open' => 'getOpen',
         'note' => 'getNote'
     ];
@@ -265,6 +271,7 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
     {
         $this->setIfExists('price', $data ?? [], null);
         $this->setIfExists('periods', $data ?? [], null);
+        $this->setIfExists('until', $data ?? [], null);
         $this->setIfExists('open', $data ?? [], null);
         $this->setIfExists('note', $data ?? [], null);
     }
@@ -391,6 +398,33 @@ class CompRequest implements ModelInterface, ArrayAccess, \JsonSerializable
         }
 
         $this->container['periods'] = $periods;
+
+        return $this;
+    }
+
+    /**
+     * Gets until
+     *
+     * @return \DateTime|null
+     */
+    public function getUntil()
+    {
+        return $this->container['until'];
+    }
+
+    /**
+     * Sets until
+     *
+     * @param \DateTime|null $until Grant time up to this instant instead of whole periods — e.g. what a customer already paid for before migrating to Yoon. After the paid period, if any; later renewals fall on its day of the month.
+     *
+     * @return self
+     */
+    public function setUntil($until)
+    {
+        if (is_null($until)) {
+            throw new \InvalidArgumentException('non-nullable until cannot be null');
+        }
+        $this->container['until'] = $until;
 
         return $this;
     }

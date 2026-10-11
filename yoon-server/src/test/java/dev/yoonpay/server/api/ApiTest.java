@@ -122,6 +122,16 @@ public abstract class ApiTest extends PostgresTest {
         }
     }
 
+    /**
+     * Delivers every due outbound event. Tests share one database and earlier test classes may
+     * leave many undelivered events, so one fixed-size batch may not reach this test's own.
+     */
+    protected static void deliverAllDue(dev.yoonpay.server.outbox.OutboxDelivery delivery) {
+        for (int round = 0; round < 200 && delivery.deliverDue(100) > 0; round++) {
+            // keep going: a failed delivery is rescheduled for later, so this ends
+        }
+    }
+
     /** Calls the admin API with the test operator token. */
     protected Response admin(String method, String path, Object body) {
         return send("admin:" + ADMIN_TOKEN, method, path, body, null);

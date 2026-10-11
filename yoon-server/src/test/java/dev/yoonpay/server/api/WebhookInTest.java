@@ -204,7 +204,7 @@ class WebhookInTest extends ApiTest {
         deliver("shop", FAKE_ONE.sendWebhook(ref));
         processor.processPending(10);
 
-        outbox.deliverDue(50);
+        deliverAllDue(outbox);
 
         assertThat(RECEIVER.received()).anySatisfy(d -> {
             assertThat(d.header("Yoon-Event-Type")).isEqualTo("payment.succeeded");

@@ -272,6 +272,10 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   `shop` app's webhook endpoint; `admin(…)` calls the operator API;
   `postRaw(…)` sends provider callbacks. The `live` app uses the real DexPay
   adapter against the `DEXPAY` WireMock server (`LiveProviderTest`).
+- Test classes share the database and run in any order (CI's order differs from a local
+  run): never assume an empty outbox or a global count. Deliver with `deliverAllDue(…)`,
+  not one fixed-size `deliverDue(n)` batch; check with
+  `-Dsurefire.runOrder=random` when a test touches shared state.
 - Provider behaviour is tested with `FakeProvider`: script `Behaviour`s (accept,
   reject, down, hang, timeout-after-accept), settle provider-side truth, emit
   genuine, duplicate, late or forged webhooks.

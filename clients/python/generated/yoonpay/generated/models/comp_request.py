@@ -17,6 +17,7 @@ import pprint
 import re  # noqa: F401
 import json
 
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
@@ -25,14 +26,15 @@ from typing_extensions import Self
 
 class CompRequest(BaseModel):
     """
-    Exactly one of `periods` and `open`.
+    Exactly one of `periods`, `until` and `open`.
     """ # noqa: E501
     price: StrictStr = Field(description="The price granted (any price of the application).")
     periods: Optional[Annotated[int, Field(le=120, strict=True, ge=1)]] = None
+    until: Optional[datetime] = Field(default=None, description="Grant time up to this instant instead of whole periods — e.g. what a customer already paid for before migrating to Yoon. After the paid period, if any; later renewals fall on its day of the month. ")
     open: Optional[StrictBool] = Field(default=None, description="true: no end date (current_period_end null) until canceled.")
     note: Annotated[str, Field(min_length=1, strict=True, max_length=500)]
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["price", "periods", "open", "note"]
+    __properties: ClassVar[List[str]] = ["price", "periods", "until", "open", "note"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -94,6 +96,7 @@ class CompRequest(BaseModel):
         _obj = cls.model_validate({
             "price": obj.get("price"),
             "periods": obj.get("periods"),
+            "until": obj.get("until"),
             "open": obj.get("open"),
             "note": obj.get("note")
         })

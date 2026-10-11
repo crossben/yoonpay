@@ -489,7 +489,7 @@ export const CheckoutViewNextActionTypeEnum = {
 export type CheckoutViewNextActionTypeEnum = typeof CheckoutViewNextActionTypeEnum[keyof typeof CheckoutViewNextActionTypeEnum];
 
 /**
- * Exactly one of `periods` and `open`.
+ * Exactly one of `periods`, `until` and `open`.
  * @export
  * @interface CompRequest
  */
@@ -507,6 +507,15 @@ export interface CompRequest {
      * @memberof CompRequest
      */
     periods?: number;
+    /**
+     * Grant time up to this instant instead of whole periods — e.g. what a customer already
+     * paid for before migrating to Yoon. After the paid period, if any; later renewals fall on
+     * its day of the month.
+     * 
+     * @type {string}
+     * @memberof CompRequest
+     */
+    until?: string;
     /**
      * true: no end date (current_period_end null) until canceled.
      * @type {boolean}
