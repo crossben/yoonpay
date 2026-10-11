@@ -82,7 +82,7 @@ Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to a
 
 ```text
 Integrate Yoon payments (yoonpay/yoon-php 0.3.x) into this Laravel app.
-Install: composer require "yoonpay/yoon-php:^0.2"
+Install: composer require "yoonpay/yoon-php:^0.3"
 Do:
 1. .env: YOON_URL, YOON_API_KEY, YOON_WEBHOOK_SECRET (same value as YOON_APPS_<APP>_WEBHOOK_SECRET
    on the Yoon side).
@@ -190,7 +190,7 @@ Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to a
 
 ```text
 Integrate Yoon payments (yoonpay/yoon-php 0.3.x, Symfony bundle) into this Symfony app.
-Install: composer require "yoonpay/yoon-php:^0.2"
+Install: composer require "yoonpay/yoon-php:^0.3"
 Do:
 1. Register Yoon\Symfony\YoonBundle in config/bundles.php and create config/packages/yoon.yaml
    (url, api_key, webhook_secret from %env(...)%).

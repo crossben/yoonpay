@@ -219,7 +219,7 @@ Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to a
 
 ```text
 Integrate Yoon payments (@yoonpay/yoon 0.3.x) into this Node.js / TypeScript app.
-Install: npm install "@yoonpay/yoon@^0.2" (Node 20+; also Bun, Deno, edge)
+Install: npm install "@yoonpay/yoon@^0.3" (Node 20+; also Bun, Deno, edge)
 Do:
 1. One shared client: new Yoon(process.env.YOON_URL, process.env.YOON_API_KEY). Server side only:
    never ship the API key to a browser.
