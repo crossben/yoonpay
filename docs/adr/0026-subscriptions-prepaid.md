@@ -1,6 +1,6 @@
 # ADR-0026 — Subscriptions, prepaid periods and their lifecycle
 
-- Status: proposed
+- Status: accepted (shipped in 0.3.0)
 - Date: 2026-10-10
 - Builds on: ADR-0024 (hosted checkout), ADR-0025 (customers, plans, prices). Invoices: ADR-0027.
 

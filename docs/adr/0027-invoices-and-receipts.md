@@ -1,6 +1,6 @@
 # ADR-0027 — Invoices (billing records) and payment receipts
 
-- Status: proposed
+- Status: accepted (shipped in 0.3.0)
 - Date: 2026-10-10
 - Builds on: ADR-0026
 

@@ -5,7 +5,14 @@ never changes incompatibly.
 
 ## [Unreleased]
 
-### Billing (0.3.0, in progress)
+## [0.3.0] - 2026-10-11
+
+Prepaid subscriptions for mobile money. Upgrading from 0.2.0: migration `V7` runs on start-up.
+`/v1` stays compatible: new routes and fields only. Upgrade your clients before you subscribe a
+webhook endpoint to billing events: the 0.2.0 Java and PHP clients fail on event types they do
+not know (see Clients).
+
+### Billing
 - Customers: `POST/GET/PATCH /v1/customers`, found by your own `external_id` (unique per
   application; a duplicate is `409 customer_exists`). Phones masked; `metadata` up to 20 strings.
 - Plans and prices: `POST/GET/PATCH /v1/plans`, `POST /v1/plans/{id}/prices`,

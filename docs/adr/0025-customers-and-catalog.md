@@ -1,6 +1,6 @@
 # ADR-0025 — Customers, plans and prices
 
-- Status: proposed
+- Status: accepted (shipped in 0.3.0)
 - Date: 2026-10-10
 - Part of: billing for 0.3.0 (with ADR-0026 subscriptions, ADR-0027 invoices)
 

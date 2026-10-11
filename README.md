@@ -14,9 +14,9 @@ One API in front of PayDunya, DexPay, NabooPay, CinetPay, Wave, Stripe and PI-SP
 verified webhooks, idempotency, a ledger and automatic reconciliation — written
 once, in Java, instead of in every project.
 
-> **Status: 0.2.0.** The gateway, its operations tooling, its operator dashboard and hosted
-> checkout, its PayDunya, DexPay, NabooPay, CinetPay, Wave (direct), Stripe and PI-SPI adapters
-> and its clients are built and tested. The adapters are tested against simulated provider APIs
+> **Status: 0.3.0.** The gateway, its operations tooling, its operator dashboard, hosted
+> checkout and prepaid subscriptions, its PayDunya, DexPay, NabooPay, CinetPay, Wave (direct),
+> Stripe and PI-SPI adapters and its clients are built and tested. The adapters are tested against simulated provider APIs
 > (built from production integrations, the providers' public documentation and SDKs, and the
 > BCEAO specification); they have **not yet been run against the providers' sandboxes**. Try it
 > with the demo provider, and test with your own sandbox keys before taking real payments.
@@ -63,7 +63,7 @@ once, in Java, instead of in every project.
   through the provider's status API without human action; unpaid payments expire;
   a success that arrives after expiry is still recovered; a payout whose outcome
   stays unknown is flagged for a human instead of guessed.
-- **Billing (0.3.0, in progress)** — prepaid subscriptions for mobile money
+- **Billing** — prepaid subscriptions for mobile money
   ([guide: Billing for SaaS](docs/billing.md), [plan](docs/plans/billing-0.3.0.md), ADR-0025 to ADR-0027):
   - customers found by your own user id; plans with free-form `features` (limits, flags); prices
     in integer minor units per currency and interval, immutable (the database refuses edits),
