@@ -231,6 +231,21 @@ constant time with `v1`, and reject if `t` is more than 5 minutes old. Delivery
 is at-least-once and unordered: deduplicate on the event `id`. The full
 description is in the `webhooks` section of `api/openapi.yaml` (and at `/docs`).
 
+Every attempt is signed with the time it is sent, including retries and
+`POST /v1/events/{id}/redeliver`; the event id stays the same.
+
+### Receiving webhooks on your machine (local development)
+
+- Yoon in Docker reaches an app on the host at `http://host.docker.internal:<port>`. The app
+  must listen on all interfaces (`--host 0.0.0.0`). On Docker Desktop, `host.docker.internal`
+  may resolve to an IPv6 address first: if deliveries fail with "connection refused", make the
+  app listen on IPv6 too (e.g. `--host ::` for uvicorn) or use the host's IPv4 address.
+- Yoon delivers over HTTP/1.1, so plain-HTTP servers that refuse protocol upgrades (uvicorn's
+  default) work.
+- Signatures older than 5 minutes are rejected, so the clocks must agree. Docker Desktop's
+  virtual machine clock can fall behind after the laptop sleeps: if fresh deliveries are
+  refused as "stale", restart Docker Desktop (or sync its clock).
+
 ### Operator command line
 
 ```sh

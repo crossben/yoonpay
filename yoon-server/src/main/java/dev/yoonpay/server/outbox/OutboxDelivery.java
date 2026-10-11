@@ -32,7 +32,10 @@ public class OutboxDelivery {
     private final YoonProperties properties;
     private final Alerts alerts;
     private final Clock clock;
+    // HTTP/1.1 only: over plain http:// the JDK client otherwise asks for an HTTP/2 upgrade
+    // (Upgrade: h2c), which servers such as uvicorn answer with 400 — events were never delivered.
     private final HttpClient http = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(5))
             .followRedirects(HttpClient.Redirect.NEVER)
             .build();

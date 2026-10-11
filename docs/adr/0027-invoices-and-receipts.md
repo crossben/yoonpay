@@ -20,8 +20,8 @@ The docs and the receipt say plainly: **"Payment receipt — not a tax invoice."
 must issue tax invoices produce them from the `invoice.paid` event in their own system.
 
 ### Numbers
-Per application, gap-free: `<PREFIX>-<YYYY>-<000001>` (prefix `YOON_BILLING_INVOICE_PREFIX`,
-default `INV`). The counter is a row per application locked (`SELECT … FOR UPDATE`) in the
+Per application, gap-free: `<PREFIX>-<YYYY>-<000001>` (prefix per application, default `INV`;
+ADR-0026 Settings). The counter is a row per application locked (`SELECT … FOR UPDATE`) in the
 transaction that creates the invoice, so numbers never repeat or skip — even with several
 instances.
 
@@ -35,7 +35,7 @@ instances.
   ignored), with an alert for a human.
 
 The invoice's hosted payment uses a checkout TTL equal to the invoice's due window
-(`YOON_BILLING_INVOICE_TTL`, default 7 days); when it expires, `renew` creates a new payment for
+(per application, default 7 days); when it expires, `renew` creates a new payment for
 the same open invoice (same number).
 
 ### Receipts

@@ -146,9 +146,12 @@ subscription"; amounts `bigint CHECK (> 0)`; status `CHECK` lists.
 - Demo provider end to end: create → pay on checkout → active → time moved → past_due →
   renew → active → time moved past grace → expired.
 
-## 6. Open questions for review
-1. **Entitled in `past_due`?** Proposed: yes (grace means "still works, pay soon"); merchants can
-   stop at `past_due` if they prefer. OK for OSIG?
-2. **Invoice due window** default 7 days and **grace** default 3 days — OSIG's real values?
-3. **OSIG today:** to write the migration note, I need OSIG's current plans table, renewal logic
-   and webhook handler (or a description).
+## 6. Decisions from review (2026-10-10)
+1. `past_due` is entitled (grace means "still works, pay soon").
+2. Defaults kept: invoice due window 7 days, grace 3 days, reminder 3 days.
+3. OSIG migration note: drafted in [osig-migration.md](osig-migration.md) from OSIG's billing code
+   (2026-10-11). OSIG's needs added to ADR-0026: renewing with a pending change stacks at the new
+   price, open-ended comps, and billing settings per application (OSIG: grace 2 days, reminders 7).
+4. Bugs found by OSIG, fixed before 0.3.0 (CHANGELOG "Fixed"): HTTP/1.1 for webhook delivery and
+   provider calls (uvicorn refused `Upgrade: h2c`); redelivery signatures were already fresh
+   (test added) — the stale timestamps came from Docker Desktop's clock drift (docs added).

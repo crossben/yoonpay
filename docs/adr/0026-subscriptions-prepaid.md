@@ -16,8 +16,8 @@ for 0.4.0 with dunning, behind a provider capability and its own ADR).
 ### Resource
 `sub_…`, per application: `customer`, `price` (and its `plan`), `status`, `collection_method`
 (only `prepaid_manual` in 0.3.0; the field exists so `automatic` can be added),
-`current_period_start`, `current_period_end`, `grace_period_days` (default from the application
-setting `YOON_BILLING_GRACE_DAYS`, default 3), `cancel_at_period_end`, `pending_change`
+`current_period_start`, `current_period_end` (null only for an open-ended comp, see Operator),
+`grace_period_days` (default from the application's setting, see Settings), `cancel_at_period_end`, `pending_change`
 (`{price, effective_at}` or null), `canceled_at`, `features` (copied from the plan at read time),
 `comp` (true for operator-granted periods), `metadata`.
 
@@ -54,7 +54,7 @@ On payment of a renewal invoice at time `t`:
 The period length comes from the price, with calendar arithmetic anchored on the subscription's
 `billing_anchor` (the day-of-month of the first period start): a period anchored on the 31st
 renews on Feb 28/29, then on the 31st again. Timestamps are UTC. "Days before" in reminders are
-counted in the application's time zone (`YOON_BILLING_TIMEZONE`, default `Africa/Dakar`).
+counted in the application's time zone (default `Africa/Dakar`, see Settings).
 
 ### Plan changes (`POST /v1/subscriptions/{id}/change` {price, when})
 - **Downgrade or same-price change** (new price amount per day ≤ current): scheduled,
@@ -67,6 +67,11 @@ counted in the application's time zone (`YOON_BILLING_TIMEZONE`, default `Africa
   computed with integers (no money proration, no refunds — mobile money cannot pay back
   fractions). Until the upgrade invoice is paid, nothing changes.
 - Changing currency is refused (a new subscription is needed).
+- **Renewing with a change pending** (e.g. Pro monthly → Pro yearly, which is not an upgrade per
+  unit of time): the renewal invoice is at the **pending** price; when it is paid, the change is
+  applied and the period **stacks** as usual (starts at `current_period_end`). This is how a
+  customer "buys the yearly plan now" without losing the month they already paid — OSIG's
+  behaviour today.
 
 ### Cancel (`POST /v1/subscriptions/{id}/cancel` {at_period_end = true})
 - Default: `cancel_at_period_end = true`; at `current_period_end` the subscription becomes
@@ -78,8 +83,7 @@ counted in the application's time zone (`YOON_BILLING_TIMEZONE`, default `Africa
 ### Lifecycle jobs
 One `BillingSweep` worker, under ShedLock like the reconciler, claiming due rows with
 `FOR UPDATE SKIP LOCKED`, every transition through `SubscriptionTransitions`:
-1. **Reminders:** `subscription.renewal_upcoming` once per period, `YOON_BILLING_REMINDER_DAYS`
-   (default 3) days before `current_period_end` (a `reminded_period_end` column makes it once).
+1. **Reminders:** `subscription.renewal_upcoming` once per period, the application's reminder days before `current_period_end` (a `reminded_period_end` column makes it once).
 2. **Period end:** `active` at `current_period_end` → `canceled` if `cancel_at_period_end`,
    else apply `pending_change` (it becomes the price) and → `past_due`, creating the renewal
    invoice if none is open (so the customer can always pay).
@@ -105,10 +109,11 @@ oasdiff ignore file with this ADR as the reason. Webhook payloads were always pa
 hand-written `Event` helpers, which treat `type` as a string.
 
 ### Operator
-- `yoon billing comp <app> <subscription or customer> <price> <periods>` (CLI) and
+- `yoon billing comp <app> <subscription or customer> <price> <periods | open>` (CLI) and
   `POST /admin/v1/applications/{app}/subscriptions/{id}/comp`: adds paid-looking periods with
   **no payment**, `comp: true`, recorded in `status_events` with the operator as cause. No ledger
-  posting (no money moved).
+  posting (no money moved). `open` grants without an end date (`current_period_end` null:
+  sweeps skip it) until an operator ends it — for "contact us" plans.
 - Dashboard: plans, subscriptions (with history) and invoices tabs; read-only apart from comp.
 - CSV exports: `subscriptions.csv`, `invoices.csv`.
 
@@ -118,6 +123,10 @@ hand-written `Event` helpers, which treat `type` as a string.
 - `/v1/payments` unchanged; subscription payments are ordinary hosted payments with a
   `subscription` and `invoice` reference (additive fields).
 - Yoon sends no e-mail: reminders are events the merchant turns into messages.
-- New settings: `YOON_BILLING_GRACE_DAYS`, `YOON_BILLING_REMINDER_DAYS`, `YOON_BILLING_TIMEZONE`.
+- New settings, **per application** (several applications share one Yoon):
+  `YOON_APPS_<APP>_BILLING_GRACE_DAYS` (default 3), `YOON_APPS_<APP>_BILLING_REMINDER_DAYS`
+  (default 3), `YOON_APPS_<APP>_BILLING_TIMEZONE` (default `Africa/Dakar`),
+  `YOON_APPS_<APP>_BILLING_INVOICE_PREFIX` (default `INV`), `YOON_APPS_<APP>_BILLING_INVOICE_TTL`
+  (default `7d`).
 - Deferred to 0.4.0: `automatic` collection and dunning (provider capability, Stripe first),
   customer portal, PDF receipts.

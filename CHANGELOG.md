@@ -5,6 +5,13 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Fixed
+- Webhook deliveries and provider calls over plain `http://` were refused by servers that reject
+  HTTP/2 upgrade requests (uvicorn's default answers `Upgrade: h2c` with 400), so such endpoints
+  never received events. Yoon now always speaks HTTP/1.1. Found while integrating OSIG.
+- Docs: local webhook setup with Docker Desktop (IPv6 `host.docker.internal`, clock drift);
+  every delivery attempt, including redeliveries, is signed with its send time (now tested).
+
 ### Clients
 - Every client README has a "Prompt for an AI coding agent": a copy-ready brief that tells a coding
   agent what to install and write, and the rules that protect money (idempotency keys tied to the

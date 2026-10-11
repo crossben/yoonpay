@@ -11,7 +11,11 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** Plays the application's webhook endpoint: records what Yoon sends, answers a chosen status. */
+/**
+ * Plays the application's webhook endpoint: records what Yoon sends, answers a chosen status.
+ * Like uvicorn's default server, it answers 400 to a request asking for a protocol upgrade
+ * ({@code Upgrade: h2c}): Yoon must deliver over plain HTTP/1.1.
+ */
 public final class TestWebhookReceiver {
 
     public static final String SECRET = "test-webhook-secret-0123456789abcdef";
@@ -36,7 +40,8 @@ public final class TestWebhookReceiver {
         server.createContext("/hooks", exchange -> {
             byte[] body = exchange.getRequestBody().readAllBytes();
             received.add(new Delivery(Map.copyOf(exchange.getRequestHeaders()), new String(body, StandardCharsets.UTF_8)));
-            exchange.sendResponseHeaders(status.get(), -1);
+            boolean upgrade = exchange.getRequestHeaders().containsKey("Upgrade");
+            exchange.sendResponseHeaders(upgrade ? 400 : status.get(), -1);
             exchange.close();
         });
         server.setExecutor(java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor());

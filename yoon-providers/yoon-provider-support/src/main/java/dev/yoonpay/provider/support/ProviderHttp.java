@@ -51,7 +51,10 @@ public final class ProviderHttp {
 
     /** With a TLS context, e.g. a client certificate for mutual TLS ({@link Tls#fromPem}). */
     public ProviderHttp(Duration connectTimeout, Duration requestTimeout, SSLContext ssl) {
+        // HTTP/1.1 only: over plain http:// the JDK client otherwise asks for an HTTP/2 upgrade
+        // (Upgrade: h2c), which some servers refuse with 400 — an answer we would read as a refusal.
         HttpClient.Builder b = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(connectTimeout)
                 .followRedirects(HttpClient.Redirect.NEVER);
         if (ssl != null) {

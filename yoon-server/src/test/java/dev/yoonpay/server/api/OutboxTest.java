@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -63,6 +64,24 @@ class OutboxTest extends ApiTest {
         Response event = get("shop", "/v1/events/" + d.header("Yoon-Event-Id"));
         assertThat(event.json().path("delivery").path("status").asString()).isEqualTo("delivered");
         assertThat(event.json().path("payload").path("data").path("object").path("id").asString()).isEqualTo(paymentId);
+    }
+
+    @Test
+    void a_redelivered_event_is_signed_with_the_time_it_is_sent() {
+        String paymentId = failedPayment("shop");
+        delivery.deliverDue(50);
+        String eventId = eventFor("shop", paymentId);
+        // The event was created and first signed long ago.
+        jdbc.sql("UPDATE outbound_events SET created_at = now() - interval '2 hours' WHERE id = :id").param("id", eventId).update();
+        RECEIVER.reset();
+
+        post("shop", "/v1/events/" + eventId + "/redeliver", Map.of());
+        delivery.deliverDue(50);
+
+        var d = RECEIVER.received().getFirst();
+        assertThat(d.header("Yoon-Event-Id")).as("same id: receivers deduplicate on it").isEqualTo(eventId);
+        assertThat(WebhookSignature.verify(TestWebhookReceiver.SECRET, d.header("Yoon-Signature"), d.body(),
+                Instant.now().getEpochSecond())).as("fresh timestamp, within the 5-minute tolerance").isTrue();
     }
 
     @Test
