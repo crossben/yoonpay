@@ -16,8 +16,14 @@ never changes incompatibly.
   checkout; the payment's confirmation, the paid invoice and the extended subscription commit in
   one transaction. Stacking, upgrades with unused time as extra days, scheduled downgrades,
   cancel at period end or now (open invoice voided; a late payment still counts, with an alert).
-- Events: `subscription.created|activated|renewed|past_due|expired|canceled|changed`,
-  `invoice.created|paid|voided` (`past_due`/`expired` are emitted by the billing sweep, next).
+- Events: `subscription.created|activated|renewed|past_due|expired|canceled|changed|renewal_upcoming`,
+  `invoice.created|paid|voided`.
+- Billing sweep, every minute under ShedLock: `subscription.renewal_upcoming` once per period
+  (reminder days before the end, counted in the application's time zone); at period end
+  `cancel_at_period_end` → `canceled`, otherwise a pending change is applied and the subscription
+  becomes `past_due` with a renewal invoice; after grace → `expired` (the invoice stays payable);
+  an unpaid first invoice older than the invoice TTL → `expired`. Each row is re-checked under its
+  lock; failures count in `yoon.billing.sweep.errors`.
 - Invoice numbers `<PREFIX>-<year>-<000001>`, gap-free per application.
 - Per-application billing settings: `YOON_APPS_<APP>_BILLING_GRACE_DAYS` (3),
   `_REMINDER_DAYS` (3), `_TIMEZONE` (Africa/Dakar), `_INVOICE_PREFIX` (INV), `_INVOICE_TTL` (7d).

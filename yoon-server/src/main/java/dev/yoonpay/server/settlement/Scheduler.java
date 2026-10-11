@@ -28,11 +28,20 @@ public class Scheduler {
     private final InboundWebhookProcessor inbound;
     private final OutboxDelivery outbox;
     private final Reconciler reconciler;
+    private final dev.yoonpay.server.billing.BillingSweep billing;
 
-    public Scheduler(InboundWebhookProcessor inbound, OutboxDelivery outbox, Reconciler reconciler) {
+    public Scheduler(InboundWebhookProcessor inbound, OutboxDelivery outbox, Reconciler reconciler,
+                     dev.yoonpay.server.billing.BillingSweep billing) {
         this.inbound = inbound;
         this.outbox = outbox;
         this.reconciler = reconciler;
+        this.billing = billing;
+    }
+
+    @Scheduled(fixedDelayString = "PT1M")
+    @SchedulerLock(name = "sweep-billing")
+    void sweepBilling() {
+        billing.sweep();
     }
 
     @Bean

@@ -75,7 +75,9 @@ once, in Java, instead of in every project.
     periods apply at the period end. Cancel now or at the period end, resume;
   - invoices numbered without gaps per application (billing records, not tax invoices);
   - events `subscription.*` and `invoice.*` carry the full object, so entitlements can be driven
-    from webhooks alone. Expiry and reminders (the billing sweep) come next.
+    from webhooks alone. A sweep every minute sends
+    renewal reminders, moves ended periods to `past_due` (with a renewal invoice) and expires
+    subscriptions after grace.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount

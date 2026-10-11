@@ -113,7 +113,7 @@ public class SubscriptionService {
     }
 
     /** The subscription's open invoice, or a new one at the price the next period will cost. */
-    private InvoiceRecord openInvoice(AppPrincipal app, SubscriptionRecord s, String kind) {
+    InvoiceRecord openInvoice(AppPrincipal app, SubscriptionRecord s, String kind) {
         try {
             return tx.execute(t -> {
                 subscriptions.lock(app.id(), s.id()).orElseThrow();

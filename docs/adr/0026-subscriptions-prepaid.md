@@ -81,8 +81,10 @@ counted in the application's time zone (default `Africa/Dakar`, see Settings).
   `POST /v1/payments/{id}/refunds`, as today. Any open invoice is voided.
 
 ### Lifecycle jobs
-One `BillingSweep` worker, under ShedLock like the reconciler, claiming due rows with
-`FOR UPDATE SKIP LOCKED`, every transition through `SubscriptionTransitions`:
+One `BillingSweep` worker, every minute under ShedLock (`sweep-billing`) like the reconciler. It
+selects candidate rows, then handles each in its own transaction: lock the subscription, re-check
+the condition under the lock (a payment may have settled meanwhile), transition through
+`SubscriptionTransitions`. A failing row is counted in `yoon.billing.sweep.errors` and retried next pass:
 1. **Reminders:** `subscription.renewal_upcoming` once per period, the application's reminder days before `current_period_end` (a `reminded_period_end` column makes it once).
 2. **Period end:** `active` at `current_period_end` → `canceled` if `cancel_at_period_end`,
    else apply `pending_change` (it becomes the price) and → `past_due`, creating the renewal

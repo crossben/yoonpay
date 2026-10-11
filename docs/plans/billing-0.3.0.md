@@ -150,6 +150,7 @@ subscription"; amounts `bigint CHECK (> 0)`; status `CHECK` lists.
 - M1 core (state machines, periods, stacking, extra days) — done.
 - M2 customers, plans, prices, V7 schema, open-set client enums — done.
 - M3 subscriptions, invoices, payment hook, events — done.
+- M4 billing sweep (reminders, period end, grace end, incomplete expiry) — done.
 
 ## 6. Decisions from review (2026-10-10)
 1. `past_due` is entitled (grace means "still works, pay soon").

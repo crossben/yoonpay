@@ -179,6 +179,10 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - At most one open invoice per subscription (unique index); `renew` returns it and gives it a
   fresh hosted payment when its checkout expired. Invoice numbers come from `nextNumber` inside the
   creating transaction (row-locked counter, gap-free).
+- `BillingSweep` (Scheduler, ShedLock `sweep-billing`): candidate rows are read without locks,
+  then each is handled in its own transaction that locks the subscription and **re-checks the
+  condition under the lock** (a payment may have moved the period meanwhile). Time comes from the
+  injected `Clock`; tests age rows in SQL and call the stage methods directly (`BillingSweepTest`).
 
 ### Idempotency (`IdempotencyStore`)
 
