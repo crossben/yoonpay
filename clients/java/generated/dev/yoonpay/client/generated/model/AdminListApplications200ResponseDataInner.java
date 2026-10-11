@@ -51,7 +51,9 @@ public class AdminListApplications200ResponseDataInner {
    * Gets or Sets _object
    */
   public enum ObjectEnum {
-    APPLICATION(String.valueOf("application"));
+    APPLICATION(String.valueOf("application")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -76,7 +78,7 @@ public class AdminListApplications200ResponseDataInner {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

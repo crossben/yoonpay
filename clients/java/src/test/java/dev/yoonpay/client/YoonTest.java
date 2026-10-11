@@ -62,4 +62,18 @@ class YoonTest {
                     assertThat(e.isRetryable()).isFalse();
                 });
     }
+
+    @Test
+    void a_status_from_a_newer_server_does_not_break_parsing() {
+        // Response enums are an open set (ADR-0026): unknown values map to UNKNOWN_DEFAULT_OPEN_API.
+        wm.stubFor(get("/v1/payments/pay_1").willReturn(okJson("""
+                {"id":"pay_1","object":"payment","status":"refund_pending","checkout":"some_new_mode","amount":5000,
+                 "amount_refunded":0,"currency":"XOF","country":"SN","method":"wave",
+                 "created_at":"2026-09-30T10:00:00Z","updated_at":"2026-09-30T10:00:00Z"}""")));
+
+        Payment p = yoon().getPayment("pay_1");
+
+        assertThat(p.getStatus()).isEqualTo(PaymentStatus.UNKNOWN_DEFAULT_OPEN_API);
+        assertThat(p.getAmount()).isEqualTo(5000L);
+    }
 }

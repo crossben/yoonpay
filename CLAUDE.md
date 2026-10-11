@@ -161,6 +161,18 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - `ContractCoverageTest` also covers `/checkout/api/` routes. Public checkout endpoints are
   rate-limited (`YOON_CHECKOUT_RATE_LIMIT`); tests set it to 0.
 
+### Billing (`server/billing`, ADR-0025..0027, plan in `docs/plans/billing-0.3.0.md`)
+
+- Customers, plans and prices: JSON columns (`metadata`, `features`) are JSONB, written with
+  `CAST(:x AS jsonb)` and read back as text (`::text AS …`); validate them with `Metadata`.
+- Prices are immutable (trigger `prices_immutable`; only `active` changes) and never deleted;
+  plans are archived, never deleted. A new amount is a new price.
+- PATCH endpoints take a `JsonNode` body: present fields replace, `null` clears, unknown or
+  read-only fields are a 400. Every PATCH is idempotent like any write.
+- Subscription and invoice status changes will go through `SubscriptionTransitions` /
+  `InvoiceTransitions` with the core state machines (`SubscriptionStatus`, `InvoiceStatus`), the
+  same way as payments.
+
 ### Idempotency (`IdempotencyStore`)
 
 - Claim the key (`begin`) **before** any provider call; it commits on its own.
@@ -198,6 +210,10 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - The hand-written layer stays thin: helpers take an explicit idempotency key; errors
   become `YoonException` with the problem `code`.
 - Signature verification in every client must pass `api/test-vectors/webhook-signature.json`.
+- Response enums are an open set: every client must parse values it does not know (patched in
+  `generate.sh` for PHP and Python; Java uses `enumUnknownDefaultCase` and
+  `useOneOfDiscriminatorLookup`). Adding a response enum value is allowed by CI
+  (`api/oasdiff/severity-levels.txt`); removing one is not.
 - `JavaClientTest` (server) runs the Java client against the real server; `clients/php` tests
   run on lowest and highest dependencies (Guzzle 7 and 8); `clients/js` tests run on Node 20 and
   current, with vitest, and its e2e script (`clients/js/e2e/run.mjs`) runs the shared scenario

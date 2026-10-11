@@ -459,16 +459,6 @@ class Event implements ModelInterface, ArrayAccess, \JsonSerializable
         if (is_null($object)) {
             throw new \InvalidArgumentException('non-nullable object cannot be null');
         }
-        $allowedValues = $this->getObjectAllowableValues();
-        if (!in_array($object, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'object', must be one of '%s'",
-                    $object,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['object'] = $object;
 
         return $this;
@@ -522,16 +512,6 @@ class Event implements ModelInterface, ArrayAccess, \JsonSerializable
     {
         if (is_null($resource_type)) {
             throw new \InvalidArgumentException('non-nullable resource_type cannot be null');
-        }
-        $allowedValues = $this->getResourceTypeAllowableValues();
-        if (!in_array($resource_type, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'resource_type', must be one of '%s'",
-                    $resource_type,
-                    implode("', '", $allowedValues)
-                )
-            );
         }
         $this->container['resource_type'] = $resource_type;
 

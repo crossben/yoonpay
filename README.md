@@ -63,6 +63,11 @@ once, in Java, instead of in every project.
   through the provider's status API without human action; unpaid payments expire;
   a success that arrives after expiry is still recovered; a payout whose outcome
   stays unknown is flagged for a human instead of guessed.
+- **Billing catalog (0.3.0, in progress)**: customers found by your own user id, plans with
+  free-form `features` (limits, flags), and prices in integer minor units per currency and
+  interval. Prices are immutable (the database refuses edits); plans and prices are archived,
+  never deleted. Subscriptions, invoices and renewals follow in the next steps
+  ([plan](docs/plans/billing-0.3.0.md), ADR-0025 to ADR-0027).
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount

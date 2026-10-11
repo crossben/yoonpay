@@ -20,9 +20,12 @@ import java.util.Objects;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Locale;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
 import dev.yoonpay.client.generated.model.Failure;
@@ -96,6 +99,26 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
         public EventPayloadDataObject deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
             JsonNode tree = jp.readValueAsTree();
             Object deserialized = null;
+            EventPayloadDataObject newEventPayloadDataObject = new EventPayloadDataObject();
+            Map<String,Object> result2 = tree.traverse(jp.getCodec()).readValueAs(new TypeReference<Map<String, Object>>() {});
+            String discriminatorValue = (String)result2.get("object");
+            switch (discriminatorValue) {
+                case "payment":
+                    deserialized = tree.traverse(jp.getCodec()).readValueAs(Payment.class);
+                    newEventPayloadDataObject.setActualInstance(deserialized);
+                    return newEventPayloadDataObject;
+                case "payout":
+                    deserialized = tree.traverse(jp.getCodec()).readValueAs(Payout.class);
+                    newEventPayloadDataObject.setActualInstance(deserialized);
+                    return newEventPayloadDataObject;
+                case "refund":
+                    deserialized = tree.traverse(jp.getCodec()).readValueAs(Refund.class);
+                    newEventPayloadDataObject.setActualInstance(deserialized);
+                    return newEventPayloadDataObject;
+                default:
+                    log.log(Level.WARNING, String.format(Locale.ROOT, "Failed to lookup discriminator value `%s` for EventPayloadDataObject. Possible values: payment payout refund", discriminatorValue));
+            }
+
             boolean typeCoercion = ctxt.isEnabled(MapperFeature.ALLOW_COERCION_OF_SCALARS);
             int match = 0;
             JsonToken token = tree.traverse(jp.getCodec()).nextToken();
@@ -221,6 +244,13 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
         schemas.put("Payout", Payout.class);
         schemas.put("Refund", Refund.class);
         JSON.registerDescendants(EventPayloadDataObject.class, Collections.unmodifiableMap(schemas));
+        // Initialize and register the discriminator mappings.
+        Map<String, Class<?>> mappings = new HashMap<String, Class<?>>();
+        mappings.put("payment", Payment.class);
+        mappings.put("payout", Payout.class);
+        mappings.put("refund", Refund.class);
+        mappings.put("EventPayload_data_object", EventPayloadDataObject.class);
+        JSON.registerDiscriminator(EventPayloadDataObject.class, "object", mappings);
     }
 
     @Override

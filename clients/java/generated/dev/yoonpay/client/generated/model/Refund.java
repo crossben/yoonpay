@@ -60,7 +60,9 @@ public class Refund {
    * Gets or Sets _object
    */
   public enum ObjectEnum {
-    REFUND(String.valueOf("refund"));
+    REFUND(String.valueOf("refund")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -85,7 +87,7 @@ public class Refund {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

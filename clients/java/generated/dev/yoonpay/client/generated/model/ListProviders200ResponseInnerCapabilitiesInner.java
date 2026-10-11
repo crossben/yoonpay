@@ -49,7 +49,9 @@ public class ListProviders200ResponseInnerCapabilitiesInner {
     
     REFUND(String.valueOf("refund")),
     
-    PAYOUT(String.valueOf("payout"));
+    PAYOUT(String.valueOf("payout")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -74,7 +76,7 @@ public class ListProviders200ResponseInnerCapabilitiesInner {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

@@ -59,7 +59,9 @@ public class StatusEvent {
   public enum DecisionEnum {
     APPLY(String.valueOf("apply")),
     
-    IGNORE(String.valueOf("ignore"));
+    IGNORE(String.valueOf("ignore")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -84,7 +86,7 @@ public class StatusEvent {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 
@@ -104,7 +106,9 @@ public class StatusEvent {
     
     SWEEP(String.valueOf("sweep")),
     
-    ADMIN(String.valueOf("admin"));
+    ADMIN(String.valueOf("admin")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -129,7 +133,7 @@ public class StatusEvent {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

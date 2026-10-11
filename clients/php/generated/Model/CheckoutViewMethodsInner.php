@@ -412,16 +412,6 @@ class CheckoutViewMethodsInner implements ModelInterface, ArrayAccess, \JsonSeri
         if (is_null($needs)) {
             throw new \InvalidArgumentException('non-nullable needs cannot be null');
         }
-        $allowedValues = $this->getNeedsAllowableValues();
-        if (!in_array($needs, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'needs', must be one of '%s'",
-                    $needs,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['needs'] = $needs;
 
         return $this;

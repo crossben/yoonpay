@@ -43,7 +43,7 @@ use \Yoon\Generated\ObjectSerializer;
  */
 class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerializable
 {
-    public const DISCRIMINATOR = null;
+    public const DISCRIMINATOR = 'object';
 
     /**
       * The original name of the model.
@@ -442,6 +442,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('reason', $data ?? [], null);
         $this->setIfExists('recipient', $data ?? [], null);
         $this->setIfExists('needs_review', $data ?? [], null);
+
+        // Initialize discriminator property with the model name.
+        $this->container['object'] = static::$openAPIModelName;
     }
 
     /**
@@ -594,16 +597,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     {
         if (is_null($object)) {
             throw new \InvalidArgumentException('non-nullable object cannot be null');
-        }
-        $allowedValues = $this->getObjectAllowableValues();
-        if (!in_array($object, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'object', must be one of '%s'",
-                    $object,
-                    implode("', '", $allowedValues)
-                )
-            );
         }
         $this->container['object'] = $object;
 
@@ -793,16 +786,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     {
         if (is_null($checkout)) {
             throw new \InvalidArgumentException('non-nullable checkout cannot be null');
-        }
-        $allowedValues = $this->getCheckoutAllowableValues();
-        if (!in_array($checkout, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'checkout', must be one of '%s'",
-                    $checkout,
-                    implode("', '", $allowedValues)
-                )
-            );
         }
         $this->container['checkout'] = $checkout;
 

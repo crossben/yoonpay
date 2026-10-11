@@ -47,7 +47,9 @@ public class GetBalances200Response {
    * Gets or Sets _object
    */
   public enum ObjectEnum {
-    BALANCES(String.valueOf("balances"));
+    BALANCES(String.valueOf("balances")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -72,7 +74,7 @@ public class GetBalances200Response {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

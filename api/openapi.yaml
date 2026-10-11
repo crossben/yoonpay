@@ -38,6 +38,10 @@ tags:
     description: Give back all or part of a succeeded payment.
   - name: Payouts
     description: Send money to a phone wallet. Never retried, never sent to a second provider.
+  - name: Customers
+    description: Your users, for billing (found by your own id).
+  - name: Plans
+    description: What customers subscribe to, and its prices. Archived, never deleted.
   - name: Ledger
     description: Yoon's shadow ledger of your provider accounts.
   - name: Exports
@@ -395,6 +399,254 @@ paths:
                 items: { $ref: '#/components/schemas/StatusEvent' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/customers:
+    post:
+      tags: [Customers]
+      operationId: createCustomer
+      summary: Create a customer
+      description: |
+        A customer is one of your users, found again by your own id (`external_id`, unique per
+        application). Subscriptions and their payments belong to a customer (ADR-0025).
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCustomerRequest' }
+            example: { external_id: user_42, email: awa@example.com, phone: '771234567', country: SN, name: Awa Diop }
+      responses:
+        '201':
+          description: Customer created.
+          headers:
+            Idempotent-Replayed: { $ref: '#/components/headers/IdempotentReplayed' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: |
+            `customer_exists` — another customer already has this `external_id` (`detail` names it),
+            or an idempotency conflict.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [Customers]
+      operationId: listCustomers
+      summary: List customers
+      parameters:
+        - { name: external_id, in: query, schema: { type: string }, description: Exact match on your own id. }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of customers.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/customers/{id}:
+    get:
+      tags: [Customers]
+      operationId: getCustomer
+      summary: Get a customer
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The customer.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Customers]
+      operationId: updateCustomer
+      summary: Update a customer
+      description: Fields you send replace the stored ones; `null` clears an optional field. `external_id` cannot change.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCustomerRequest' }
+      responses:
+        '200':
+          description: The updated customer.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+
+  /v1/plans:
+    post:
+      tags: [Plans]
+      operationId: createPlan
+      summary: Create a plan, with its first prices
+      description: |
+        A plan is what a customer subscribes to; its prices say how much and how often (ADR-0025).
+        Plans and prices are never deleted: archive them with `active: false`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePlanRequest' }
+            example:
+              slug: pro
+              name: Pro
+              features: { seats: 5, exports: true }
+              prices:
+                - { currency: XOF, amount: 15000, interval: month }
+                - { currency: XOF, amount: 150000, interval: year }
+      responses:
+        '201':
+          description: Plan created.
+          headers:
+            Idempotent-Replayed: { $ref: '#/components/headers/IdempotentReplayed' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Plan' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: '`plan_exists` — the slug is taken (`detail` names the plan), or an idempotency conflict.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [Plans]
+      operationId: listPlans
+      summary: List plans
+      parameters:
+        - { name: active, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of plans, each with all its prices.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlanPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/plans/{id}:
+    get:
+      tags: [Plans]
+      operationId: getPlan
+      summary: Get a plan
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The plan with all its prices.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Plan' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Plans]
+      operationId: updatePlan
+      summary: Update a plan
+      description: '`name`, `active`, `features`, `metadata`. The slug and prices never change here.'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePlanRequest' }
+      responses:
+        '200':
+          description: The updated plan.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Plan' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+
+  /v1/plans/{id}/prices:
+    post:
+      tags: [Plans]
+      operationId: createPrice
+      summary: Add a price to a plan
+      description: Prices are immutable. To change an amount, add a new price and archive the old one.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PriceInput' }
+      responses:
+        '201':
+          description: Price created.
+          headers:
+            Idempotent-Replayed: { $ref: '#/components/headers/IdempotentReplayed' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Price' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+
+  /v1/prices/{id}:
+    get:
+      tags: [Plans]
+      operationId: getPrice
+      summary: Get a price
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The price.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Price' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Plans]
+      operationId: updatePrice
+      summary: Archive or reactivate a price
+      description: Only `active` can change; amount, currency and interval are immutable.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePriceRequest' }
+      responses:
+        '200':
+          description: The updated price.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Price' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
 
   /v1/balances:
     get:
@@ -1188,6 +1440,136 @@ components:
         has_more: { type: boolean }
         next_cursor: { $ref: '#/components/schemas/NextCursor' }
 
+    Metadata:
+      type: object
+      description: Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+      maxProperties: 20
+      additionalProperties: { type: string, maxLength: 500 }
+
+    Customer:
+      type: object
+      required: [id, object, external_id, country, metadata, created_at, updated_at]
+      properties:
+        id: { type: string, example: cus_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: customer }
+        external_id: { type: string, description: Your own id for this user. }
+        email: { type: [string, 'null'] }
+        phone: { type: [string, 'null'], example: '+22177***67', description: Masked. }
+        pi_alias: { type: [string, 'null'] }
+        country: { type: string }
+        name: { type: [string, 'null'] }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreateCustomerRequest:
+      type: object
+      required: [external_id, country]
+      properties:
+        external_id: { type: string, minLength: 1, maxLength: 255 }
+        email: { type: string, maxLength: 254 }
+        phone: { type: string, maxLength: 32, description: 'Local or international; validated for `country`.' }
+        pi_alias: { type: string, maxLength: 64 }
+        country: { type: string, pattern: '^[A-Z]{2}$' }
+        name: { type: string, maxLength: 200 }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    UpdateCustomerRequest:
+      type: object
+      properties:
+        email: { type: [string, 'null'], maxLength: 254 }
+        phone: { type: [string, 'null'], maxLength: 32 }
+        pi_alias: { type: [string, 'null'], maxLength: 64 }
+        country: { type: string, pattern: '^[A-Z]{2}$' }
+        name: { type: [string, 'null'], maxLength: 200 }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    CustomerPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Customer' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    Interval:
+      type: string
+      enum: [day, week, month, year]
+      description: Combined with `interval_count`; a quarter is `month` × 3.
+
+    PriceInput:
+      type: object
+      required: [currency, amount, interval]
+      properties:
+        currency: { type: string, pattern: '^[A-Z]{3}$', example: XOF }
+        amount: { type: integer, format: int64, minimum: 1, description: 'Minor units: XOF has none, 15 000 XOF = 15000.' }
+        interval: { $ref: '#/components/schemas/Interval' }
+        interval_count: { type: integer, minimum: 1, maximum: 366, default: 1 }
+
+    Price:
+      type: object
+      required: [id, object, plan, currency, amount, interval, interval_count, active, created_at]
+      properties:
+        id: { type: string, example: price_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: price }
+        plan: { type: string, description: The plan's id. }
+        currency: { type: string }
+        amount: { type: integer, format: int64 }
+        interval: { $ref: '#/components/schemas/Interval' }
+        interval_count: { type: integer }
+        active: { type: boolean }
+        created_at: { type: string, format: date-time }
+
+    UpdatePriceRequest:
+      type: object
+      required: [active]
+      properties:
+        active: { type: boolean }
+
+    Plan:
+      type: object
+      required: [id, object, slug, name, active, features, metadata, prices, created_at, updated_at]
+      properties:
+        id: { type: string, example: plan_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: plan }
+        slug: { type: string }
+        name: { type: string }
+        active: { type: boolean }
+        features:
+          type: object
+          additionalProperties: true
+          description: Free-form JSON (limits, flags) returned on subscriptions, so you can enforce limits from it.
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        prices: { type: array, items: { $ref: '#/components/schemas/Price' }, description: Oldest first, archived ones included. }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreatePlanRequest:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string, pattern: '^[a-z0-9][a-z0-9_-]{0,62}$', description: Unique per application. }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        features: { type: object, additionalProperties: true }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        prices: { type: array, maxItems: 20, items: { $ref: '#/components/schemas/PriceInput' } }
+
+    UpdatePlanRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        active: { type: boolean }
+        features: { type: object, additionalProperties: true }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    PlanPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Plan' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
     PayoutPage:
       type: object
       required: [data, has_more, next_cursor]
@@ -1241,6 +1623,12 @@ components:
                 - $ref: '#/components/schemas/Payment'
                 - $ref: '#/components/schemas/Refund'
                 - $ref: '#/components/schemas/Payout'
+              discriminator:
+                propertyName: object
+                mapping:
+                  payment: '#/components/schemas/Payment'
+                  refund: '#/components/schemas/Refund'
+                  payout: '#/components/schemas/Payout'
 
     Event:
       type: object

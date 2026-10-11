@@ -65,7 +65,9 @@ public class Payout {
    * Gets or Sets _object
    */
   public enum ObjectEnum {
-    PAYOUT(String.valueOf("payout"));
+    PAYOUT(String.valueOf("payout")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -90,7 +92,7 @@ public class Payout {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

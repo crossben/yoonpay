@@ -370,16 +370,6 @@ class ListProviders200ResponseInnerCapabilitiesInner implements ModelInterface, 
         if (is_null($operation)) {
             throw new \InvalidArgumentException('non-nullable operation cannot be null');
         }
-        $allowedValues = $this->getOperationAllowableValues();
-        if (!in_array($operation, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'operation', must be one of '%s'",
-                    $operation,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['operation'] = $operation;
 
         return $this;

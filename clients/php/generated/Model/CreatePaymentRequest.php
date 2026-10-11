@@ -562,16 +562,6 @@ class CreatePaymentRequest implements ModelInterface, ArrayAccess, \JsonSerializ
         if (is_null($checkout)) {
             throw new \InvalidArgumentException('non-nullable checkout cannot be null');
         }
-        $allowedValues = $this->getCheckoutAllowableValues();
-        if (!in_array($checkout, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'checkout', must be one of '%s'",
-                    $checkout,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['checkout'] = $checkout;
 
         return $this;

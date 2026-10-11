@@ -391,6 +391,55 @@ export type CheckoutViewNextActionTypeEnum = typeof CheckoutViewNextActionTypeEn
 /**
  * 
  * @export
+ * @interface CreateCustomerRequest
+ */
+export interface CreateCustomerRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCustomerRequest
+     */
+    external_id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCustomerRequest
+     */
+    email?: string;
+    /**
+     * Local or international; validated for `country`.
+     * @type {string}
+     * @memberof CreateCustomerRequest
+     */
+    phone?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCustomerRequest
+     */
+    pi_alias?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCustomerRequest
+     */
+    country: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCustomerRequest
+     */
+    name?: string;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof CreateCustomerRequest
+     */
+    metadata?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
  * @interface CreatePaymentRequest
  */
 export interface CreatePaymentRequest {
@@ -560,6 +609,43 @@ export interface CreatePayoutRequestRecipient {
 /**
  * 
  * @export
+ * @interface CreatePlanRequest
+ */
+export interface CreatePlanRequest {
+    /**
+     * Unique per application.
+     * @type {string}
+     * @memberof CreatePlanRequest
+     */
+    slug: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreatePlanRequest
+     */
+    name: string;
+    /**
+     * 
+     * @type {{ [key: string]: any; }}
+     * @memberof CreatePlanRequest
+     */
+    features?: { [key: string]: any; };
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof CreatePlanRequest
+     */
+    metadata?: { [key: string]: string; };
+    /**
+     * 
+     * @type {Array<PriceInput>}
+     * @memberof CreatePlanRequest
+     */
+    prices?: Array<PriceInput>;
+}
+/**
+ * 
+ * @export
  * @interface CreateRefundRequest
  */
 export interface CreateRefundRequest {
@@ -575,6 +661,114 @@ export interface CreateRefundRequest {
      * @memberof CreateRefundRequest
      */
     reason?: string;
+}
+/**
+ * 
+ * @export
+ * @interface Customer
+ */
+export interface Customer {
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    object: CustomerObjectEnum;
+    /**
+     * Your own id for this user.
+     * @type {string}
+     * @memberof Customer
+     */
+    external_id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    email?: string | null;
+    /**
+     * Masked.
+     * @type {string}
+     * @memberof Customer
+     */
+    phone?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    pi_alias?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    country: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    name?: string | null;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof Customer
+     */
+    metadata: { [key: string]: string; };
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    created_at: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    updated_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const CustomerObjectEnum = {
+    Customer: 'customer'
+} as const;
+export type CustomerObjectEnum = typeof CustomerObjectEnum[keyof typeof CustomerObjectEnum];
+
+/**
+ * 
+ * @export
+ * @interface CustomerPage
+ */
+export interface CustomerPage {
+    /**
+     * 
+     * @type {Array<Customer>}
+     * @memberof CustomerPage
+     */
+    data: Array<Customer>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CustomerPage
+     */
+    has_more: boolean;
+    /**
+     * Pass as `starting_after` to get the next page; null on the last page.
+     * @type {string}
+     * @memberof CustomerPage
+     */
+    next_cursor: string | null;
 }
 
 /**
@@ -799,7 +993,7 @@ export interface EventPayloadData {
  * The payment, refund or payout as `GET` would return it at the time of the event.
  * @export
  */
-export type EventPayloadDataObject = Payment | Payout | Refund;
+export type EventPayloadDataObject = { object: 'payment' } & Payment | { object: 'payout' } & Payout | { object: 'refund' } & Refund;
 
 /**
  * 
@@ -933,6 +1127,19 @@ export interface GetBalances200ResponseDataInner {
      */
     amount: number;
 }
+
+/**
+ * Combined with `interval_count`; a quarter is `month` × 3.
+ * @export
+ */
+export const Interval = {
+    Day: 'day',
+    Week: 'week',
+    Month: 'month',
+    Year: 'year'
+} as const;
+export type Interval = typeof Interval[keyof typeof Interval];
+
 /**
  * Positive = debit, negative = credit.
  * @export
@@ -1458,6 +1665,212 @@ export type PayoutStatus = typeof PayoutStatus[keyof typeof PayoutStatus];
 /**
  * 
  * @export
+ * @interface Plan
+ */
+export interface Plan {
+    /**
+     * 
+     * @type {string}
+     * @memberof Plan
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Plan
+     */
+    object: PlanObjectEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof Plan
+     */
+    slug: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Plan
+     */
+    name: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Plan
+     */
+    active: boolean;
+    /**
+     * Free-form JSON (limits, flags) returned on subscriptions, so you can enforce limits from it.
+     * @type {{ [key: string]: any; }}
+     * @memberof Plan
+     */
+    features: { [key: string]: any; };
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof Plan
+     */
+    metadata: { [key: string]: string; };
+    /**
+     * Oldest first
+     * @type {Array<Price>}
+     * @memberof Plan
+     */
+    prices: Array<Price>;
+    /**
+     * 
+     * @type {string}
+     * @memberof Plan
+     */
+    created_at: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Plan
+     */
+    updated_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const PlanObjectEnum = {
+    Plan: 'plan'
+} as const;
+export type PlanObjectEnum = typeof PlanObjectEnum[keyof typeof PlanObjectEnum];
+
+/**
+ * 
+ * @export
+ * @interface PlanPage
+ */
+export interface PlanPage {
+    /**
+     * 
+     * @type {Array<Plan>}
+     * @memberof PlanPage
+     */
+    data: Array<Plan>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PlanPage
+     */
+    has_more: boolean;
+    /**
+     * Pass as `starting_after` to get the next page; null on the last page.
+     * @type {string}
+     * @memberof PlanPage
+     */
+    next_cursor: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface Price
+ */
+export interface Price {
+    /**
+     * 
+     * @type {string}
+     * @memberof Price
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Price
+     */
+    object: PriceObjectEnum;
+    /**
+     * The plan's id.
+     * @type {string}
+     * @memberof Price
+     */
+    plan: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Price
+     */
+    currency: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof Price
+     */
+    amount: number;
+    /**
+     * 
+     * @type {Interval}
+     * @memberof Price
+     */
+    interval: Interval;
+    /**
+     * 
+     * @type {number}
+     * @memberof Price
+     */
+    interval_count: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Price
+     */
+    active: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof Price
+     */
+    created_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const PriceObjectEnum = {
+    Price: 'price'
+} as const;
+export type PriceObjectEnum = typeof PriceObjectEnum[keyof typeof PriceObjectEnum];
+
+/**
+ * 
+ * @export
+ * @interface PriceInput
+ */
+export interface PriceInput {
+    /**
+     * 
+     * @type {string}
+     * @memberof PriceInput
+     */
+    currency: string;
+    /**
+     * Minor units: XOF has none, 15 000 XOF = 15000.
+     * @type {number}
+     * @memberof PriceInput
+     */
+    amount: number;
+    /**
+     * 
+     * @type {Interval}
+     * @memberof PriceInput
+     */
+    interval: Interval;
+    /**
+     * 
+     * @type {number}
+     * @memberof PriceInput
+     */
+    interval_count?: number;
+}
+
+
+/**
+ * 
+ * @export
  * @interface Problem
  */
 export interface Problem {
@@ -1711,3 +2124,90 @@ export const StatusEventCauseEnum = {
 } as const;
 export type StatusEventCauseEnum = typeof StatusEventCauseEnum[keyof typeof StatusEventCauseEnum];
 
+/**
+ * 
+ * @export
+ * @interface UpdateCustomerRequest
+ */
+export interface UpdateCustomerRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCustomerRequest
+     */
+    email?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCustomerRequest
+     */
+    phone?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCustomerRequest
+     */
+    pi_alias?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCustomerRequest
+     */
+    country?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCustomerRequest
+     */
+    name?: string | null;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof UpdateCustomerRequest
+     */
+    metadata?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
+ * @interface UpdatePlanRequest
+ */
+export interface UpdatePlanRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdatePlanRequest
+     */
+    name?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdatePlanRequest
+     */
+    active?: boolean;
+    /**
+     * 
+     * @type {{ [key: string]: any; }}
+     * @memberof UpdatePlanRequest
+     */
+    features?: { [key: string]: any; };
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof UpdatePlanRequest
+     */
+    metadata?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
+ * @interface UpdatePriceRequest
+ */
+export interface UpdatePriceRequest {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdatePriceRequest
+     */
+    active: boolean;
+}

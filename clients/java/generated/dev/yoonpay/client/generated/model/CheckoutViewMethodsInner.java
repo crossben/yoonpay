@@ -54,7 +54,9 @@ public class CheckoutViewMethodsInner {
   public enum NeedsEnum {
     NONE(String.valueOf("none")),
     
-    PI_ALIAS(String.valueOf("pi_alias"));
+    PI_ALIAS(String.valueOf("pi_alias")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -79,7 +81,7 @@ public class CheckoutViewMethodsInner {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

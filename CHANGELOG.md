@@ -5,17 +5,33 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Billing (0.3.0, in progress)
+- Customers: `POST/GET/PATCH /v1/customers`, found by your own `external_id` (unique per
+  application; a duplicate is `409 customer_exists`). Phones masked; `metadata` up to 20 strings.
+- Plans and prices: `POST/GET/PATCH /v1/plans`, `POST /v1/plans/{id}/prices`,
+  `GET/PATCH /v1/prices/{id}`. Prices are immutable (a database trigger refuses edits); plans and
+  prices are archived with `active: false`, never deleted. Plans carry free-form `features`.
+- Migration `V7__billing`: all billing tables (customers, plans, prices, subscriptions, invoices),
+  ahead of the subscription endpoints.
+
+### Clients
+- **Response enums are an open set.** The 0.2.0 Java and PHP clients failed to parse a status or
+  event type they did not know; they now keep going (PHP keeps the raw value, Java maps it to
+  `UNKNOWN_DEFAULT_OPEN_API`), like Python and JS. Event payloads pick their object type by its
+  `object` field (discriminator). Each client has a test. CI allows new values in response
+  enums and still fails on removed ones (`api/oasdiff/`). Upgrade your client before using
+  billing events.
+- Customers and plans APIs in every client (regenerated).
+- Every client README has a "Prompt for an AI coding agent": a copy-ready brief that tells a coding
+  agent what to install and write, and the rules that protect money (idempotency keys tied to the
+  order, fulfil only on `payment.succeeded`, raw-body webhook verification, minor units).
+
 ### Fixed
 - Webhook deliveries and provider calls over plain `http://` were refused by servers that reject
   HTTP/2 upgrade requests (uvicorn's default answers `Upgrade: h2c` with 400), so such endpoints
   never received events. Yoon now always speaks HTTP/1.1. Found while integrating OSIG.
 - Docs: local webhook setup with Docker Desktop (IPv6 `host.docker.internal`, clock drift);
   every delivery attempt, including redeliveries, is signed with its send time (now tested).
-
-### Clients
-- Every client README has a "Prompt for an AI coding agent": a copy-ready brief that tells a coding
-  agent what to install and write, and the rules that protect money (idempotency keys tied to the
-  order, fulfil only on `payment.succeeded`, raw-body webhook verification, minor units).
 
 ## [0.2.0] - 2026-10-07
 

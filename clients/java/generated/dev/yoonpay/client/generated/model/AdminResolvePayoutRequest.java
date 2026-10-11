@@ -45,7 +45,9 @@ public class AdminResolvePayoutRequest {
   public enum StatusEnum {
     PAID(String.valueOf("paid")),
     
-    FAILED(String.valueOf("failed"));
+    FAILED(String.valueOf("failed")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -70,7 +72,7 @@ public class AdminResolvePayoutRequest {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

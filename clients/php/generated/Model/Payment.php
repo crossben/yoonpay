@@ -554,16 +554,6 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
         if (is_null($object)) {
             throw new \InvalidArgumentException('non-nullable object cannot be null');
         }
-        $allowedValues = $this->getObjectAllowableValues();
-        if (!in_array($object, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'object', must be one of '%s'",
-                    $object,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['object'] = $object;
 
         return $this;
@@ -752,16 +742,6 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
     {
         if (is_null($checkout)) {
             throw new \InvalidArgumentException('non-nullable checkout cannot be null');
-        }
-        $allowedValues = $this->getCheckoutAllowableValues();
-        if (!in_array($checkout, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'checkout', must be one of '%s'",
-                    $checkout,
-                    implode("', '", $allowedValues)
-                )
-            );
         }
         $this->container['checkout'] = $checkout;
 

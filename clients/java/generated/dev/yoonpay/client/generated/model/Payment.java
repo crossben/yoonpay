@@ -70,7 +70,9 @@ public class Payment {
    * Gets or Sets _object
    */
   public enum ObjectEnum {
-    PAYMENT(String.valueOf("payment"));
+    PAYMENT(String.valueOf("payment")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -95,7 +97,7 @@ public class Payment {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 
@@ -133,7 +135,9 @@ public class Payment {
   public enum CheckoutEnum {
     DIRECT(String.valueOf("direct")),
     
-    HOSTED(String.valueOf("hosted"));
+    HOSTED(String.valueOf("hosted")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -158,7 +162,7 @@ public class Payment {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

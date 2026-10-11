@@ -480,16 +480,6 @@ class StatusEvent implements ModelInterface, ArrayAccess, \JsonSerializable
         if (is_null($decision)) {
             throw new \InvalidArgumentException('non-nullable decision cannot be null');
         }
-        $allowedValues = $this->getDecisionAllowableValues();
-        if (!in_array($decision, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'decision', must be one of '%s'",
-                    $decision,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['decision'] = $decision;
 
         return $this;
@@ -516,16 +506,6 @@ class StatusEvent implements ModelInterface, ArrayAccess, \JsonSerializable
     {
         if (is_null($cause)) {
             throw new \InvalidArgumentException('non-nullable cause cannot be null');
-        }
-        $allowedValues = $this->getCauseAllowableValues();
-        if (!in_array($cause, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'cause', must be one of '%s'",
-                    $cause,
-                    implode("', '", $allowedValues)
-                )
-            );
         }
         $this->container['cause'] = $cause;
 

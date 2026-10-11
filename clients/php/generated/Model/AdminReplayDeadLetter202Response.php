@@ -373,16 +373,6 @@ class AdminReplayDeadLetter202Response implements ModelInterface, ArrayAccess, \
         if (is_null($delivery_status)) {
             throw new \InvalidArgumentException('non-nullable delivery_status cannot be null');
         }
-        $allowedValues = $this->getDeliveryStatusAllowableValues();
-        if (!in_array($delivery_status, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'delivery_status', must be one of '%s'",
-                    $delivery_status,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['delivery_status'] = $delivery_status;
 
         return $this;

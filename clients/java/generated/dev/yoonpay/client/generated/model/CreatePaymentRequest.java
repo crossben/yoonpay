@@ -71,7 +71,9 @@ public class CreatePaymentRequest {
   public enum CheckoutEnum {
     DIRECT(String.valueOf("direct")),
     
-    HOSTED(String.valueOf("hosted"));
+    HOSTED(String.valueOf("hosted")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -96,7 +98,7 @@ public class CreatePaymentRequest {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

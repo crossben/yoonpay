@@ -202,3 +202,12 @@ describe("Yoon — construction", () => {
     expect(String(yoon)).not.toContain(KEY);
   });
 });
+
+describe("Yoon — a newer server", () => {
+  it("parses enum values this client does not know (response enums are an open set)", async () => {
+    mockFetch(() => json({ ...PAYMENT_PENDING, status: "refund_pending", checkout: "some_new_mode" }, 200));
+    const payment = await new Yoon(BASE, KEY).getPayment(PAYMENT_PENDING.id);
+
+    expect(payment.status).toBe("refund_pending");
+  });
+});

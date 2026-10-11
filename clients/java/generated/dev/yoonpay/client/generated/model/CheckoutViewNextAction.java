@@ -46,7 +46,9 @@ public class CheckoutViewNextAction {
   public enum TypeEnum {
     REDIRECT(String.valueOf("redirect")),
     
-    INSTRUCTIONS(String.valueOf("instructions"));
+    INSTRUCTIONS(String.valueOf("instructions")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -71,7 +73,7 @@ public class CheckoutViewNextAction {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

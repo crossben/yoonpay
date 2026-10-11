@@ -53,7 +53,9 @@ public class EventPayload {
    * Gets or Sets _object
    */
   public enum ObjectEnum {
-    EVENT(String.valueOf("event"));
+    EVENT(String.valueOf("event")),
+    
+    UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;
 
@@ -78,7 +80,7 @@ public class EventPayload {
           return b;
         }
       }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
+      return UNKNOWN_DEFAULT_OPEN_API;
     }
   }
 

@@ -121,4 +121,16 @@ final class YoonTest extends TestCase
         self::assertSame($csv, $yoon->exportCsv('payments'));
         self::assertStringEndsWith('/v1/exports/payments.csv', (string) $this->sent[0]['request']->getUri());
     }
+
+    public function testValuesFromANewerServerDoNotBreakParsing(): void
+    {
+        // Response enums are an open set (ADR-0026): a newer Yoon may send a status this client
+        // does not know. It must still parse, keeping the raw value.
+        $body = str_replace(['"status":"pending"', '"routing_reason":"r"'],
+            ['"status":"refund_pending"', '"routing_reason":"r","checkout":"some_new_mode"'], self::PAYMENT);
+        $payment = $this->yoon(new Response(200, ['Content-Type' => 'application/json'], $body))->getPayment('pay_1');
+
+        self::assertSame('refund_pending', $payment->getStatus());
+        self::assertSame('some_new_mode', $payment->getCheckout());
+    }
 }

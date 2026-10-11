@@ -46,7 +46,9 @@ public enum EventType {
   
   PAYOUT_FAILED("payout.failed"),
   
-  PAYOUT_NEEDS_REVIEW("payout.needs_review");
+  PAYOUT_NEEDS_REVIEW("payout.needs_review"),
+  
+  UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
 
   private String value;
 
@@ -71,7 +73,7 @@ public enum EventType {
         return b;
       }
     }
-    throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    return UNKNOWN_DEFAULT_OPEN_API;
   }
 
   /**

@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 GENERATOR_IMAGE="openapitools/openapi-generator-cli:v7.16.0"
 # Application-facing API only: no admin, provider callbacks or webhook descriptions.
-FILTER='FILTER=tag:Payments|Refunds|Payouts|Events|Ledger|Exports|Meta'
+FILTER='FILTER=tag:Payments|Refunds|Payouts|Customers|Plans|Events|Ledger|Exports|Meta'
 WORK="target/client-gen"
 
 rm -rf "$WORK" && mkdir -p "$WORK"
@@ -29,9 +29,20 @@ rm -f clients/php/generated/Api/WebhooksToYourAppApi.php
 # equivalent helper (src/Internal/Json.php) so the package works with Guzzle 7 and 8.
 find clients/php/generated -name '*.php' -exec sed -i 's/\\GuzzleHttp\\Utils::jsonEncode(/\\Yoon\\Internal\\Json::encode(/g' {} +
 if grep -rq 'GuzzleHttp\\Utils::' clients/php/generated; then echo "unpatched Guzzle helper in generated PHP" >&2; exit 1; fi
+# Response enums are an open set (ADR-0026): a newer server may send a status or event type this
+# client does not know. Parsing must not fail: deserialization keeps the raw string, and model
+# setters stop rejecting unknown values (the server validates requests anyway).
+perl -0pi -e 's/if \(!in_array\(\$data, \$class::getAllowableEnumValues\(\), true\)\) \{\n\s*\$imploded = implode\("\x27, \x27", \$class::getAllowableEnumValues\(\)\);\n\s*throw new \\InvalidArgumentException\("Invalid value for enum \x27\$class\x27, must be one of: \x27\$imploded\x27"\);\n\s*\}\n\s*//' \
+  clients/php/generated/ObjectSerializer.php
+perl -0pi -e 's/\n\s*\$allowedValues = \$this->get\w+AllowableValues\(\);\n\s*if \(!in_array\(\$\w+, \$allowedValues, true\)\) \{\n\s*throw new \\InvalidArgumentException\(\n\s*sprintf\(\n\s*"Invalid value \x27%s\x27 for \x27\w+\x27, must be one of \x27%s\x27",\n\s*\$\w+,\n\s*implode\("\x27, \x27", \$allowedValues\)\n\s*\)\n\s*\);\n\s*\}//g' \
+  clients/php/generated/Model/*.php
+if grep -q 'Invalid value for enum .\$class' clients/php/generated/ObjectSerializer.php \
+   || grep -lq "Invalid value '%s' for" clients/php/generated/Model/*.php; then
+  echo "unpatched enum check in generated PHP: the unknown-value patch no longer applies" >&2; exit 1
+fi
 
 # Java: java.net.http client, Jackson, no extra nullable library.
-generate -g java -o /out/java --additional-properties='library=native,invokerPackage=dev.yoonpay.client.generated,apiPackage=dev.yoonpay.client.generated.api,modelPackage=dev.yoonpay.client.generated.model,openApiNullable=false,hideGenerationTimestamp=true,useJakartaEe=true,annotationLibrary=none,documentationProvider=none'
+generate -g java -o /out/java --additional-properties='library=native,invokerPackage=dev.yoonpay.client.generated,apiPackage=dev.yoonpay.client.generated.api,modelPackage=dev.yoonpay.client.generated.model,openApiNullable=false,hideGenerationTimestamp=true,useJakartaEe=true,annotationLibrary=none,documentationProvider=none,enumUnknownDefaultCase=true,useOneOfDiscriminatorLookup=true'
 rm -rf clients/java/generated && mkdir -p clients/java/generated
 cp -r "$WORK/java/src/main/java/." clients/java/generated/
 rm -f clients/java/generated/dev/yoonpay/client/generated/api/WebhooksToYourAppApi.java

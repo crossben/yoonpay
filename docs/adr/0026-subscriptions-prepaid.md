@@ -100,13 +100,15 @@ The jobs read time from an injected `Clock` so tests move time instead of sleepi
 `subscription.renewal_upcoming`. Merchants can drive entitlements from these alone; they must
 still reconcile with `GET /v1/subscriptions?customer=` after an outage (documented).
 
-**Contract:** adding values to `EventType` is reported by `breaking-changes` CI as
-`response-property-enum-value-added` (checked: it fails today). Decision: event types are an
-**open set** — the generated clients must accept unknown values (Python already keeps them;
-Java, PHP and JS are checked and patched in `generate.sh` if needed), the spec marks `EventType`
-with `x-extensible-enum`, and the CI step ignores exactly that rule for `EventType` through an
-oasdiff ignore file with this ADR as the reason. Webhook payloads were always parsed by the
-hand-written `Event` helpers, which treat `type` as a string.
+**Contract — response enums are an open set.** Adding a value to `EventType` (or any response
+enum) is reported by `breaking-changes` CI as `response-property-enum-value-added`. Checked
+options: `x-extensible-enum` is itself breaking (the `type` filter of `GET /v1/events` loses its
+values), so instead the policy is that **a new value in a response enum is not a breaking change**,
+and every client must parse values it does not know. Found while checking: the 0.2.0 Java and PHP
+clients **threw** on an unknown status or event type. Fixed in `generate.sh` (PHP: no enum check
+when parsing; Java: `enumUnknownDefaultCase` → `UNKNOWN_DEFAULT_OPEN_API`; Python already kept the
+raw value; JS has no runtime checks), with a test in each client. CI lowers that one rule to info
+(`api/oasdiff/severity-levels.txt`); removing a value, or adding one to a request, still fails.
 
 ### Operator
 - `yoon billing comp <app> <subscription or customer> <price> <periods | open>` (CLI) and

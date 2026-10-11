@@ -40,7 +40,9 @@ public enum RefundStatus {
   
   REFUNDED("refunded"),
   
-  FAILED("failed");
+  FAILED("failed"),
+  
+  UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
 
   private String value;
 
@@ -65,7 +67,7 @@ public enum RefundStatus {
         return b;
       }
     }
-    throw new IllegalArgumentException("Unexpected value '" + value + "'");
+    return UNKNOWN_DEFAULT_OPEN_API;
   }
 
   /**

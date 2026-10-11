@@ -356,16 +356,6 @@ class GetBalances200Response implements ModelInterface, ArrayAccess, \JsonSerial
         if (is_null($object)) {
             throw new \InvalidArgumentException('non-nullable object cannot be null');
         }
-        $allowedValues = $this->getObjectAllowableValues();
-        if (!in_array($object, $allowedValues, true)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    "Invalid value '%s' for 'object', must be one of '%s'",
-                    $object,
-                    implode("', '", $allowedValues)
-                )
-            );
-        }
         $this->container['object'] = $object;
 
         return $this;
