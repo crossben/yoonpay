@@ -118,6 +118,38 @@ class AdminBillingTest extends BillingTestSupport {
     }
 
     @Test
+    void a_comp_until_a_date_carries_over_time_paid_elsewhere() {
+        Instant until = Instant.now().plus(Duration.ofDays(17)).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+
+        Response r = comp("/customers/" + customer + "/comp",
+                Map.of("price", monthly, "until", until.toString(), "note", "migrated from the old billing"));
+
+        assertThat(r.status()).as(r.body()).isEqualTo(200);
+        assertThat(at(r, "current_period_end")).isEqualTo(until);
+        assertThat(r.text("status")).isEqualTo("active");
+    }
+
+    @Test
+    void a_comp_until_a_date_already_paid_is_refused_and_creates_nothing() {
+        String id = subscribe(monthly).text("id");
+        payInvoice(sub(id).json().path("latest_invoice"));
+        Instant paidEnd = at(sub(id), "current_period_end");
+        long before = jdbc.sql("SELECT count(*) FROM subscriptions WHERE customer_id = :c").param("c", customer).query(Long.class).single();
+
+        Response early = comp("/subscriptions/" + id + "/comp",
+                Map.of("price", monthly, "until", paidEnd.minus(Duration.ofDays(1)).toString(), "note", "x"));
+        Response past = comp("/customers/" + customer + "/comp",
+                Map.of("price", monthly, "until", Instant.now().minus(Duration.ofDays(1)).toString(), "note", "x"));
+
+        assertThat(early.status()).isEqualTo(422);
+        assertThat(early.text("code")).isEqualTo("comp_until_too_early");
+        assertThat(past.status()).isEqualTo(422);
+        assertThat(at(sub(id), "current_period_end")).isEqualTo(paidEnd);
+        assertThat(jdbc.sql("SELECT count(*) FROM subscriptions WHERE customer_id = :c").param("c", customer).query(Long.class).single())
+                .as("the comp's new subscription was rolled back").isEqualTo(before);
+    }
+
+    @Test
     void a_retried_comp_grants_once() {
         String id = subscribe(monthly).text("id");
         String key = UUID.randomUUID().toString();
@@ -137,6 +169,8 @@ class AdminBillingTest extends BillingTestSupport {
 
         assertThat(comp("/subscriptions/" + id + "/comp", Map.of("price", monthly, "note", "x")).status()).isEqualTo(400);
         assertThat(comp("/subscriptions/" + id + "/comp", both).status()).isEqualTo(400);
+        assertThat(comp("/subscriptions/" + id + "/comp", Map.of("price", monthly, "periods", 1,
+                "until", "2030-01-01T00:00:00Z", "note", "x")).status()).isEqualTo(400);
         assertThat(comp("/subscriptions/" + id + "/comp", Map.of("price", monthly, "periods", 1)).status()).isEqualTo(400);
         assertThat(comp("/subscriptions/" + id + "/comp", Map.of("price", monthly, "periods", 0, "note", "x")).status()).isEqualTo(400);
         assertThat(comp("/subscriptions/" + id + "/comp", periods("price_nope", 1)).status()).isEqualTo(422);
@@ -176,6 +210,11 @@ class AdminBillingTest extends BillingTestSupport {
         assertThat(code).as(bytes.toString(StandardCharsets.UTF_8)).isZero();
         assertThat(bytes.toString(StandardCharsets.UTF_8)).contains("Comped " + id);
         assertThat(sub(id).text("status")).isEqualTo("active");
+
+        String other = subscribe(monthly).text("id");
+        assertThat(BillingCommand.run(new String[] {"billing", "comp", "shop", other, monthly, "2031-03-31", "migrated"},
+                applications, compService, out)).isZero();
+        assertThat(sub(other).text("current_period_end")).startsWith("2031-03-31T00:00");
 
         bytes.reset();
         assertThat(BillingCommand.run(new String[] {"billing", "comp", "nope", id, monthly, "2", "x"}, applications, compService, out)).isEqualTo(2);

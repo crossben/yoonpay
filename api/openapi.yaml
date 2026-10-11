@@ -1531,7 +1531,7 @@ paths:
         '404': { $ref: '#/components/responses/AdminDisabled' }
         '409': { $ref: '#/components/responses/IdempotencyConflict' }
         '422':
-          description: '`price_not_found`.'
+          description: '`price_not_found`, or `comp_until_too_early` (until is not after now or the paid period).'
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
@@ -2410,11 +2410,18 @@ components:
     CompRequest:
       type: object
       additionalProperties: false
-      description: Exactly one of `periods` and `open`.
+      description: Exactly one of `periods`, `until` and `open`.
       required: [price, note]
       properties:
         price: { type: string, description: The price granted (any price of the application). }
         periods: { type: integer, minimum: 1, maximum: 120 }
+        until:
+          type: string
+          format: date-time
+          description: |
+            Grant time up to this instant instead of whole periods — e.g. what a customer already
+            paid for before migrating to Yoon. After the paid period, if any; later renewals fall on
+            its day of the month.
         open: { type: boolean, description: 'true: no end date (current_period_end null) until canceled.' }
         note: { type: string, minLength: 1, maxLength: 500, example: 'Partner school, approved by Awa' }
 

@@ -3,7 +3,8 @@
 // get, so they cannot prove the runtime floor; this file can.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { Yoon, verifySignature, sign } from "../dist/index.js";
+import { Yoon, verifySignature, sign, entitlementOf } from "../dist/index.js";
+import { checkoutRedirect } from "../dist/adapters/next.js";
 
 const vector = JSON.parse(
   readFileSync(new URL("../../../api/test-vectors/webhook-signature.json", import.meta.url), "utf8"),
@@ -18,6 +19,8 @@ const checks = {
     vector.timestamp,
   ),
   "sign() reproduces the vector": (await sign(vector.secret, vector.body, vector.timestamp)) === vector.header,
+  "billing helpers load": entitlementOf({ status: "past_due" }).entitled === true &&
+    checkoutRedirect({ status: "open", checkout_url: "https://pay.example.com/c" }).status === 303,
   "client constructs": new Yoon("https://pay.example.com", "yk_smoke").toString() === "Yoon(https://pay.example.com)",
 };
 const failed = Object.entries(checks).filter(([, ok]) => !ok);

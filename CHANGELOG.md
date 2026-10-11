@@ -29,8 +29,8 @@ never changes incompatibly.
   CSP, no cache, rate limit, the same 404 for every refusal). The checkout of an invoice shows the
   plan, interval and invoice number (`billing` in the checkout view) and links the receipt once paid.
 - Comp: `billing comp` (CLI) and `POST /admin/v1/applications/{app}/{subscriptions,customers}/{id}/comp`
-  grant periods (or an open-ended period) without payment or ledger posting, with a note in the
-  history (cause `admin`).
+  grant periods, time until a date (for migrations) or an open-ended period, without payment or
+  ledger posting, with a note in the history (cause `admin`).
 - Operator views `/admin/v1/applications/{app}/{plans,subscriptions,invoices}` and
   `subscriptions/{id}/events`; dashboard tabs Subscriptions, Invoices and Plans (read-only).
 - CSV exports `GET /v1/exports/subscriptions.csv` and `/v1/exports/invoices.csv`.
@@ -48,6 +48,15 @@ never changes incompatibly.
   `object` field (discriminator). Each client has a test. CI allows new values in response
   enums and still fails on removed ones (`api/oasdiff/`). Upgrade your client before using
   billing events.
+- Billing helpers. Python: `Yoon.customers()`, `plans()`, `subscriptions()` (invoices through
+  `subscriptions()`); `yoonpay.billing` (`Entitlement.from_subscription()`, `changes_entitlement()`,
+  `checkout_url()`); `yoonpay.fastapi.redirect_to_checkout()` (303, `NoCheckout` when there is
+  none: renew). JS: `createCustomer`, `createSubscription`, `getSubscription`,
+  `renewSubscription`, `customers()`/`plans()`/`subscriptions()`; `entitlementOf()`,
+  `changesEntitlement()`, `checkoutUrlOf()`/`NoCheckoutError`; `checkoutRedirect()` in
+  `@yoonpay/yoon/next`. `past_due` is entitled; unknown statuses are not, and never throw.
+- Guide: [docs/billing.md](docs/billing.md) — Billing for SaaS, with a FastAPI example and
+  migrating from your own billing.
 - Customers and plans APIs in every client (regenerated).
 - Every client README has a "Prompt for an AI coding agent": a copy-ready brief that tells a coding
   agent what to install and write, and the rules that protect money (idempotency keys tied to the

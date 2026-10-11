@@ -36,8 +36,8 @@ import java.util.UUID;
 @RequestMapping("/admin/v1/applications/{applicationId}")
 public class AdminBillingController {
 
-    /** Exactly one of {@code periods} and {@code open: true}. */
-    public record CompRequest(@NotBlank String price, Integer periods, Boolean open,
+    /** Exactly one of {@code periods}, {@code until} and {@code open: true}. */
+    public record CompRequest(@NotBlank String price, Integer periods, java.time.Instant until, Boolean open,
                               @NotBlank @Size(max = 500) String note) {
     }
 
@@ -110,11 +110,12 @@ public class AdminBillingController {
     private ResponseEntity<String> comp(AppPrincipal app, String target, String key, CompRequest body,
                                         HttpServletRequest request) {
         boolean open = Boolean.TRUE.equals(body.open());
-        if (open == (body.periods() != null)) {
-            throw ApiProblem.invalid("Give either periods or open: true");
+        int given = (open ? 1 : 0) + (body.periods() != null ? 1 : 0) + (body.until() != null ? 1 : 0);
+        if (given != 1) {
+            throw ApiProblem.invalid("Give exactly one of periods, until and open: true");
         }
         return idempotent.run(app, key, request, body, HttpStatus.OK,
-                () -> views.subscription(comp.comp(app, target, body.price(), body.periods(), body.note())));
+                () -> views.subscription(comp.comp(app, target, body.price(), body.periods(), body.until(), body.note())));
     }
 
     private static String notFound(String what, String id) {

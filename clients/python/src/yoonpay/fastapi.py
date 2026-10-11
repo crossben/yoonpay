@@ -26,9 +26,10 @@ from __future__ import annotations
 from typing import Any, Callable, Coroutine, Optional
 
 from fastapi import Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.routing import APIRoute
 
+from yoonpay.billing import checkout_url
 from yoonpay.webhook import SIGNATURE_HEADER, Event, EventStore, MemoryEventStore, check_delivery
 
 
@@ -65,3 +66,19 @@ def yoon_event(request: Request) -> Event:
     if not isinstance(event, Event):
         raise RuntimeError("yoon_event is only available on routes whose router uses yoon_webhook_route()")
     return event
+
+
+class NoCheckout(LookupError):
+    """The invoice has no usable checkout: it is paid or void, or its checkout expired. For a
+    subscription that still needs paying, call ``renew_subscription`` and redirect to the new
+    invoice."""
+
+
+def redirect_to_checkout(invoice_or_subscription: Any) -> RedirectResponse:
+    """A 303 redirect to the ``checkout_url`` of an invoice, or of a subscription's
+    ``latest_invoice`` (a dict or a generated model). Raises :class:`NoCheckout` when there is
+    none."""
+    url = checkout_url(invoice_or_subscription)
+    if url is None:
+        raise NoCheckout("No checkout_url: the invoice is paid or void, or its checkout expired; call renew")
+    return RedirectResponse(url, status_code=303)

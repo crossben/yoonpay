@@ -10,7 +10,7 @@ import java.util.Arrays;
 /**
  * Operator billing command line, run against the configured database without the web server:
  * <pre>
- *   billing comp &lt;app&gt; &lt;sub_… | cus_…&gt; &lt;price_…&gt; &lt;periods | open&gt; &lt;note…&gt;
+ *   billing comp &lt;app&gt; &lt;sub_… | cus_…&gt; &lt;price_…&gt; &lt;periods | until | open&gt; &lt;note…&gt;
  * </pre>
  * Grants periods without payment (ADR-0026, "Operator"). With Docker:
  * {@code docker compose run --rm yoon billing comp shop cus_… price_… 3 "partner, approved by Awa"}.
@@ -19,8 +19,9 @@ public final class BillingCommand {
 
     static final String USAGE = """
             Usage:
-              billing comp <app> <sub_… | cus_…> <price_…> <periods | open> <note…>
-                  grant periods (or an open-ended period) without payment; the note says who asked and why""";
+              billing comp <app> <sub_… | cus_…> <price_…> <periods | until | open> <note…>
+                  grant periods, time until a date (2026-12-31 or an ISO instant, UTC), or an
+                  open-ended period, without payment; the note says who asked and why""";
 
     private BillingCommand() {
     }
@@ -41,18 +42,22 @@ public final class BillingCommand {
             if (!target.startsWith("sub_") && !target.startsWith("cus_")) {
                 throw new IllegalArgumentException("the target is a subscription (sub_…) or a customer (cus_…)");
             }
-            Integer periods;
-            if (args[5].equals("open")) {
-                periods = null;
-            } else {
+            Integer periods = null;
+            java.time.Instant until = null;
+            String grant = args[5];
+            if (grant.matches("\\d{1,4}")) {
+                periods = Integer.parseInt(grant);
+            } else if (!grant.equals("open")) {
                 try {
-                    periods = Integer.parseInt(args[5]);
-                } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("periods is a number or 'open'");
+                    until = grant.length() == 10
+                            ? java.time.LocalDate.parse(grant).atStartOfDay(java.time.ZoneOffset.UTC).toInstant()
+                            : java.time.Instant.parse(grant);
+                } catch (java.time.format.DateTimeParseException e) {
+                    throw new IllegalArgumentException("the grant is a number of periods, a date (2026-12-31), an instant, or 'open'");
                 }
             }
             String note = args.length > 6 ? String.join(" ", Arrays.copyOfRange(args, 6, args.length)) : "";
-            SubscriptionRecord s = comp.comp(app, target, args[4], periods, note);
+            SubscriptionRecord s = comp.comp(app, target, args[4], periods, until, note);
             out.println("Comped " + s.id() + ": active until "
                     + (s.currentPeriodEnd() == null ? "an operator ends it (open)" : s.currentPeriodEnd()));
             return 0;

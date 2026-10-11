@@ -1,4 +1,5 @@
 import { verifyWebhook } from "../verifyWebhook";
+import { checkoutUrlOf } from "../billing";
 import type { YoonWebhookHandler, YoonWebhookOptions } from "../WebhookReceiver";
 
 export interface YoonNextWebhookOptions extends YoonWebhookOptions {
@@ -24,3 +25,27 @@ export interface YoonNextWebhookOptions extends YoonWebhookOptions {
 export function yoonWebhookRoute(options: YoonNextWebhookOptions): (request: Request) => Promise<Response> {
   return (request) => verifyWebhook(request, options);
 }
+
+/**
+ * A 303 redirect to the hosted checkout of an invoice, or of a subscription's `latest_invoice`,
+ * for App Router route handlers (and any Web `Response` runtime). Throws `NoCheckoutError`
+ * (from `@yoonpay/yoon`) when there is nothing to pay — the invoice is paid or void, or its
+ * checkout expired: call `yoon.renewSubscription(id, key)` for a fresh one.
+ *
+ * ```ts
+ * // app/subscribe/route.ts
+ * export async function POST() {
+ *   const sub = await yoon.createSubscription({ customer, price, return_url }, `sub-${user.id}-${price}`);
+ *   return checkoutRedirect(sub);
+ * }
+ * ```
+ *
+ * A server action cannot return a `Response`: there, call `redirect(checkoutUrlOf(sub))` with
+ * `redirect` from `next/navigation`. This package does not depend on `next`.
+ */
+export function checkoutRedirect(invoiceOrSubscription: object): Response {
+  const url = checkoutUrlOf(invoiceOrSubscription);
+  return new Response(null, { status: 303, headers: { location: url } });
+}
+
+export { checkoutUrlOf, NoCheckoutError } from "../billing";

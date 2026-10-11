@@ -16,6 +16,7 @@ from yoonpay.generated import (
     CreatePaymentRequest,
     CreatePayoutRequest,
     CreateRefundRequest,
+    CustomersApi,
     EventsApi,
     LedgerApi,
     MetaApi,
@@ -23,8 +24,10 @@ from yoonpay.generated import (
     PaymentsApi,
     PayoutsApi,
     Payout,
+    PlansApi,
     Refund,
     RefundsApi,
+    SubscriptionsApi,
 )
 
 from yoonpay.generated.api.exports_api import ExportsApi
@@ -193,6 +196,17 @@ class Yoon:
 
     def meta(self) -> MetaApi:
         return MetaApi(self._client)
+
+    def customers(self) -> CustomersApi:
+        return CustomersApi(self._client)
+
+    def plans(self) -> PlansApi:
+        """Plans and their prices."""
+        return PlansApi(self._client)
+
+    def subscriptions(self) -> SubscriptionsApi:
+        """Subscriptions and their invoices (``get_invoice``, ``list_invoices``)."""
+        return SubscriptionsApi(self._client)
 
 
 def _key(idempotency_key: str) -> str:

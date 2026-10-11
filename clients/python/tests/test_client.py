@@ -281,3 +281,14 @@ def test_construction_needs_a_url_and_a_key():
         Yoon("", "yk_k")
     with pytest.raises(ValueError):
         Yoon("https://pay.example.com", "")
+
+
+def test_billing_apis_are_exposed(httpserver, yoon):
+    from test_billing import subscription
+
+    httpserver.expect_oneshot_request("/v1/subscriptions/sub_1", method="GET").respond_with_json(subscription("past_due"))
+
+    sub = yoon.call(lambda: yoon.subscriptions().get_subscription("sub_1"))
+
+    assert sub.status == "past_due" and sub.latest_invoice.checkout_url
+    assert yoon.customers() is not None and yoon.plans() is not None

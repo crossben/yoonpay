@@ -169,6 +169,50 @@ const authentic = await verifySignature(secret, req.headers["yoon-signature"], r
 const event = YoonWebhookEvent.fromJson(rawBody); // id, type, object
 ```
 
+## Billing (prepaid subscriptions, Yoon 0.3.0)
+
+Mobile money has no auto-debit, so every period is a payment the customer makes. The flow:
+subscribe, send the customer to checkout, grant access from webhooks.
+
+```ts
+import { Yoon, entitlementOf, changesEntitlement } from "@yoonpay/yoon";
+import { checkoutRedirect, yoonWebhookRoute } from "@yoonpay/yoon/next";
+
+// 1. Subscribe (it starts `incomplete`) and redirect to its first invoice's checkout (303).
+const customer = await yoon.createCustomer({ external_id: user.id, country: "SN" }, `cus-${user.id}`);
+const sub = await yoon.createSubscription({ customer: customer.id, price: "price_…", return_url }, `sub-${user.id}-price_…`);
+return checkoutRedirect(sub);
+
+// 2. Grant or revoke access from webhooks — never from the return URL.
+export const POST = yoonWebhookRoute({
+  secret: process.env.YOON_WEBHOOK_SECRET!,
+  onEvent: (event) => {
+    if (changesEntitlement(event.type)) {
+      const { entitled, plan, until, features } = entitlementOf(event.object);
+      saveAccess(event.object.id as string, { entitled, plan, until, features });
+    }
+  },
+});
+```
+
+- `entitlementOf(subscription)` → `{ entitled, plan, until, features, status }`. `active` and
+  `past_due` (grace) are entitled; `incomplete`, `expired`, `canceled` and any status this client
+  does not know are not. `until` is `current_period_end`; `null` on an entitled subscription is an
+  open-ended operator comp. It reads the status only: it does not compare `until` with the clock.
+- `changesEntitlement(type)` is true for `subscription.activated|renewed|changed|past_due|expired|canceled`;
+  `isInformationalBillingEvent(type)` for `subscription.created`, `subscription.renewal_upcoming`
+  and `invoice.*` (send reminders or receipts from those). Unknown types are neither.
+- `checkoutRedirect(invoiceOrSubscription)` (and the framework-free `checkoutUrlOf`) throw
+  `NoCheckoutError` when there is nothing to pay (`reason`: `paid`, `void`, `no_invoice`,
+  `checkout_unavailable`). A checkout expires after a while: renewing gives a fresh one —
+  `checkoutRedirect(await yoon.renewSubscription(sub.id, key))`, with a key tied to the period.
+  In a server action, which cannot return a `Response`, use `redirect(checkoutUrlOf(sub))`
+  from `next/navigation`.
+- Plans, prices, customers, subscriptions and invoices: `yoon.plans()`, `yoon.customers()`,
+  `yoon.subscriptions()` (generated APIs, wrap calls in `yoon.call(...)` for `YoonException`s).
+- Delivery is unordered and may miss events during an outage: reconcile with
+  `yoon.subscriptions().listSubscriptions({ customer })` when in doubt.
+
 ## Prompt for an AI coding agent
 
 Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
@@ -207,6 +251,12 @@ Rules (they protect real money; follow them exactly):
   payout.paid, payout.failed, payout.needs_review.
 - Never log the API key or full phone numbers; read YOON_URL, YOON_API_KEY and
   YOON_WEBHOOK_SECRET from the environment.
+- Subscriptions (prepaid, Yoon 0.3+): yoon.createSubscription({ customer, price, return_url },
+  `sub-${user.id}-${price}`), then redirect to its latest_invoice.checkout_url (checkoutRedirect
+  from "@yoonpay/yoon/next", or checkoutUrlOf). Grant access ONLY from webhooks: when
+  changesEntitlement(event.type), store entitlementOf(event.object) (entitled is true for active
+  and past_due; unknown statuses are not entitled). No checkout_url (expired)? Call
+  yoon.renewSubscription(id, key) for a fresh one. Billing events: subscription.* and invoice.*.
 - Optional: "checkout": "hosted" (without "method") sends the customer to Yoon's own page to
   choose Wave, Orange Money, card, …; redirect them to the returned checkout_url.
 Verify: run Yoon with YOON_DEMO_ENABLED=true and YOON_APPS_<APP>_PROVIDERS_DEMO_PRIORITY=1,

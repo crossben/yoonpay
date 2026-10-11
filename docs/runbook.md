@@ -107,12 +107,15 @@ made; the subscription's history keeps your note with cause `admin`, and the app
 ```sh
 # 3 months of price_… on an existing subscription (stacked after a paid period, like a renewal)
 docker compose run --rm yoon billing comp shop sub_… price_… 3 "partner school, approved by Awa"
+# a customer migrating with time already paid elsewhere: active until that date (UTC)
+docker compose run --rm yoon billing comp shop cus_… price_… 2026-12-31 "migrated from the old billing"
 # a new subscription for a customer, without an end date
 docker compose run --rm yoon billing comp shop cus_… price_… open "enterprise contract 2026-14"
 ```
 
 Or `POST /admin/v1/applications/{app}/subscriptions/{id}/comp` (or `/customers/{id}/comp`) with
-`{"price": "price_…", "periods": 3, "note": "…"}` or `{"price": "price_…", "open": true, "note": "…"}`
+`{"price": "price_…", "periods": 3, "note": "…"}`, `"until": "2026-12-31T00:00:00Z"` instead of
+`periods`, or `"open": true`,
 and an `Idempotency-Key` (a retry with the same key grants once). An open invoice is voided. An
 open-ended comp lasts until the application cancels it (`POST /v1/subscriptions/{id}/cancel`
 with `{"at_period_end": false}`). When the customer later pays a period, `comp` turns false.

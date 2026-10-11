@@ -152,6 +152,8 @@ subscription"; amounts `bigint CHECK (> 0)`; status `CHECK` lists.
 - M3 subscriptions, invoices, payment hook, events — done.
 - M4 billing sweep (reminders, period end, grace end, incomplete expiry) — done.
 - M5 receipt page, plan on the checkout, dashboard tabs, comp (CLI + operator API), CSV exports — done.
+- M6 Python/JS billing helpers, comp `until` (migrations), guide [docs/billing.md](../billing.md) — done;
+  website page and LinkedIn post: outside this repository.
 
 ## 6. Decisions from review (2026-10-10)
 1. `past_due` is entitled (grace means "still works, pay soon").

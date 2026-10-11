@@ -64,7 +64,7 @@ once, in Java, instead of in every project.
   a success that arrives after expiry is still recovered; a payout whose outcome
   stays unknown is flagged for a human instead of guessed.
 - **Billing (0.3.0, in progress)** — prepaid subscriptions for mobile money
-  ([plan](docs/plans/billing-0.3.0.md), ADR-0025 to ADR-0027):
+  ([guide: Billing for SaaS](docs/billing.md), [plan](docs/plans/billing-0.3.0.md), ADR-0025 to ADR-0027):
   - customers found by your own user id; plans with free-form `features` (limits, flags); prices
     in integer minor units per currency and interval, immutable (the database refuses edits),
     archived, never deleted;
@@ -81,7 +81,9 @@ once, in Java, instead of in every project.
     renewal reminders, moves ended periods to `past_due` (with a renewal invoice) and expires
     subscriptions after grace;
   - operators grant periods without payment (comp: some periods, or open-ended for "contact us"
-    plans) from the CLI or the operator API; CSV exports `subscriptions.csv` and `invoices.csv`.
+    plans) from the CLI or the operator API; CSV exports `subscriptions.csv` and `invoices.csv`;
+  - Python and JS helpers: entitlement from a subscription event, redirect to the checkout
+    (FastAPI, Next.js).
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
@@ -279,8 +281,8 @@ docker compose run --rm yoon apps create <name>      # new application + API key
 docker compose run --rm yoon apps list               # applications and key prefixes
 docker compose run --rm yoon apps add-key <name>     # rotate: issue another key
 docker compose run --rm yoon apps revoke-key <prefix>
-# grant periods without payment (sub_… or cus_…, a number of periods or "open", and a note)
-docker compose run --rm yoon billing comp <app> <sub_…|cus_…> <price_…> <periods|open> <note…>
+# grant time without payment (sub_… or cus_…; a number of periods, an end date or "open"; a note)
+docker compose run --rm yoon billing comp <app> <sub_…|cus_…> <price_…> <periods|until|open> <note…>
 ```
 
 ## Contributing and security

@@ -140,6 +140,45 @@ event = Event.from_json(raw_body)   # event.id, event.type, event.object
 
 `sign_signature(secret, raw_body)` builds a header for your own tests.
 
+## Billing (prepaid subscriptions)
+
+Yoon 0.3.0 bills prepaid subscriptions: each period is an invoice the customer pays through
+hosted checkout; nothing renews by itself. `yoon.customers()`, `yoon.plans()` and
+`yoon.subscriptions()` (which also has `get_invoice` and `list_invoices`) are the generated
+APIs; wrap calls in `yoon.call(...)` to get `YoonException`.
+
+```python
+from yoonpay.billing import Entitlement, changes_entitlement
+from yoonpay.fastapi import NoCheckout, redirect_to_checkout
+from yoonpay.generated import CreateSubscriptionRequest, RenewSubscriptionRequest
+
+# 1. Subscribe (customer created once with external_id = your user id), then send to checkout.
+sub = yoon.call(lambda: yoon.subscriptions().create_subscription(
+    f"subscribe-{user.id}-{price_id}",
+    CreateSubscriptionRequest(customer=customer_id, price=price_id, return_url="https://app.example/billing")))
+return redirect_to_checkout(sub)            # 303 to sub.latest_invoice.checkout_url
+
+# Renewing: an invoice that is paid, void or whose checkout expired has no checkout_url,
+# so redirect_to_checkout raises NoCheckout; renew gives an open invoice with a fresh checkout.
+sub = yoon.call(lambda: yoon.subscriptions().renew_subscription(
+    sub_id, f"renew-{sub_id}-{period}", RenewSubscriptionRequest(return_url="https://app.example/billing")))
+return redirect_to_checkout(sub)
+
+# 2. Entitle only from webhooks (never from the return URL).
+@webhooks.post("/yoon/webhook", status_code=204)
+def yoon_events(event: Event = Depends(yoon_event)) -> None:
+    if changes_entitlement(event.type):     # subscription.activated|renewed|changed|past_due|expired|canceled
+        e = Entitlement.from_subscription(event.object)
+        save_access(e.external_id, entitled=e.entitled, plan=e.plan, until=e.until, features=e.features)
+```
+
+`Entitlement` is entitled for `active` and `past_due` (the grace period); `until` is
+`current_period_end`, `None` for an open-ended comp. An unknown status gives
+`entitled=False` and an unknown event type is not in `ENTITLEMENT_EVENTS`: neither raises.
+`INFORMATIONAL_EVENTS` (`subscription.created`, `subscription.renewal_upcoming`,
+`invoice.created|paid|voided`) never change access. `yoonpay.billing` needs no framework; only
+`redirect_to_checkout` lives in `yoonpay.fastapi` (`checkout_url(obj)` gives the URL anywhere).
+
 ## Prompt for an AI coding agent
 
 Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
@@ -157,6 +196,11 @@ Do:
    APIRouter(route_class=yoon_webhook_route(secret=...)) and a yoon_event dependency from
    yoonpay.fastapi; Flask: @yoon_webhook from yoonpay.flask (app.config["YOON_WEBHOOK_SECRET"]).
    Update the order from the event's type and object.
+   Subscriptions (Yoon 0.3.0+, prepaid): create with yoon.subscriptions().create_subscription(key,
+   CreateSubscriptionRequest(...)) inside yoon.call(...), redirect with redirect_to_checkout(sub)
+   from yoonpay.fastapi (or to sub.latest_invoice.checkout_url); grant access only in the webhook:
+   if changes_entitlement(event.type): Entitlement.from_subscription(event.object) (yoonpay.billing).
+   past_due is still entitled (grace); unknown statuses are not entitled.
 4. Errors are YoonException: problem_code, http_status, is_retryable().
 Rules (they protect real money; follow them exactly):
 - Amounts are integers in minor units, never floats: XOF has no minor unit, 5000 = 5 000 XOF.
@@ -171,7 +215,7 @@ Rules (they protect real money; follow them exactly):
 - Webhooks: verify the signature over the RAW request body (the helper below does it), answer
   2xx quickly, and make the handler idempotent: the same event can arrive more than once.
   Events: payment.succeeded, payment.failed, payment.expired, refund.succeeded, refund.failed,
-  payout.paid, payout.failed, payout.needs_review.
+  payout.paid, payout.failed, payout.needs_review; billing: subscription.* and invoice.*.
 - Never log the API key or full phone numbers; read YOON_URL, YOON_API_KEY and
   YOON_WEBHOOK_SECRET from the environment.
 - Optional: "checkout": "hosted" (without "method") sends the customer to Yoon's own page to

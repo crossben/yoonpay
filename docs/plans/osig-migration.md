@@ -1,6 +1,6 @@
 # Migrating from one-off payments to Yoon billing — OSIG as the reference case
 
-Draft, written against OSIG's billing code as of 2026-10-11 (`osig/backend/app/services/billing_service.py`,
+The generic steps are in [docs/billing.md](../billing.md#9-migrating-from-your-own-billing). Written against OSIG's billing code as of 2026-10-11 (`osig/backend/app/services/billing_service.py`,
 `models/billing.py`, `api/v1/billing.py`) and the 0.3.0 design (ADR-0025 to ADR-0027). It becomes the
 "Migrating" section of the "Billing for SaaS" docs page when 0.3.0 ships.
 
@@ -41,13 +41,15 @@ def yoon_events(event: Event = Depends(yoon_event), db: Session = Depends(get_db
             send_receipt(db, event.object)
 ```
 
-(Field paths follow the 0.3.0 draft API and will be checked against the final contract.)
+(Field paths checked against the 0.3.0 contract. With the Python helpers, `Entitlement.from_subscription(event.object)`
+gives `external_id`, `plan`, `until` and `features` directly.)
 
 ## Moving existing paying users
 
 For each user with a running paid plan: create the customer (`external_id` = OSIG user id), then
 grant the remaining time with an operator comp for that plan (no payment, `comp: true`), ending
-at the user's current `plan_expires_at`. From the next renewal on, they pay through the
+at the user's current `plan_expires_at`: `yoon billing comp osig cus_… price_… <plan_expires_at> "migration"`
+or the admin API with `"until"`. From the next renewal on, they pay through the
 subscription. Users with an open-ended grant get `comp … open`. A dry-run script lists what it
 would create before doing it.
 

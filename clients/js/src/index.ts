@@ -6,5 +6,6 @@ export * from "./YoonException";
 export * from "./Webhook";
 export * from "./WebhookReceiver";
 export * from "./verifyWebhook";
+export * from "./billing";
 export * from "../generated/src/models/index";
 export * from "../generated/src/apis/index";

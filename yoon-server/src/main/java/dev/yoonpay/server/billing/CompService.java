@@ -54,9 +54,15 @@ public class CompService {
 
     /**
      * @param target  a subscription id, or a customer id (a new subscription is created for them)
-     * @param periods how many periods of {@code priceId} to grant, or null for an open-ended comp
+     * @param periods how many periods of {@code priceId} to grant
+     * @param until   or: the end of the granted time (e.g. what the customer had already paid for
+     *                elsewhere, when migrating); both null: an open-ended comp
      */
-    public SubscriptionRecord comp(AppPrincipal app, String target, String priceId, Integer periods, String note) {
+    public SubscriptionRecord comp(AppPrincipal app, String target, String priceId, Integer periods, Instant until,
+                                   String note) {
+        if (periods != null && until != null) {
+            throw ApiProblem.invalid("Give periods or until, not both");
+        }
         if (periods != null && (periods < 1 || periods > MAX_PERIODS)) {
             throw ApiProblem.invalid("periods must be 1–" + MAX_PERIODS + ", or open");
         }
@@ -65,7 +71,8 @@ public class CompService {
         }
         PriceRecord price = catalog.findPrice(app.id(), priceId)
                 .orElseThrow(() -> ApiProblem.unprocessable("price_not_found", "No price " + priceId));
-        String detail = "comp " + (periods == null ? "open-ended" : periods + " period(s)") + ": " + note.strip();
+        String detail = "comp " + (periods != null ? periods + " period(s)" : until != null ? "until " + until : "open-ended")
+                + ": " + note.strip();
 
         // One transaction: a comp for a customer never leaves a new, un-comped subscription behind.
         String compedId = tx.execute(t -> {
@@ -79,7 +86,14 @@ public class CompService {
             SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
             Instant start = Stacking.nextPeriodStart(status, s.currentPeriodEnd(), now);
             Map<String, Object> fields = new HashMap<>();
-            if (periods == null) {
+            if (until != null) {
+                if (!until.isAfter(start)) {
+                    throw ApiProblem.unprocessable("comp_until_too_early", "until must be after " + start
+                            + (start.equals(now) ? " (now)" : " (the end of the period already paid)"));
+                }
+                fields.put("current_period_end", until);
+                fields.put("billing_anchor", BillingPeriods.anchorOf(until));   // later renewals fall on that day
+            } else if (periods == null) {
                 fields.put("current_period_end", null);   // open: the sweep never ends it
                 fields.put("billing_anchor", null);
             } else {

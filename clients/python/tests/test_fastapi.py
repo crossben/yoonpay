@@ -80,3 +80,23 @@ def test_a_failing_endpoint_is_not_remembered_so_the_retry_reaches_it(client, pa
 def test_a_secret_is_required():
     with pytest.raises(ValueError):
         yoon_webhook_route(secret="")
+
+
+def test_redirect_to_checkout_is_a_303_to_the_checkout_url():
+    from yoonpay.fastapi import redirect_to_checkout
+
+    url = "https://pay.example.com/checkout/pay_1?t=tok"
+    response = redirect_to_checkout({"object": "subscription", "latest_invoice": {"checkout_url": url}})
+    assert response.status_code == 303 and response.headers["location"] == url
+    assert redirect_to_checkout({"object": "invoice", "checkout_url": url}).headers["location"] == url
+
+
+@pytest.mark.parametrize("obj", [
+    {"object": "subscription", "latest_invoice": None},
+    {"object": "invoice", "status": "paid", "checkout_url": None},
+])
+def test_redirect_to_checkout_without_a_checkout_raises(obj):
+    from yoonpay.fastapi import NoCheckout, redirect_to_checkout
+
+    with pytest.raises(NoCheckout, match="renew"):
+        redirect_to_checkout(obj)

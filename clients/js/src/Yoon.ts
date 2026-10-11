@@ -1,18 +1,26 @@
 import {
   Configuration,
+  CustomersApi,
   EventsApi,
   ExportsApi,
   LedgerApi,
   MetaApi,
   PaymentsApi,
   PayoutsApi,
+  PlansApi,
   RefundsApi,
+  SubscriptionsApi,
+  type CreateCustomerRequest,
   type CreatePaymentRequest,
+  type CreateSubscriptionRequest,
+  type Customer,
+  type Invoice,
   type CreatePayoutRequest,
   type Middleware,
   type Payment,
   type Payout,
   type Refund,
+  type Subscription,
 } from "../generated/src/index";
 import { YoonException } from "./YoonException";
 import { timedFetch } from "./internal/timedFetch";
@@ -60,6 +68,9 @@ export class Yoon {
   private ledgerApi?: LedgerApi;
   private metaApi?: MetaApi;
   private exportsApi?: ExportsApi;
+  private customersApi?: CustomersApi;
+  private plansApi?: PlansApi;
+  private subscriptionsApi?: SubscriptionsApi;
 
   constructor(baseUrl: string, apiKey: string, options: YoonOptions = {}) {
     if (typeof baseUrl !== "string" || baseUrl.length === 0) {
@@ -136,6 +147,44 @@ export class Yoon {
     return this.call(() => this.payouts().createPayout({ Idempotency_Key: idempotencyKey, CreatePayoutRequest: payout }));
   }
 
+  createCustomer(customer: CreateCustomerRequest, idempotencyKey: string): Promise<Customer> {
+    return this.call(() =>
+      this.customers().createCustomer({ Idempotency_Key: idempotencyKey, CreateCustomerRequest: customer }),
+    );
+  }
+
+  /**
+   * Starts a prepaid subscription. It is `incomplete` until its first invoice is paid: send the
+   * customer to `latest_invoice.checkout_url` (see `checkoutUrlOf`) and grant access from the
+   * webhook, never from the return URL.
+   */
+  createSubscription(subscription: CreateSubscriptionRequest, idempotencyKey: string): Promise<Subscription> {
+    return this.call(() =>
+      this.subscriptions().createSubscription({
+        Idempotency_Key: idempotencyKey,
+        CreateSubscriptionRequest: subscription,
+      }),
+    );
+  }
+
+  getSubscription(id: string): Promise<Subscription> {
+    return this.call(() => this.subscriptions().getSubscription({ id }));
+  }
+
+  /**
+   * The invoice for the next period, with a usable `checkout_url` (the open one if there is
+   * already one, with a fresh checkout if the last one expired).
+   */
+  renewSubscription(id: string, idempotencyKey: string, returnUrl?: string): Promise<Invoice> {
+    return this.call(() =>
+      this.subscriptions().renewSubscription({
+        id,
+        Idempotency_Key: idempotencyKey,
+        RenewSubscriptionRequest: { return_url: returnUrl },
+      }),
+    );
+  }
+
   /** CSV export (amounts in minor units, UTC timestamps, phones masked). */
   exportCsv(kind: YoonExport, from?: string, to?: string): Promise<string> {
     return this.call(() => {
@@ -187,6 +236,20 @@ export class Yoon {
 
   meta(): MetaApi {
     return (this.metaApi ??= new MetaApi(this.configuration));
+  }
+
+  customers(): CustomersApi {
+    return (this.customersApi ??= new CustomersApi(this.configuration));
+  }
+
+  /** Plans and their prices. */
+  plans(): PlansApi {
+    return (this.plansApi ??= new PlansApi(this.configuration));
+  }
+
+  /** Subscriptions and their invoices (`getInvoice`, `listInvoices`). */
+  subscriptions(): SubscriptionsApi {
+    return (this.subscriptionsApi ??= new SubscriptionsApi(this.configuration));
   }
 
   private exports(): ExportsApi {
