@@ -34,6 +34,17 @@ class EventType(str, Enum):
     PAYOUT_DOT_PAID = 'payout.paid'
     PAYOUT_DOT_FAILED = 'payout.failed'
     PAYOUT_DOT_NEEDS_REVIEW = 'payout.needs_review'
+    SUBSCRIPTION_DOT_CREATED = 'subscription.created'
+    SUBSCRIPTION_DOT_ACTIVATED = 'subscription.activated'
+    SUBSCRIPTION_DOT_RENEWED = 'subscription.renewed'
+    SUBSCRIPTION_DOT_PAST_DUE = 'subscription.past_due'
+    SUBSCRIPTION_DOT_EXPIRED = 'subscription.expired'
+    SUBSCRIPTION_DOT_CANCELED = 'subscription.canceled'
+    SUBSCRIPTION_DOT_CHANGED = 'subscription.changed'
+    SUBSCRIPTION_DOT_RENEWAL_UPCOMING = 'subscription.renewal_upcoming'
+    INVOICE_DOT_CREATED = 'invoice.created'
+    INVOICE_DOT_PAID = 'invoice.paid'
+    INVOICE_DOT_VOIDED = 'invoice.voided'
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:

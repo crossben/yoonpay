@@ -9,3 +9,4 @@ export * from './PaymentsApi';
 export * from './PayoutsApi';
 export * from './PlansApi';
 export * from './RefundsApi';
+export * from './SubscriptionsApi';

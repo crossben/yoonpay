@@ -33,11 +33,14 @@ public class PaymentTransitions {
     private final Alerts alerts;
     private final TransactionTemplate tx;
     private final dev.yoonpay.server.lifecycle.StatusMetrics metrics;
+    private final dev.yoonpay.server.billing.BillingPayments billing;
 
     public PaymentTransitions(PaymentRepository payments, StatusEvents events, LedgerRepository ledger,
                               Outbox outbox, Alerts alerts, TransactionTemplate tx,
-                            dev.yoonpay.server.lifecycle.StatusMetrics metrics) {
+                            dev.yoonpay.server.lifecycle.StatusMetrics metrics,
+                            dev.yoonpay.server.billing.BillingPayments billing) {
         this.metrics = metrics;
+        this.billing = billing;
         this.payments = payments;
         this.events = events;
         this.ledger = ledger;
@@ -73,6 +76,8 @@ public class PaymentTransitions {
                         alerts.raise(Alerts.Type.late_success, id, "was " + from + ", provider confirms paid");
                     }
                     outbox.emit(app, "payment.succeeded", "payment", id, PaymentResponse.of(updated));
+                    // Same transaction: a paid invoice and its subscription period, or nothing (ADR-0026).
+                    billing.paymentSucceeded(app, updated);
                 }
                 case FAILED -> outbox.emit(app, "payment.failed", "payment", id, PaymentResponse.of(updated));
                 case EXPIRED -> outbox.emit(app, "payment.expired", "payment", id, PaymentResponse.of(updated));

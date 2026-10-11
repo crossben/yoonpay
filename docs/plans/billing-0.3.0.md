@@ -146,6 +146,11 @@ subscription"; amounts `bigint CHECK (> 0)`; status `CHECK` lists.
 - Demo provider end to end: create → pay on checkout → active → time moved → past_due →
   renew → active → time moved past grace → expired.
 
+## Progress
+- M1 core (state machines, periods, stacking, extra days) — done.
+- M2 customers, plans, prices, V7 schema, open-set client enums — done.
+- M3 subscriptions, invoices, payment hook, events — done.
+
 ## 6. Decisions from review (2026-10-10)
 1. `past_due` is entitled (grace means "still works, pay soon").
 2. Defaults kept: invoice due window 7 days, grace 3 days, reminder 3 days.

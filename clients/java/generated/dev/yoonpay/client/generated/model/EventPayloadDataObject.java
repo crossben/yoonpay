@@ -29,14 +29,22 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
 import dev.yoonpay.client.generated.model.Failure;
+import dev.yoonpay.client.generated.model.Invoice;
+import dev.yoonpay.client.generated.model.InvoiceLine;
+import dev.yoonpay.client.generated.model.InvoiceStatus;
 import dev.yoonpay.client.generated.model.Payment;
-import dev.yoonpay.client.generated.model.PaymentCustomer;
 import dev.yoonpay.client.generated.model.Payout;
 import dev.yoonpay.client.generated.model.PayoutRecipient;
-import dev.yoonpay.client.generated.model.PayoutStatus;
 import dev.yoonpay.client.generated.model.Refund;
+import dev.yoonpay.client.generated.model.Subscription;
+import dev.yoonpay.client.generated.model.SubscriptionPendingChange;
+import dev.yoonpay.client.generated.model.SubscriptionPrice;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -103,6 +111,10 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
             Map<String,Object> result2 = tree.traverse(jp.getCodec()).readValueAs(new TypeReference<Map<String, Object>>() {});
             String discriminatorValue = (String)result2.get("object");
             switch (discriminatorValue) {
+                case "invoice":
+                    deserialized = tree.traverse(jp.getCodec()).readValueAs(Invoice.class);
+                    newEventPayloadDataObject.setActualInstance(deserialized);
+                    return newEventPayloadDataObject;
                 case "payment":
                     deserialized = tree.traverse(jp.getCodec()).readValueAs(Payment.class);
                     newEventPayloadDataObject.setActualInstance(deserialized);
@@ -115,13 +127,43 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
                     deserialized = tree.traverse(jp.getCodec()).readValueAs(Refund.class);
                     newEventPayloadDataObject.setActualInstance(deserialized);
                     return newEventPayloadDataObject;
+                case "subscription":
+                    deserialized = tree.traverse(jp.getCodec()).readValueAs(Subscription.class);
+                    newEventPayloadDataObject.setActualInstance(deserialized);
+                    return newEventPayloadDataObject;
                 default:
-                    log.log(Level.WARNING, String.format(Locale.ROOT, "Failed to lookup discriminator value `%s` for EventPayloadDataObject. Possible values: payment payout refund", discriminatorValue));
+                    log.log(Level.WARNING, String.format(Locale.ROOT, "Failed to lookup discriminator value `%s` for EventPayloadDataObject. Possible values: invoice payment payout refund subscription", discriminatorValue));
             }
 
             boolean typeCoercion = ctxt.isEnabled(MapperFeature.ALLOW_COERCION_OF_SCALARS);
             int match = 0;
             JsonToken token = tree.traverse(jp.getCodec()).nextToken();
+            // deserialize Invoice
+            try {
+                boolean attemptParsing = true;
+                // ensure that we respect type coercion as set on the client ObjectMapper
+                if (Invoice.class.equals(Integer.class) || Invoice.class.equals(Long.class) || Invoice.class.equals(Float.class) || Invoice.class.equals(Double.class) || Invoice.class.equals(Boolean.class) || Invoice.class.equals(String.class)) {
+                    attemptParsing = typeCoercion;
+                    if (!attemptParsing) {
+                        attemptParsing |= ((Invoice.class.equals(Integer.class) || Invoice.class.equals(Long.class)) && token == JsonToken.VALUE_NUMBER_INT);
+                        attemptParsing |= ((Invoice.class.equals(Float.class) || Invoice.class.equals(Double.class)) && token == JsonToken.VALUE_NUMBER_FLOAT);
+                        attemptParsing |= (Invoice.class.equals(Boolean.class) && (token == JsonToken.VALUE_FALSE || token == JsonToken.VALUE_TRUE));
+                        attemptParsing |= (Invoice.class.equals(String.class) && token == JsonToken.VALUE_STRING);
+                    }
+                }
+                if (attemptParsing) {
+                    deserialized = tree.traverse(jp.getCodec()).readValueAs(Invoice.class);
+                    // TODO: there is no validation against JSON schema constraints
+                    // (min, max, enum, pattern...), this does not perform a strict JSON
+                    // validation, which means the 'match' count may be higher than it should be.
+                    match++;
+                    log.log(Level.FINER, "Input data matches schema 'Invoice'");
+                }
+            } catch (Exception e) {
+                // deserialization failed, continue
+                log.log(Level.FINER, "Input data does not match schema 'Invoice'", e);
+            }
+
             // deserialize Payment
             try {
                 boolean attemptParsing = true;
@@ -200,6 +242,32 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
                 log.log(Level.FINER, "Input data does not match schema 'Refund'", e);
             }
 
+            // deserialize Subscription
+            try {
+                boolean attemptParsing = true;
+                // ensure that we respect type coercion as set on the client ObjectMapper
+                if (Subscription.class.equals(Integer.class) || Subscription.class.equals(Long.class) || Subscription.class.equals(Float.class) || Subscription.class.equals(Double.class) || Subscription.class.equals(Boolean.class) || Subscription.class.equals(String.class)) {
+                    attemptParsing = typeCoercion;
+                    if (!attemptParsing) {
+                        attemptParsing |= ((Subscription.class.equals(Integer.class) || Subscription.class.equals(Long.class)) && token == JsonToken.VALUE_NUMBER_INT);
+                        attemptParsing |= ((Subscription.class.equals(Float.class) || Subscription.class.equals(Double.class)) && token == JsonToken.VALUE_NUMBER_FLOAT);
+                        attemptParsing |= (Subscription.class.equals(Boolean.class) && (token == JsonToken.VALUE_FALSE || token == JsonToken.VALUE_TRUE));
+                        attemptParsing |= (Subscription.class.equals(String.class) && token == JsonToken.VALUE_STRING);
+                    }
+                }
+                if (attemptParsing) {
+                    deserialized = tree.traverse(jp.getCodec()).readValueAs(Subscription.class);
+                    // TODO: there is no validation against JSON schema constraints
+                    // (min, max, enum, pattern...), this does not perform a strict JSON
+                    // validation, which means the 'match' count may be higher than it should be.
+                    match++;
+                    log.log(Level.FINER, "Input data matches schema 'Subscription'");
+                }
+            } catch (Exception e) {
+                // deserialization failed, continue
+                log.log(Level.FINER, "Input data does not match schema 'Subscription'", e);
+            }
+
             if (match == 1) {
                 EventPayloadDataObject ret = new EventPayloadDataObject();
                 ret.setActualInstance(deserialized);
@@ -224,6 +292,11 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
         super("oneOf", Boolean.FALSE);
     }
 
+    public EventPayloadDataObject(Invoice o) {
+        super("oneOf", Boolean.FALSE);
+        setActualInstance(o);
+    }
+
     public EventPayloadDataObject(Payment o) {
         super("oneOf", Boolean.FALSE);
         setActualInstance(o);
@@ -239,16 +312,25 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
         setActualInstance(o);
     }
 
+    public EventPayloadDataObject(Subscription o) {
+        super("oneOf", Boolean.FALSE);
+        setActualInstance(o);
+    }
+
     static {
+        schemas.put("Invoice", Invoice.class);
         schemas.put("Payment", Payment.class);
         schemas.put("Payout", Payout.class);
         schemas.put("Refund", Refund.class);
+        schemas.put("Subscription", Subscription.class);
         JSON.registerDescendants(EventPayloadDataObject.class, Collections.unmodifiableMap(schemas));
         // Initialize and register the discriminator mappings.
         Map<String, Class<?>> mappings = new HashMap<String, Class<?>>();
+        mappings.put("invoice", Invoice.class);
         mappings.put("payment", Payment.class);
         mappings.put("payout", Payout.class);
         mappings.put("refund", Refund.class);
+        mappings.put("subscription", Subscription.class);
         mappings.put("EventPayload_data_object", EventPayloadDataObject.class);
         JSON.registerDiscriminator(EventPayloadDataObject.class, "object", mappings);
     }
@@ -261,13 +343,18 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
     /**
      * Set the instance that matches the oneOf child schema, check
      * the instance parameter is valid against the oneOf child schemas:
-     * Payment, Payout, Refund
+     * Invoice, Payment, Payout, Refund, Subscription
      *
      * It could be an instance of the 'oneOf' schemas.
      * The oneOf child schemas may themselves be a composed schema (allOf, anyOf, oneOf).
      */
     @Override
     public void setActualInstance(Object instance) {
+        if (JSON.isInstanceOf(Invoice.class, instance, new HashSet<Class<?>>())) {
+            super.setActualInstance(instance);
+            return;
+        }
+
         if (JSON.isInstanceOf(Payment.class, instance, new HashSet<Class<?>>())) {
             super.setActualInstance(instance);
             return;
@@ -283,18 +370,34 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
             return;
         }
 
-        throw new RuntimeException("Invalid instance type. Must be Payment, Payout, Refund");
+        if (JSON.isInstanceOf(Subscription.class, instance, new HashSet<Class<?>>())) {
+            super.setActualInstance(instance);
+            return;
+        }
+
+        throw new RuntimeException("Invalid instance type. Must be Invoice, Payment, Payout, Refund, Subscription");
     }
 
     /**
      * Get the actual instance, which can be the following:
-     * Payment, Payout, Refund
+     * Invoice, Payment, Payout, Refund, Subscription
      *
-     * @return The actual instance (Payment, Payout, Refund)
+     * @return The actual instance (Invoice, Payment, Payout, Refund, Subscription)
      */
     @Override
     public Object getActualInstance() {
         return super.getActualInstance();
+    }
+
+    /**
+     * Get the actual instance of `Invoice`. If the actual instance is not `Invoice`,
+     * the ClassCastException will be thrown.
+     *
+     * @return The actual instance of `Invoice`
+     * @throws ClassCastException if the instance is not `Invoice`
+     */
+    public Invoice getInvoice() throws ClassCastException {
+        return (Invoice)super.getActualInstance();
     }
 
     /**
@@ -328,6 +431,17 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
      */
     public Refund getRefund() throws ClassCastException {
         return (Refund)super.getActualInstance();
+    }
+
+    /**
+     * Get the actual instance of `Subscription`. If the actual instance is not `Subscription`,
+     * the ClassCastException will be thrown.
+     *
+     * @return The actual instance of `Subscription`
+     * @throws ClassCastException if the instance is not `Subscription`
+     */
+    public Subscription getSubscription() throws ClassCastException {
+        return (Subscription)super.getActualInstance();
     }
 
 
@@ -379,6 +493,18 @@ public class EventPayloadDataObject extends AbstractOpenApiSchema {
     if (getActualInstance() instanceof Payout) {
         if (getActualInstance() != null) {
           joiner.add(((Payout)getActualInstance()).toUrlQueryString(prefix + "one_of_2" + suffix));
+        }
+        return joiner.toString();
+    }
+    if (getActualInstance() instanceof Subscription) {
+        if (getActualInstance() != null) {
+          joiner.add(((Subscription)getActualInstance()).toUrlQueryString(prefix + "one_of_3" + suffix));
+        }
+        return joiner.toString();
+    }
+    if (getActualInstance() instanceof Invoice) {
+        if (getActualInstance() != null) {
+          joiner.add(((Invoice)getActualInstance()).toUrlQueryString(prefix + "one_of_4" + suffix));
         }
         return joiner.toString();
     }

@@ -10,4 +10,5 @@ from yoonpay.generated.api.payments_api import PaymentsApi
 from yoonpay.generated.api.payouts_api import PayoutsApi
 from yoonpay.generated.api.plans_api import PlansApi
 from yoonpay.generated.api.refunds_api import RefundsApi
+from yoonpay.generated.api.subscriptions_api import SubscriptionsApi
 

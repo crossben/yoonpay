@@ -58,6 +58,28 @@ class EventType
 
     public const PAYOUT_NEEDS_REVIEW = 'payout.needs_review';
 
+    public const SUBSCRIPTION_CREATED = 'subscription.created';
+
+    public const SUBSCRIPTION_ACTIVATED = 'subscription.activated';
+
+    public const SUBSCRIPTION_RENEWED = 'subscription.renewed';
+
+    public const SUBSCRIPTION_PAST_DUE = 'subscription.past_due';
+
+    public const SUBSCRIPTION_EXPIRED = 'subscription.expired';
+
+    public const SUBSCRIPTION_CANCELED = 'subscription.canceled';
+
+    public const SUBSCRIPTION_CHANGED = 'subscription.changed';
+
+    public const SUBSCRIPTION_RENEWAL_UPCOMING = 'subscription.renewal_upcoming';
+
+    public const INVOICE_CREATED = 'invoice.created';
+
+    public const INVOICE_PAID = 'invoice.paid';
+
+    public const INVOICE_VOIDED = 'invoice.voided';
+
     /**
      * Gets allowable values of the enum
      * @return string[]
@@ -72,7 +94,18 @@ class EventType
             self::REFUND_FAILED,
             self::PAYOUT_PAID,
             self::PAYOUT_FAILED,
-            self::PAYOUT_NEEDS_REVIEW
+            self::PAYOUT_NEEDS_REVIEW,
+            self::SUBSCRIPTION_CREATED,
+            self::SUBSCRIPTION_ACTIVATED,
+            self::SUBSCRIPTION_RENEWED,
+            self::SUBSCRIPTION_PAST_DUE,
+            self::SUBSCRIPTION_EXPIRED,
+            self::SUBSCRIPTION_CANCELED,
+            self::SUBSCRIPTION_CHANGED,
+            self::SUBSCRIPTION_RENEWAL_UPCOMING,
+            self::INVOICE_CREATED,
+            self::INVOICE_PAID,
+            self::INVOICE_VOIDED
         ];
     }
 }

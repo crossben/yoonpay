@@ -35,7 +35,7 @@ use \Yoon\Generated\ObjectSerializer;
  * EventPayloadDataObject Class Doc Comment
  *
  * @category Class
- * @description The payment, refund or payout as &#x60;GET&#x60; would return it at the time of the event.
+ * @description The payment, refund, payout, subscription or invoice as &#x60;GET&#x60; would return it at the time of the event.
  * @package  Yoon\Generated
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
@@ -60,7 +60,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     protected static $openAPITypes = [
         'id' => 'string',
         'object' => 'string',
-        'status' => '\Yoon\Generated\Model\PayoutStatus',
+        'status' => '\Yoon\Generated\Model\InvoiceStatus',
         'amount' => 'int',
         'amount_refunded' => 'int',
         'currency' => 'string',
@@ -70,7 +70,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'checkout_expires_at' => '\DateTime',
         'reference' => 'string',
         'description' => 'string',
-        'customer' => '\Yoon\Generated\Model\PaymentCustomer',
+        'customer' => 'string',
         'provider' => 'string',
         'provider_reference' => 'string',
         'checkout_url' => 'string',
@@ -82,7 +82,31 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'payment_id' => 'string',
         'reason' => 'string',
         'recipient' => '\Yoon\Generated\Model\PayoutRecipient',
-        'needs_review' => 'bool'
+        'needs_review' => 'bool',
+        'price' => '\Yoon\Generated\Model\SubscriptionPrice',
+        'collection_method' => 'string',
+        'current_period_start' => '\DateTime',
+        'current_period_end' => '\DateTime',
+        'grace_period_days' => 'int',
+        'cancel_at_period_end' => 'bool',
+        'pending_change' => '\Yoon\Generated\Model\SubscriptionPendingChange',
+        'canceled_at' => '\DateTime',
+        'comp' => 'bool',
+        'entitled' => 'bool',
+        'features' => 'array<string,mixed>',
+        'latest_invoice' => '\Yoon\Generated\Model\Invoice',
+        'metadata' => 'array<string,string>',
+        'number' => 'string',
+        'subscription' => 'string',
+        'kind' => 'string',
+        'amount_due' => 'int',
+        'lines' => '\Yoon\Generated\Model\InvoiceLine[]',
+        'period_start' => '\DateTime',
+        'period_end' => '\DateTime',
+        'payment' => 'string',
+        'receipt_url' => 'string',
+        'paid_at' => '\DateTime',
+        'voided_at' => '\DateTime'
     ];
 
     /**
@@ -117,7 +141,31 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'payment_id' => null,
         'reason' => null,
         'recipient' => null,
-        'needs_review' => null
+        'needs_review' => null,
+        'price' => null,
+        'collection_method' => null,
+        'current_period_start' => 'date-time',
+        'current_period_end' => 'date-time',
+        'grace_period_days' => null,
+        'cancel_at_period_end' => null,
+        'pending_change' => null,
+        'canceled_at' => 'date-time',
+        'comp' => null,
+        'entitled' => null,
+        'features' => null,
+        'latest_invoice' => null,
+        'metadata' => null,
+        'number' => null,
+        'subscription' => null,
+        'kind' => null,
+        'amount_due' => 'int64',
+        'lines' => null,
+        'period_start' => 'date-time',
+        'period_end' => 'date-time',
+        'payment' => null,
+        'receipt_url' => null,
+        'paid_at' => 'date-time',
+        'voided_at' => 'date-time'
     ];
 
     /**
@@ -150,7 +198,31 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'payment_id' => false,
         'reason' => false,
         'recipient' => false,
-        'needs_review' => false
+        'needs_review' => false,
+        'price' => false,
+        'collection_method' => false,
+        'current_period_start' => false,
+        'current_period_end' => false,
+        'grace_period_days' => false,
+        'cancel_at_period_end' => false,
+        'pending_change' => false,
+        'canceled_at' => false,
+        'comp' => false,
+        'entitled' => false,
+        'features' => false,
+        'latest_invoice' => false,
+        'metadata' => false,
+        'number' => false,
+        'subscription' => false,
+        'kind' => false,
+        'amount_due' => false,
+        'lines' => false,
+        'period_start' => false,
+        'period_end' => false,
+        'payment' => false,
+        'receipt_url' => false,
+        'paid_at' => false,
+        'voided_at' => false
     ];
 
     /**
@@ -263,7 +335,31 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'payment_id' => 'payment_id',
         'reason' => 'reason',
         'recipient' => 'recipient',
-        'needs_review' => 'needs_review'
+        'needs_review' => 'needs_review',
+        'price' => 'price',
+        'collection_method' => 'collection_method',
+        'current_period_start' => 'current_period_start',
+        'current_period_end' => 'current_period_end',
+        'grace_period_days' => 'grace_period_days',
+        'cancel_at_period_end' => 'cancel_at_period_end',
+        'pending_change' => 'pending_change',
+        'canceled_at' => 'canceled_at',
+        'comp' => 'comp',
+        'entitled' => 'entitled',
+        'features' => 'features',
+        'latest_invoice' => 'latest_invoice',
+        'metadata' => 'metadata',
+        'number' => 'number',
+        'subscription' => 'subscription',
+        'kind' => 'kind',
+        'amount_due' => 'amount_due',
+        'lines' => 'lines',
+        'period_start' => 'period_start',
+        'period_end' => 'period_end',
+        'payment' => 'payment',
+        'receipt_url' => 'receipt_url',
+        'paid_at' => 'paid_at',
+        'voided_at' => 'voided_at'
     ];
 
     /**
@@ -296,7 +392,31 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'payment_id' => 'setPaymentId',
         'reason' => 'setReason',
         'recipient' => 'setRecipient',
-        'needs_review' => 'setNeedsReview'
+        'needs_review' => 'setNeedsReview',
+        'price' => 'setPrice',
+        'collection_method' => 'setCollectionMethod',
+        'current_period_start' => 'setCurrentPeriodStart',
+        'current_period_end' => 'setCurrentPeriodEnd',
+        'grace_period_days' => 'setGracePeriodDays',
+        'cancel_at_period_end' => 'setCancelAtPeriodEnd',
+        'pending_change' => 'setPendingChange',
+        'canceled_at' => 'setCanceledAt',
+        'comp' => 'setComp',
+        'entitled' => 'setEntitled',
+        'features' => 'setFeatures',
+        'latest_invoice' => 'setLatestInvoice',
+        'metadata' => 'setMetadata',
+        'number' => 'setNumber',
+        'subscription' => 'setSubscription',
+        'kind' => 'setKind',
+        'amount_due' => 'setAmountDue',
+        'lines' => 'setLines',
+        'period_start' => 'setPeriodStart',
+        'period_end' => 'setPeriodEnd',
+        'payment' => 'setPayment',
+        'receipt_url' => 'setReceiptUrl',
+        'paid_at' => 'setPaidAt',
+        'voided_at' => 'setVoidedAt'
     ];
 
     /**
@@ -329,7 +449,31 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'payment_id' => 'getPaymentId',
         'reason' => 'getReason',
         'recipient' => 'getRecipient',
-        'needs_review' => 'getNeedsReview'
+        'needs_review' => 'getNeedsReview',
+        'price' => 'getPrice',
+        'collection_method' => 'getCollectionMethod',
+        'current_period_start' => 'getCurrentPeriodStart',
+        'current_period_end' => 'getCurrentPeriodEnd',
+        'grace_period_days' => 'getGracePeriodDays',
+        'cancel_at_period_end' => 'getCancelAtPeriodEnd',
+        'pending_change' => 'getPendingChange',
+        'canceled_at' => 'getCanceledAt',
+        'comp' => 'getComp',
+        'entitled' => 'getEntitled',
+        'features' => 'getFeatures',
+        'latest_invoice' => 'getLatestInvoice',
+        'metadata' => 'getMetadata',
+        'number' => 'getNumber',
+        'subscription' => 'getSubscription',
+        'kind' => 'getKind',
+        'amount_due' => 'getAmountDue',
+        'lines' => 'getLines',
+        'period_start' => 'getPeriodStart',
+        'period_end' => 'getPeriodEnd',
+        'payment' => 'getPayment',
+        'receipt_url' => 'getReceiptUrl',
+        'paid_at' => 'getPaidAt',
+        'voided_at' => 'getVoidedAt'
     ];
 
     /**
@@ -373,9 +517,13 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         return self::$openAPIModelName;
     }
 
-    public const OBJECT_PAYOUT = 'payout';
+    public const OBJECT_INVOICE = 'invoice';
     public const CHECKOUT_DIRECT = 'direct';
     public const CHECKOUT_HOSTED = 'hosted';
+    public const COLLECTION_METHOD_PREPAID_MANUAL = 'prepaid_manual';
+    public const KIND_FIRST = 'first';
+    public const KIND_RENEWAL = 'renewal';
+    public const KIND_UPGRADE = 'upgrade';
 
     /**
      * Gets allowable values of the enum
@@ -385,7 +533,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     public function getObjectAllowableValues()
     {
         return [
-            self::OBJECT_PAYOUT,
+            self::OBJECT_INVOICE,
         ];
     }
 
@@ -399,6 +547,32 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         return [
             self::CHECKOUT_DIRECT,
             self::CHECKOUT_HOSTED,
+        ];
+    }
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public function getCollectionMethodAllowableValues()
+    {
+        return [
+            self::COLLECTION_METHOD_PREPAID_MANUAL,
+        ];
+    }
+
+    /**
+     * Gets allowable values of the enum
+     *
+     * @return string[]
+     */
+    public function getKindAllowableValues()
+    {
+        return [
+            self::KIND_FIRST,
+            self::KIND_RENEWAL,
+            self::KIND_UPGRADE,
         ];
     }
 
@@ -442,6 +616,30 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('reason', $data ?? [], null);
         $this->setIfExists('recipient', $data ?? [], null);
         $this->setIfExists('needs_review', $data ?? [], null);
+        $this->setIfExists('price', $data ?? [], null);
+        $this->setIfExists('collection_method', $data ?? [], null);
+        $this->setIfExists('current_period_start', $data ?? [], null);
+        $this->setIfExists('current_period_end', $data ?? [], null);
+        $this->setIfExists('grace_period_days', $data ?? [], null);
+        $this->setIfExists('cancel_at_period_end', $data ?? [], null);
+        $this->setIfExists('pending_change', $data ?? [], null);
+        $this->setIfExists('canceled_at', $data ?? [], null);
+        $this->setIfExists('comp', $data ?? [], null);
+        $this->setIfExists('entitled', $data ?? [], null);
+        $this->setIfExists('features', $data ?? [], null);
+        $this->setIfExists('latest_invoice', $data ?? [], null);
+        $this->setIfExists('metadata', $data ?? [], null);
+        $this->setIfExists('number', $data ?? [], null);
+        $this->setIfExists('subscription', $data ?? [], null);
+        $this->setIfExists('kind', $data ?? [], null);
+        $this->setIfExists('amount_due', $data ?? [], null);
+        $this->setIfExists('lines', $data ?? [], null);
+        $this->setIfExists('period_start', $data ?? [], null);
+        $this->setIfExists('period_end', $data ?? [], null);
+        $this->setIfExists('payment', $data ?? [], null);
+        $this->setIfExists('receipt_url', $data ?? [], null);
+        $this->setIfExists('paid_at', $data ?? [], null);
+        $this->setIfExists('voided_at', $data ?? [], null);
 
         // Initialize discriminator property with the model name.
         $this->container['object'] = static::$openAPIModelName;
@@ -516,6 +714,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
             );
         }
 
+        if ($this->container['customer'] === null) {
+            $invalidProperties[] = "'customer' can't be null";
+        }
         if ($this->container['provider'] === null) {
             $invalidProperties[] = "'provider' can't be null";
         }
@@ -533,6 +734,67 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         }
         if ($this->container['needs_review'] === null) {
             $invalidProperties[] = "'needs_review' can't be null";
+        }
+        if ($this->container['price'] === null) {
+            $invalidProperties[] = "'price' can't be null";
+        }
+        if ($this->container['collection_method'] === null) {
+            $invalidProperties[] = "'collection_method' can't be null";
+        }
+        $allowedValues = $this->getCollectionMethodAllowableValues();
+        if (!is_null($this->container['collection_method']) && !in_array($this->container['collection_method'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'collection_method', must be one of '%s'",
+                $this->container['collection_method'],
+                implode("', '", $allowedValues)
+            );
+        }
+
+        if ($this->container['grace_period_days'] === null) {
+            $invalidProperties[] = "'grace_period_days' can't be null";
+        }
+        if ($this->container['cancel_at_period_end'] === null) {
+            $invalidProperties[] = "'cancel_at_period_end' can't be null";
+        }
+        if ($this->container['comp'] === null) {
+            $invalidProperties[] = "'comp' can't be null";
+        }
+        if ($this->container['entitled'] === null) {
+            $invalidProperties[] = "'entitled' can't be null";
+        }
+        if ($this->container['features'] === null) {
+            $invalidProperties[] = "'features' can't be null";
+        }
+        if ($this->container['metadata'] === null) {
+            $invalidProperties[] = "'metadata' can't be null";
+        }
+        if ((count($this->container['metadata']) > 20)) {
+            $invalidProperties[] = "invalid value for 'metadata', number of items must be less than or equal to 20.";
+        }
+
+        if ($this->container['number'] === null) {
+            $invalidProperties[] = "'number' can't be null";
+        }
+        if ($this->container['subscription'] === null) {
+            $invalidProperties[] = "'subscription' can't be null";
+        }
+        if ($this->container['kind'] === null) {
+            $invalidProperties[] = "'kind' can't be null";
+        }
+        $allowedValues = $this->getKindAllowableValues();
+        if (!is_null($this->container['kind']) && !in_array($this->container['kind'], $allowedValues, true)) {
+            $invalidProperties[] = sprintf(
+                "invalid value '%s' for 'kind', must be one of '%s'",
+                $this->container['kind'],
+                implode("', '", $allowedValues)
+            );
+        }
+
+        if ($this->container['amount_due'] === null) {
+            $invalidProperties[] = "'amount_due' can't be null";
+        }
+        if ($this->container['lines'] === null) {
+            $invalidProperties[] = "'lines' can't be null";
         }
         return $invalidProperties;
     }
@@ -606,7 +868,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Gets status
      *
-     * @return \Yoon\Generated\Model\PayoutStatus
+     * @return \Yoon\Generated\Model\InvoiceStatus
      */
     public function getStatus()
     {
@@ -616,7 +878,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets status
      *
-     * @param \Yoon\Generated\Model\PayoutStatus $status status
+     * @param \Yoon\Generated\Model\InvoiceStatus $status status
      *
      * @return self
      */
@@ -876,7 +1138,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Gets customer
      *
-     * @return \Yoon\Generated\Model\PaymentCustomer|null
+     * @return string
      */
     public function getCustomer()
     {
@@ -886,7 +1148,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets customer
      *
-     * @param \Yoon\Generated\Model\PaymentCustomer|null $customer customer
+     * @param string $customer customer
      *
      * @return self
      */
@@ -967,7 +1229,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets checkout_url
      *
-     * @param string|null $checkout_url Redirect the customer here, if set. For a hosted checkout, always the Yoon page (`{YOON_PUBLIC_URL}/checkout/{id}?t=…`); it forwards the customer to the provider.
+     * @param string|null $checkout_url Where the customer pays
      *
      * @return self
      */
@@ -1220,6 +1482,658 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
             throw new \InvalidArgumentException('non-nullable needs_review cannot be null');
         }
         $this->container['needs_review'] = $needs_review;
+
+        return $this;
+    }
+
+    /**
+     * Gets price
+     *
+     * @return \Yoon\Generated\Model\SubscriptionPrice
+     */
+    public function getPrice()
+    {
+        return $this->container['price'];
+    }
+
+    /**
+     * Sets price
+     *
+     * @param \Yoon\Generated\Model\SubscriptionPrice $price price
+     *
+     * @return self
+     */
+    public function setPrice($price)
+    {
+        if (is_null($price)) {
+            throw new \InvalidArgumentException('non-nullable price cannot be null');
+        }
+        $this->container['price'] = $price;
+
+        return $this;
+    }
+
+    /**
+     * Gets collection_method
+     *
+     * @return string
+     */
+    public function getCollectionMethod()
+    {
+        return $this->container['collection_method'];
+    }
+
+    /**
+     * Sets collection_method
+     *
+     * @param string $collection_method collection_method
+     *
+     * @return self
+     */
+    public function setCollectionMethod($collection_method)
+    {
+        if (is_null($collection_method)) {
+            throw new \InvalidArgumentException('non-nullable collection_method cannot be null');
+        }
+        $this->container['collection_method'] = $collection_method;
+
+        return $this;
+    }
+
+    /**
+     * Gets current_period_start
+     *
+     * @return \DateTime|null
+     */
+    public function getCurrentPeriodStart()
+    {
+        return $this->container['current_period_start'];
+    }
+
+    /**
+     * Sets current_period_start
+     *
+     * @param \DateTime|null $current_period_start current_period_start
+     *
+     * @return self
+     */
+    public function setCurrentPeriodStart($current_period_start)
+    {
+        if (is_null($current_period_start)) {
+            throw new \InvalidArgumentException('non-nullable current_period_start cannot be null');
+        }
+        $this->container['current_period_start'] = $current_period_start;
+
+        return $this;
+    }
+
+    /**
+     * Gets current_period_end
+     *
+     * @return \DateTime|null
+     */
+    public function getCurrentPeriodEnd()
+    {
+        return $this->container['current_period_end'];
+    }
+
+    /**
+     * Sets current_period_end
+     *
+     * @param \DateTime|null $current_period_end Null before the first payment
+     *
+     * @return self
+     */
+    public function setCurrentPeriodEnd($current_period_end)
+    {
+        if (is_null($current_period_end)) {
+            throw new \InvalidArgumentException('non-nullable current_period_end cannot be null');
+        }
+        $this->container['current_period_end'] = $current_period_end;
+
+        return $this;
+    }
+
+    /**
+     * Gets grace_period_days
+     *
+     * @return int
+     */
+    public function getGracePeriodDays()
+    {
+        return $this->container['grace_period_days'];
+    }
+
+    /**
+     * Sets grace_period_days
+     *
+     * @param int $grace_period_days grace_period_days
+     *
+     * @return self
+     */
+    public function setGracePeriodDays($grace_period_days)
+    {
+        if (is_null($grace_period_days)) {
+            throw new \InvalidArgumentException('non-nullable grace_period_days cannot be null');
+        }
+        $this->container['grace_period_days'] = $grace_period_days;
+
+        return $this;
+    }
+
+    /**
+     * Gets cancel_at_period_end
+     *
+     * @return bool
+     */
+    public function getCancelAtPeriodEnd()
+    {
+        return $this->container['cancel_at_period_end'];
+    }
+
+    /**
+     * Sets cancel_at_period_end
+     *
+     * @param bool $cancel_at_period_end cancel_at_period_end
+     *
+     * @return self
+     */
+    public function setCancelAtPeriodEnd($cancel_at_period_end)
+    {
+        if (is_null($cancel_at_period_end)) {
+            throw new \InvalidArgumentException('non-nullable cancel_at_period_end cannot be null');
+        }
+        $this->container['cancel_at_period_end'] = $cancel_at_period_end;
+
+        return $this;
+    }
+
+    /**
+     * Gets pending_change
+     *
+     * @return \Yoon\Generated\Model\SubscriptionPendingChange|null
+     */
+    public function getPendingChange()
+    {
+        return $this->container['pending_change'];
+    }
+
+    /**
+     * Sets pending_change
+     *
+     * @param \Yoon\Generated\Model\SubscriptionPendingChange|null $pending_change pending_change
+     *
+     * @return self
+     */
+    public function setPendingChange($pending_change)
+    {
+        if (is_null($pending_change)) {
+            throw new \InvalidArgumentException('non-nullable pending_change cannot be null');
+        }
+        $this->container['pending_change'] = $pending_change;
+
+        return $this;
+    }
+
+    /**
+     * Gets canceled_at
+     *
+     * @return \DateTime|null
+     */
+    public function getCanceledAt()
+    {
+        return $this->container['canceled_at'];
+    }
+
+    /**
+     * Sets canceled_at
+     *
+     * @param \DateTime|null $canceled_at canceled_at
+     *
+     * @return self
+     */
+    public function setCanceledAt($canceled_at)
+    {
+        if (is_null($canceled_at)) {
+            throw new \InvalidArgumentException('non-nullable canceled_at cannot be null');
+        }
+        $this->container['canceled_at'] = $canceled_at;
+
+        return $this;
+    }
+
+    /**
+     * Gets comp
+     *
+     * @return bool
+     */
+    public function getComp()
+    {
+        return $this->container['comp'];
+    }
+
+    /**
+     * Sets comp
+     *
+     * @param bool $comp Periods granted by an operator
+     *
+     * @return self
+     */
+    public function setComp($comp)
+    {
+        if (is_null($comp)) {
+            throw new \InvalidArgumentException('non-nullable comp cannot be null');
+        }
+        $this->container['comp'] = $comp;
+
+        return $this;
+    }
+
+    /**
+     * Gets entitled
+     *
+     * @return bool
+     */
+    public function getEntitled()
+    {
+        return $this->container['entitled'];
+    }
+
+    /**
+     * Sets entitled
+     *
+     * @param bool $entitled Whether the customer should have access now (`active` or `past_due`).
+     *
+     * @return self
+     */
+    public function setEntitled($entitled)
+    {
+        if (is_null($entitled)) {
+            throw new \InvalidArgumentException('non-nullable entitled cannot be null');
+        }
+        $this->container['entitled'] = $entitled;
+
+        return $this;
+    }
+
+    /**
+     * Gets features
+     *
+     * @return array<string,mixed>
+     */
+    public function getFeatures()
+    {
+        return $this->container['features'];
+    }
+
+    /**
+     * Sets features
+     *
+     * @param array<string,mixed> $features The plan's features
+     *
+     * @return self
+     */
+    public function setFeatures($features)
+    {
+        if (is_null($features)) {
+            throw new \InvalidArgumentException('non-nullable features cannot be null');
+        }
+        $this->container['features'] = $features;
+
+        return $this;
+    }
+
+    /**
+     * Gets latest_invoice
+     *
+     * @return \Yoon\Generated\Model\Invoice|null
+     */
+    public function getLatestInvoice()
+    {
+        return $this->container['latest_invoice'];
+    }
+
+    /**
+     * Sets latest_invoice
+     *
+     * @param \Yoon\Generated\Model\Invoice|null $latest_invoice latest_invoice
+     *
+     * @return self
+     */
+    public function setLatestInvoice($latest_invoice)
+    {
+        if (is_null($latest_invoice)) {
+            throw new \InvalidArgumentException('non-nullable latest_invoice cannot be null');
+        }
+        $this->container['latest_invoice'] = $latest_invoice;
+
+        return $this;
+    }
+
+    /**
+     * Gets metadata
+     *
+     * @return array<string,string>
+     */
+    public function getMetadata()
+    {
+        return $this->container['metadata'];
+    }
+
+    /**
+     * Sets metadata
+     *
+     * @param array<string,string> $metadata Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     *
+     * @return self
+     */
+    public function setMetadata($metadata)
+    {
+        if (is_null($metadata)) {
+            throw new \InvalidArgumentException('non-nullable metadata cannot be null');
+        }
+
+        if ((count($metadata) > 20)) {
+            throw new \InvalidArgumentException('invalid value for $metadata when calling EventPayloadDataObject., number of items must be less than or equal to 20.');
+        }
+        $this->container['metadata'] = $metadata;
+
+        return $this;
+    }
+
+    /**
+     * Gets number
+     *
+     * @return string
+     */
+    public function getNumber()
+    {
+        return $this->container['number'];
+    }
+
+    /**
+     * Sets number
+     *
+     * @param string $number Gap-free per application.
+     *
+     * @return self
+     */
+    public function setNumber($number)
+    {
+        if (is_null($number)) {
+            throw new \InvalidArgumentException('non-nullable number cannot be null');
+        }
+        $this->container['number'] = $number;
+
+        return $this;
+    }
+
+    /**
+     * Gets subscription
+     *
+     * @return string
+     */
+    public function getSubscription()
+    {
+        return $this->container['subscription'];
+    }
+
+    /**
+     * Sets subscription
+     *
+     * @param string $subscription subscription
+     *
+     * @return self
+     */
+    public function setSubscription($subscription)
+    {
+        if (is_null($subscription)) {
+            throw new \InvalidArgumentException('non-nullable subscription cannot be null');
+        }
+        $this->container['subscription'] = $subscription;
+
+        return $this;
+    }
+
+    /**
+     * Gets kind
+     *
+     * @return string
+     */
+    public function getKind()
+    {
+        return $this->container['kind'];
+    }
+
+    /**
+     * Sets kind
+     *
+     * @param string $kind kind
+     *
+     * @return self
+     */
+    public function setKind($kind)
+    {
+        if (is_null($kind)) {
+            throw new \InvalidArgumentException('non-nullable kind cannot be null');
+        }
+        $this->container['kind'] = $kind;
+
+        return $this;
+    }
+
+    /**
+     * Gets amount_due
+     *
+     * @return int
+     */
+    public function getAmountDue()
+    {
+        return $this->container['amount_due'];
+    }
+
+    /**
+     * Sets amount_due
+     *
+     * @param int $amount_due amount_due
+     *
+     * @return self
+     */
+    public function setAmountDue($amount_due)
+    {
+        if (is_null($amount_due)) {
+            throw new \InvalidArgumentException('non-nullable amount_due cannot be null');
+        }
+        $this->container['amount_due'] = $amount_due;
+
+        return $this;
+    }
+
+    /**
+     * Gets lines
+     *
+     * @return \Yoon\Generated\Model\InvoiceLine[]
+     */
+    public function getLines()
+    {
+        return $this->container['lines'];
+    }
+
+    /**
+     * Sets lines
+     *
+     * @param \Yoon\Generated\Model\InvoiceLine[] $lines lines
+     *
+     * @return self
+     */
+    public function setLines($lines)
+    {
+        if (is_null($lines)) {
+            throw new \InvalidArgumentException('non-nullable lines cannot be null');
+        }
+        $this->container['lines'] = $lines;
+
+        return $this;
+    }
+
+    /**
+     * Gets period_start
+     *
+     * @return \DateTime|null
+     */
+    public function getPeriodStart()
+    {
+        return $this->container['period_start'];
+    }
+
+    /**
+     * Sets period_start
+     *
+     * @param \DateTime|null $period_start Set when paid.
+     *
+     * @return self
+     */
+    public function setPeriodStart($period_start)
+    {
+        if (is_null($period_start)) {
+            throw new \InvalidArgumentException('non-nullable period_start cannot be null');
+        }
+        $this->container['period_start'] = $period_start;
+
+        return $this;
+    }
+
+    /**
+     * Gets period_end
+     *
+     * @return \DateTime|null
+     */
+    public function getPeriodEnd()
+    {
+        return $this->container['period_end'];
+    }
+
+    /**
+     * Sets period_end
+     *
+     * @param \DateTime|null $period_end Set when paid.
+     *
+     * @return self
+     */
+    public function setPeriodEnd($period_end)
+    {
+        if (is_null($period_end)) {
+            throw new \InvalidArgumentException('non-nullable period_end cannot be null');
+        }
+        $this->container['period_end'] = $period_end;
+
+        return $this;
+    }
+
+    /**
+     * Gets payment
+     *
+     * @return string|null
+     */
+    public function getPayment()
+    {
+        return $this->container['payment'];
+    }
+
+    /**
+     * Sets payment
+     *
+     * @param string|null $payment The hosted payment that pays it.
+     *
+     * @return self
+     */
+    public function setPayment($payment)
+    {
+        if (is_null($payment)) {
+            throw new \InvalidArgumentException('non-nullable payment cannot be null');
+        }
+        $this->container['payment'] = $payment;
+
+        return $this;
+    }
+
+    /**
+     * Gets receipt_url
+     *
+     * @return string|null
+     */
+    public function getReceiptUrl()
+    {
+        return $this->container['receipt_url'];
+    }
+
+    /**
+     * Sets receipt_url
+     *
+     * @param string|null $receipt_url receipt_url
+     *
+     * @return self
+     */
+    public function setReceiptUrl($receipt_url)
+    {
+        if (is_null($receipt_url)) {
+            throw new \InvalidArgumentException('non-nullable receipt_url cannot be null');
+        }
+        $this->container['receipt_url'] = $receipt_url;
+
+        return $this;
+    }
+
+    /**
+     * Gets paid_at
+     *
+     * @return \DateTime|null
+     */
+    public function getPaidAt()
+    {
+        return $this->container['paid_at'];
+    }
+
+    /**
+     * Sets paid_at
+     *
+     * @param \DateTime|null $paid_at paid_at
+     *
+     * @return self
+     */
+    public function setPaidAt($paid_at)
+    {
+        if (is_null($paid_at)) {
+            throw new \InvalidArgumentException('non-nullable paid_at cannot be null');
+        }
+        $this->container['paid_at'] = $paid_at;
+
+        return $this;
+    }
+
+    /**
+     * Gets voided_at
+     *
+     * @return \DateTime|null
+     */
+    public function getVoidedAt()
+    {
+        return $this->container['voided_at'];
+    }
+
+    /**
+     * Sets voided_at
+     *
+     * @param \DateTime|null $voided_at voided_at
+     *
+     * @return self
+     */
+    public function setVoidedAt($voided_at)
+    {
+        if (is_null($voided_at)) {
+            throw new \InvalidArgumentException('non-nullable voided_at cannot be null');
+        }
+        $this->container['voided_at'] = $voided_at;
 
         return $this;
     }

@@ -42,6 +42,8 @@ tags:
     description: Your users, for billing (found by your own id).
   - name: Plans
     description: What customers subscribe to, and its prices. Archived, never deleted.
+  - name: Subscriptions
+    description: Prepaid periods, invoices and renewals (ADR-0026, ADR-0027).
   - name: Ledger
     description: Yoon's shadow ledger of your provider accounts.
   - name: Exports
@@ -647,6 +649,243 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/IdempotencyConflict' }
+
+  /v1/subscriptions:
+    post:
+      tags: [Subscriptions]
+      operationId: createSubscription
+      summary: Subscribe a customer to a price
+      description: |
+        Creates the subscription (`incomplete`) and its first invoice, paid through Yoon's hosted
+        checkout: send the customer to `latest_invoice.checkout_url`. Nothing is activated by the
+        customer coming back to `return_url` — only a confirmed payment does it (ADR-0026). Needs
+        `YOON_PUBLIC_URL`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSubscriptionRequest' }
+            example: { customer: cus_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d, price: price_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d, return_url: 'https://shop.example/billing' }
+      responses:
+        '201':
+          description: Subscription created, waiting for its first payment.
+          headers:
+            Idempotent-Replayed: { $ref: '#/components/headers/IdempotentReplayed' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`customer_not_found`, `price_not_found`, `price_archived`, `public_url_required`, `no_provider_for_method`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [Subscriptions]
+      operationId: listSubscriptions
+      summary: List subscriptions
+      parameters:
+        - { name: customer, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/SubscriptionStatus' } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of subscriptions.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubscriptionPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/subscriptions/{id}:
+    get:
+      tags: [Subscriptions]
+      operationId: getSubscription
+      summary: Get a subscription
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The subscription.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/subscriptions/{id}/events:
+    get:
+      tags: [Subscriptions]
+      operationId: listSubscriptionEvents
+      summary: History of a subscription
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The history, oldest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/StatusEvent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/subscriptions/{id}/renew:
+    post:
+      tags: [Subscriptions]
+      operationId: renewSubscription
+      summary: Get the invoice to pay for the next period
+      description: |
+        Returns the subscription's open invoice — created if there is none, at the pending price if
+        a change is scheduled — with a `checkout_url` the customer can use (a fresh one if the last
+        checkout expired). Safe to call repeatedly: at most one open invoice per subscription.
+        Paying early adds the period after the current one; paying in grace does not get the grace
+        days free; paying after expiry starts a period at the payment (ADR-0026).
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RenewSubscriptionRequest' }
+      responses:
+        '200':
+          description: The open invoice.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invoice' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`public_url_required`, `no_provider_for_method`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /v1/subscriptions/{id}/change:
+    post:
+      tags: [Subscriptions]
+      operationId: changeSubscription
+      summary: Change the price (plan or period)
+      description: |
+        An upgrade (more per unit of time) applies `now` by default: an invoice for a full new
+        period, and on payment the unused old time becomes extra days. Anything else applies at
+        `period_end` (`pending_change`); renewing then bills the new price. Currency cannot change.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChangeSubscriptionRequest' }
+      responses:
+        '200':
+          description: The subscription (an upgrade's invoice is its `latest_invoice`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`subscription_not_active`, `currency_mismatch`, `change_not_upgrade`, `price_not_found`, `price_archived`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /v1/subscriptions/{id}/cancel:
+    post:
+      tags: [Subscriptions]
+      operationId: cancelSubscription
+      summary: Cancel a subscription
+      description: |
+        By default at the period end (`cancel_at_period_end`, reversible with `resume`). With
+        `at_period_end: false` it ends now and its open invoice is voided. No automatic refund: refund
+        a payment explicitly if you want to.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CancelSubscriptionRequest' }
+      responses:
+        '200':
+          description: The subscription.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+
+  /v1/subscriptions/{id}/resume:
+    post:
+      tags: [Subscriptions]
+      operationId: resumeSubscription
+      summary: Withdraw a cancellation scheduled for the period end
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: The subscription.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+
+  /v1/invoices:
+    get:
+      tags: [Subscriptions]
+      operationId: listInvoices
+      summary: List invoices
+      parameters:
+        - { name: customer, in: query, schema: { type: string } }
+        - { name: subscription, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/InvoiceStatus' } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of invoices.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvoicePage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/invoices/{id}:
+    get:
+      tags: [Subscriptions]
+      operationId: getInvoice
+      summary: Get an invoice
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The invoice.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invoice' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /v1/balances:
     get:
@@ -1570,6 +1809,150 @@ components:
         has_more: { type: boolean }
         next_cursor: { $ref: '#/components/schemas/NextCursor' }
 
+    SubscriptionStatus:
+      type: string
+      enum: [incomplete, active, past_due, expired, canceled]
+      description: |
+        `active` and `past_due` (in grace) are entitled; see `entitled`. `expired` and `canceled`
+        come back to `active` if an open invoice is paid late.
+
+    InvoiceStatus:
+      type: string
+      enum: [open, paid, void, uncollectible]
+
+    PlanRef:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+
+    SubscriptionPrice:
+      type: object
+      required: [id, currency, amount, interval, interval_count, plan]
+      properties:
+        id: { type: string }
+        currency: { type: string }
+        amount: { type: integer, format: int64 }
+        interval: { $ref: '#/components/schemas/Interval' }
+        interval_count: { type: integer }
+        plan: { $ref: '#/components/schemas/PlanRef' }
+
+    InvoiceLine:
+      type: object
+      required: [description, price, amount]
+      properties:
+        description: { type: string }
+        price: { type: string }
+        amount: { type: integer, format: int64 }
+
+    Invoice:
+      type: object
+      required: [id, object, number, customer, subscription, kind, status, amount_due, currency, lines, created_at]
+      description: A billing record — not a tax invoice (ADR-0027).
+      properties:
+        id: { type: string, example: in_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: invoice }
+        number: { type: string, example: INV-2026-000001, description: Gap-free per application. }
+        customer: { type: string }
+        subscription: { type: string }
+        kind: { type: string, enum: [first, renewal, upgrade] }
+        status: { $ref: '#/components/schemas/InvoiceStatus' }
+        amount_due: { type: integer, format: int64 }
+        currency: { type: string }
+        lines: { type: array, items: { $ref: '#/components/schemas/InvoiceLine' } }
+        period_start: { type: [string, 'null'], format: date-time, description: Set when paid. }
+        period_end: { type: [string, 'null'], format: date-time, description: Set when paid. }
+        payment: { type: [string, 'null'], description: The hosted payment that pays it. }
+        checkout_url: { type: [string, 'null'], description: Where the customer pays, while the invoice is open and its checkout usable. }
+        receipt_url: { type: [string, 'null'] }
+        paid_at: { type: [string, 'null'], format: date-time }
+        voided_at: { type: [string, 'null'], format: date-time }
+        created_at: { type: string, format: date-time }
+
+    Subscription:
+      type: object
+      required: [id, object, customer, price, status, collection_method, grace_period_days, cancel_at_period_end,
+                 comp, entitled, features, metadata, created_at, updated_at]
+      properties:
+        id: { type: string, example: sub_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
+        object: { type: string, const: subscription }
+        customer:
+          type: object
+          required: [id, external_id]
+          properties:
+            id: { type: string }
+            external_id: { type: string }
+        price: { $ref: '#/components/schemas/SubscriptionPrice' }
+        status: { $ref: '#/components/schemas/SubscriptionStatus' }
+        collection_method: { type: string, enum: [prepaid_manual] }
+        current_period_start: { type: [string, 'null'], format: date-time }
+        current_period_end: { type: [string, 'null'], format: date-time, description: Null before the first payment, or for an open-ended comp. }
+        grace_period_days: { type: integer }
+        cancel_at_period_end: { type: boolean }
+        pending_change:
+          type: [object, 'null']
+          required: [price]
+          properties:
+            price: { $ref: '#/components/schemas/SubscriptionPrice' }
+            effective_at: { type: [string, 'null'], format: date-time }
+        canceled_at: { type: [string, 'null'], format: date-time }
+        comp: { type: boolean, description: Periods granted by an operator, without payment. }
+        entitled: { type: boolean, description: 'Whether the customer should have access now (`active` or `past_due`).' }
+        features: { type: object, additionalProperties: true, description: The plan's features, for enforcing limits. }
+        latest_invoice:
+          oneOf:
+            - $ref: '#/components/schemas/Invoice'
+            - type: 'null'
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreateSubscriptionRequest:
+      type: object
+      required: [customer, price]
+      properties:
+        customer: { type: string }
+        price: { type: string }
+        grace_period_days: { type: integer, minimum: 0, maximum: 90, description: Default from the application's billing settings. }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        return_url: { type: string, format: uri, maxLength: 2048 }
+
+    RenewSubscriptionRequest:
+      type: object
+      properties:
+        return_url: { type: string, format: uri, maxLength: 2048 }
+
+    ChangeSubscriptionRequest:
+      type: object
+      required: [price]
+      properties:
+        price: { type: string }
+        when: { type: string, enum: [now, period_end], description: 'Default: `now` for an upgrade, `period_end` otherwise.' }
+        return_url: { type: string, format: uri, maxLength: 2048 }
+
+    CancelSubscriptionRequest:
+      type: object
+      properties:
+        at_period_end: { type: boolean, default: true }
+
+    SubscriptionPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Subscription' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
+    InvoicePage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Invoice' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
     PayoutPage:
       type: object
       required: [data, has_more, next_cursor]
@@ -1597,7 +1980,10 @@ components:
     EventType:
       type: string
       enum: [payment.succeeded, payment.failed, payment.expired, refund.succeeded, refund.failed,
-             payout.paid, payout.failed, payout.needs_review]
+             payout.paid, payout.failed, payout.needs_review,
+             subscription.created, subscription.activated, subscription.renewed, subscription.past_due,
+             subscription.expired, subscription.canceled, subscription.changed, subscription.renewal_upcoming,
+             invoice.created, invoice.paid, invoice.voided]
 
     DeliveryStatus:
       type: string
@@ -1618,17 +2004,21 @@ components:
           required: [object]
           properties:
             object:
-              description: The payment, refund or payout as `GET` would return it at the time of the event.
+              description: The payment, refund, payout, subscription or invoice as `GET` would return it at the time of the event.
               oneOf:
                 - $ref: '#/components/schemas/Payment'
                 - $ref: '#/components/schemas/Refund'
                 - $ref: '#/components/schemas/Payout'
+                - $ref: '#/components/schemas/Subscription'
+                - $ref: '#/components/schemas/Invoice'
               discriminator:
                 propertyName: object
                 mapping:
                   payment: '#/components/schemas/Payment'
                   refund: '#/components/schemas/Refund'
                   payout: '#/components/schemas/Payout'
+                  subscription: '#/components/schemas/Subscription'
+                  invoice: '#/components/schemas/Invoice'
 
     Event:
       type: object
@@ -1637,7 +2027,7 @@ components:
         id: { type: string }
         object: { type: string, const: event }
         type: { $ref: '#/components/schemas/EventType' }
-        resource_type: { type: string, enum: [payment, refund, payout] }
+        resource_type: { type: string, enum: [payment, refund, payout, subscription, invoice] }
         resource_id: { type: string }
         created_at: { type: string, format: date-time }
         delivery:

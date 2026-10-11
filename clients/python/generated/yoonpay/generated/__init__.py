@@ -27,6 +27,7 @@ __all__ = [
     "PayoutsApi",
     "PlansApi",
     "RefundsApi",
+    "SubscriptionsApi",
     "ApiResponse",
     "ApiClient",
     "Configuration",
@@ -42,6 +43,8 @@ __all__ = [
     "AdminListApplications200ResponseDataInner",
     "AdminReplayDeadLetter202Response",
     "AdminResolvePayoutRequest",
+    "CancelSubscriptionRequest",
+    "ChangeSubscriptionRequest",
     "CheckoutAttemptRequest",
     "CheckoutView",
     "CheckoutViewLastError",
@@ -54,6 +57,7 @@ __all__ = [
     "CreatePayoutRequestRecipient",
     "CreatePlanRequest",
     "CreateRefundRequest",
+    "CreateSubscriptionRequest",
     "Customer",
     "CustomerPage",
     "DeliveryStatus",
@@ -69,6 +73,10 @@ __all__ = [
     "GetBalances200Response",
     "GetBalances200ResponseDataInner",
     "Interval",
+    "Invoice",
+    "InvoiceLine",
+    "InvoicePage",
+    "InvoiceStatus",
     "LedgerEntry",
     "LedgerEntryPage",
     "ListProviders200ResponseInner",
@@ -83,6 +91,7 @@ __all__ = [
     "PayoutStatus",
     "Plan",
     "PlanPage",
+    "PlanRef",
     "Price",
     "PriceInput",
     "Problem",
@@ -90,7 +99,14 @@ __all__ = [
     "Refund",
     "RefundPage",
     "RefundStatus",
+    "RenewSubscriptionRequest",
     "StatusEvent",
+    "Subscription",
+    "SubscriptionCustomer",
+    "SubscriptionPage",
+    "SubscriptionPendingChange",
+    "SubscriptionPrice",
+    "SubscriptionStatus",
     "UpdateCustomerRequest",
     "UpdatePlanRequest",
     "UpdatePriceRequest",
@@ -106,6 +122,7 @@ from yoonpay.generated.api.payments_api import PaymentsApi as PaymentsApi
 from yoonpay.generated.api.payouts_api import PayoutsApi as PayoutsApi
 from yoonpay.generated.api.plans_api import PlansApi as PlansApi
 from yoonpay.generated.api.refunds_api import RefundsApi as RefundsApi
+from yoonpay.generated.api.subscriptions_api import SubscriptionsApi as SubscriptionsApi
 
 # import ApiClient
 from yoonpay.generated.api_response import ApiResponse as ApiResponse
@@ -125,6 +142,8 @@ from yoonpay.generated.models.admin_list_applications200_response import AdminLi
 from yoonpay.generated.models.admin_list_applications200_response_data_inner import AdminListApplications200ResponseDataInner as AdminListApplications200ResponseDataInner
 from yoonpay.generated.models.admin_replay_dead_letter202_response import AdminReplayDeadLetter202Response as AdminReplayDeadLetter202Response
 from yoonpay.generated.models.admin_resolve_payout_request import AdminResolvePayoutRequest as AdminResolvePayoutRequest
+from yoonpay.generated.models.cancel_subscription_request import CancelSubscriptionRequest as CancelSubscriptionRequest
+from yoonpay.generated.models.change_subscription_request import ChangeSubscriptionRequest as ChangeSubscriptionRequest
 from yoonpay.generated.models.checkout_attempt_request import CheckoutAttemptRequest as CheckoutAttemptRequest
 from yoonpay.generated.models.checkout_view import CheckoutView as CheckoutView
 from yoonpay.generated.models.checkout_view_last_error import CheckoutViewLastError as CheckoutViewLastError
@@ -137,6 +156,7 @@ from yoonpay.generated.models.create_payout_request import CreatePayoutRequest a
 from yoonpay.generated.models.create_payout_request_recipient import CreatePayoutRequestRecipient as CreatePayoutRequestRecipient
 from yoonpay.generated.models.create_plan_request import CreatePlanRequest as CreatePlanRequest
 from yoonpay.generated.models.create_refund_request import CreateRefundRequest as CreateRefundRequest
+from yoonpay.generated.models.create_subscription_request import CreateSubscriptionRequest as CreateSubscriptionRequest
 from yoonpay.generated.models.customer import Customer as Customer
 from yoonpay.generated.models.customer_page import CustomerPage as CustomerPage
 from yoonpay.generated.models.delivery_status import DeliveryStatus as DeliveryStatus
@@ -152,6 +172,10 @@ from yoonpay.generated.models.get_about200_response import GetAbout200Response a
 from yoonpay.generated.models.get_balances200_response import GetBalances200Response as GetBalances200Response
 from yoonpay.generated.models.get_balances200_response_data_inner import GetBalances200ResponseDataInner as GetBalances200ResponseDataInner
 from yoonpay.generated.models.interval import Interval as Interval
+from yoonpay.generated.models.invoice import Invoice as Invoice
+from yoonpay.generated.models.invoice_line import InvoiceLine as InvoiceLine
+from yoonpay.generated.models.invoice_page import InvoicePage as InvoicePage
+from yoonpay.generated.models.invoice_status import InvoiceStatus as InvoiceStatus
 from yoonpay.generated.models.ledger_entry import LedgerEntry as LedgerEntry
 from yoonpay.generated.models.ledger_entry_page import LedgerEntryPage as LedgerEntryPage
 from yoonpay.generated.models.list_providers200_response_inner import ListProviders200ResponseInner as ListProviders200ResponseInner
@@ -166,6 +190,7 @@ from yoonpay.generated.models.payout_recipient import PayoutRecipient as PayoutR
 from yoonpay.generated.models.payout_status import PayoutStatus as PayoutStatus
 from yoonpay.generated.models.plan import Plan as Plan
 from yoonpay.generated.models.plan_page import PlanPage as PlanPage
+from yoonpay.generated.models.plan_ref import PlanRef as PlanRef
 from yoonpay.generated.models.price import Price as Price
 from yoonpay.generated.models.price_input import PriceInput as PriceInput
 from yoonpay.generated.models.problem import Problem as Problem
@@ -173,7 +198,14 @@ from yoonpay.generated.models.receive_provider_callback200_response import Recei
 from yoonpay.generated.models.refund import Refund as Refund
 from yoonpay.generated.models.refund_page import RefundPage as RefundPage
 from yoonpay.generated.models.refund_status import RefundStatus as RefundStatus
+from yoonpay.generated.models.renew_subscription_request import RenewSubscriptionRequest as RenewSubscriptionRequest
 from yoonpay.generated.models.status_event import StatusEvent as StatusEvent
+from yoonpay.generated.models.subscription import Subscription as Subscription
+from yoonpay.generated.models.subscription_customer import SubscriptionCustomer as SubscriptionCustomer
+from yoonpay.generated.models.subscription_page import SubscriptionPage as SubscriptionPage
+from yoonpay.generated.models.subscription_pending_change import SubscriptionPendingChange as SubscriptionPendingChange
+from yoonpay.generated.models.subscription_price import SubscriptionPrice as SubscriptionPrice
+from yoonpay.generated.models.subscription_status import SubscriptionStatus as SubscriptionStatus
 from yoonpay.generated.models.update_customer_request import UpdateCustomerRequest as UpdateCustomerRequest
 from yoonpay.generated.models.update_plan_request import UpdatePlanRequest as UpdatePlanRequest
 from yoonpay.generated.models.update_price_request import UpdatePriceRequest as UpdatePriceRequest

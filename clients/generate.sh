@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 GENERATOR_IMAGE="openapitools/openapi-generator-cli:v7.16.0"
 # Application-facing API only: no admin, provider callbacks or webhook descriptions.
-FILTER='FILTER=tag:Payments|Refunds|Payouts|Customers|Plans|Events|Ledger|Exports|Meta'
+FILTER='FILTER=tag:Payments|Refunds|Payouts|Customers|Plans|Subscriptions|Events|Ledger|Exports|Meta'
 WORK="target/client-gen"
 
 rm -rf "$WORK" && mkdir -p "$WORK"

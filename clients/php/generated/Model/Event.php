@@ -274,6 +274,8 @@ class Event implements ModelInterface, ArrayAccess, \JsonSerializable
     public const RESOURCE_TYPE_PAYMENT = 'payment';
     public const RESOURCE_TYPE_REFUND = 'refund';
     public const RESOURCE_TYPE_PAYOUT = 'payout';
+    public const RESOURCE_TYPE_SUBSCRIPTION = 'subscription';
+    public const RESOURCE_TYPE_INVOICE = 'invoice';
 
     /**
      * Gets allowable values of the enum
@@ -298,6 +300,8 @@ class Event implements ModelInterface, ArrayAccess, \JsonSerializable
             self::RESOURCE_TYPE_PAYMENT,
             self::RESOURCE_TYPE_REFUND,
             self::RESOURCE_TYPE_PAYOUT,
+            self::RESOURCE_TYPE_SUBSCRIPTION,
+            self::RESOURCE_TYPE_INVOICE,
         ];
     }
 

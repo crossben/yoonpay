@@ -106,6 +106,10 @@ public class Event {
     
     PAYOUT(String.valueOf("payout")),
     
+    SUBSCRIPTION(String.valueOf("subscription")),
+    
+    INVOICE(String.valueOf("invoice")),
+    
     UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
     private String value;

@@ -24,7 +24,9 @@ public class Alerts {
         /** A provider reported a status its adapter does not map. */
         unmapped_provider_status,
         /** An outbound event exhausted its delivery attempts. */
-        event_dead
+        event_dead,
+        /** A payment arrived for an invoice that had been voided: the money is applied, a human should look. */
+        late_invoice_payment
     }
 
     private static final Logger log = LoggerFactory.getLogger(Alerts.class);

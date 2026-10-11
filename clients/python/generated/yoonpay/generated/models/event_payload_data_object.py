@@ -17,18 +17,20 @@ import json
 import pprint
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, field_validator
 from typing import Any, List, Optional
+from yoonpay.generated.models.invoice import Invoice
 from yoonpay.generated.models.payment import Payment
 from yoonpay.generated.models.payout import Payout
 from yoonpay.generated.models.refund import Refund
+from yoonpay.generated.models.subscription import Subscription
 from pydantic import StrictStr, Field
 from typing import Union, List, Set, Optional, Dict
 from typing_extensions import Literal, Self
 
-EVENTPAYLOADDATAOBJECT_ONE_OF_SCHEMAS = ["Payment", "Payout", "Refund"]
+EVENTPAYLOADDATAOBJECT_ONE_OF_SCHEMAS = ["Invoice", "Payment", "Payout", "Refund", "Subscription"]
 
 class EventPayloadDataObject(BaseModel):
     """
-    The payment, refund or payout as `GET` would return it at the time of the event.
+    The payment, refund, payout, subscription or invoice as `GET` would return it at the time of the event.
     """
     # data type: Payment
     oneof_schema_1_validator: Optional[Payment] = None
@@ -36,8 +38,12 @@ class EventPayloadDataObject(BaseModel):
     oneof_schema_2_validator: Optional[Refund] = None
     # data type: Payout
     oneof_schema_3_validator: Optional[Payout] = None
-    actual_instance: Optional[Union[Payment, Payout, Refund]] = None
-    one_of_schemas: Set[str] = { "Payment", "Payout", "Refund" }
+    # data type: Subscription
+    oneof_schema_4_validator: Optional[Subscription] = None
+    # data type: Invoice
+    oneof_schema_5_validator: Optional[Invoice] = None
+    actual_instance: Optional[Union[Invoice, Payment, Payout, Refund, Subscription]] = None
+    one_of_schemas: Set[str] = { "Invoice", "Payment", "Payout", "Refund", "Subscription" }
 
     model_config = ConfigDict(
         validate_assignment=True,
@@ -78,12 +84,22 @@ class EventPayloadDataObject(BaseModel):
             error_messages.append(f"Error! Input type `{type(v)}` is not `Payout`")
         else:
             match += 1
+        # validate data type: Subscription
+        if not isinstance(v, Subscription):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `Subscription`")
+        else:
+            match += 1
+        # validate data type: Invoice
+        if not isinstance(v, Invoice):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `Invoice`")
+        else:
+            match += 1
         if match > 1:
             # more than 1 match
-            raise ValueError("Multiple matches found when setting `actual_instance` in EventPayloadDataObject with oneOf schemas: Payment, Payout, Refund. Details: " + ", ".join(error_messages))
+            raise ValueError("Multiple matches found when setting `actual_instance` in EventPayloadDataObject with oneOf schemas: Invoice, Payment, Payout, Refund, Subscription. Details: " + ", ".join(error_messages))
         elif match == 0:
             # no match
-            raise ValueError("No match found when setting `actual_instance` in EventPayloadDataObject with oneOf schemas: Payment, Payout, Refund. Details: " + ", ".join(error_messages))
+            raise ValueError("No match found when setting `actual_instance` in EventPayloadDataObject with oneOf schemas: Invoice, Payment, Payout, Refund, Subscription. Details: " + ", ".join(error_messages))
         else:
             return v
 
@@ -116,13 +132,25 @@ class EventPayloadDataObject(BaseModel):
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
+        # deserialize data into Subscription
+        try:
+            instance.actual_instance = Subscription.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
+        # deserialize data into Invoice
+        try:
+            instance.actual_instance = Invoice.from_json(json_str)
+            match += 1
+        except (ValidationError, ValueError) as e:
+            error_messages.append(str(e))
 
         if match > 1:
             # more than 1 match
-            raise ValueError("Multiple matches found when deserializing the JSON string into EventPayloadDataObject with oneOf schemas: Payment, Payout, Refund. Details: " + ", ".join(error_messages))
+            raise ValueError("Multiple matches found when deserializing the JSON string into EventPayloadDataObject with oneOf schemas: Invoice, Payment, Payout, Refund, Subscription. Details: " + ", ".join(error_messages))
         elif match == 0:
             # no match
-            raise ValueError("No match found when deserializing the JSON string into EventPayloadDataObject with oneOf schemas: Payment, Payout, Refund. Details: " + ", ".join(error_messages))
+            raise ValueError("No match found when deserializing the JSON string into EventPayloadDataObject with oneOf schemas: Invoice, Payment, Payout, Refund, Subscription. Details: " + ", ".join(error_messages))
         else:
             return instance
 
@@ -136,7 +164,7 @@ class EventPayloadDataObject(BaseModel):
         else:
             return json.dumps(self.actual_instance)
 
-    def to_dict(self) -> Optional[Union[Dict[str, Any], Payment, Payout, Refund]]:
+    def to_dict(self) -> Optional[Union[Dict[str, Any], Invoice, Payment, Payout, Refund, Subscription]]:
         """Returns the dict representation of the actual instance"""
         if self.actual_instance is None:
             return None

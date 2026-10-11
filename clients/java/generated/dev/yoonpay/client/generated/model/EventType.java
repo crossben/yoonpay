@@ -48,6 +48,28 @@ public enum EventType {
   
   PAYOUT_NEEDS_REVIEW("payout.needs_review"),
   
+  SUBSCRIPTION_CREATED("subscription.created"),
+  
+  SUBSCRIPTION_ACTIVATED("subscription.activated"),
+  
+  SUBSCRIPTION_RENEWED("subscription.renewed"),
+  
+  SUBSCRIPTION_PAST_DUE("subscription.past_due"),
+  
+  SUBSCRIPTION_EXPIRED("subscription.expired"),
+  
+  SUBSCRIPTION_CANCELED("subscription.canceled"),
+  
+  SUBSCRIPTION_CHANGED("subscription.changed"),
+  
+  SUBSCRIPTION_RENEWAL_UPCOMING("subscription.renewal_upcoming"),
+  
+  INVOICE_CREATED("invoice.created"),
+  
+  INVOICE_PAID("invoice.paid"),
+  
+  INVOICE_VOIDED("invoice.voided"),
+  
   UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
 
   private String value;

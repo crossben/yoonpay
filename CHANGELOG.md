@@ -11,8 +11,19 @@ never changes incompatibly.
 - Plans and prices: `POST/GET/PATCH /v1/plans`, `POST /v1/plans/{id}/prices`,
   `GET/PATCH /v1/prices/{id}`. Prices are immutable (a database trigger refuses edits); plans and
   prices are archived with `active: false`, never deleted. Plans carry free-form `features`.
-- Migration `V7__billing`: all billing tables (customers, plans, prices, subscriptions, invoices),
-  ahead of the subscription endpoints.
+- Subscriptions: `POST/GET /v1/subscriptions`, `/renew`, `/change`, `/cancel`, `/resume`,
+  `/events`; invoices: `GET /v1/invoices`. Each period is an invoice paid through the hosted
+  checkout; the payment's confirmation, the paid invoice and the extended subscription commit in
+  one transaction. Stacking, upgrades with unused time as extra days, scheduled downgrades,
+  cancel at period end or now (open invoice voided; a late payment still counts, with an alert).
+- Events: `subscription.created|activated|renewed|past_due|expired|canceled|changed`,
+  `invoice.created|paid|voided` (`past_due`/`expired` are emitted by the billing sweep, next).
+- Invoice numbers `<PREFIX>-<year>-<000001>`, gap-free per application.
+- Per-application billing settings: `YOON_APPS_<APP>_BILLING_GRACE_DAYS` (3),
+  `_REMINDER_DAYS` (3), `_TIMEZONE` (Africa/Dakar), `_INVOICE_PREFIX` (INV), `_INVOICE_TTL` (7d).
+- Migration `V7__billing`: all billing tables.
+- Ids made in the same millisecond now sort in creation order (RFC 9562 counter), so "oldest
+  first" holds for a plan and its prices created together.
 
 ### Clients
 - **Response enums are an open set.** The 0.2.0 Java and PHP clients failed to parse a status or

@@ -32,4 +32,23 @@ class IdsTest {
         }
         assertThat(ids).doesNotHaveDuplicates();
     }
+
+    @org.junit.jupiter.api.Test
+    void ids_made_in_the_same_millisecond_sort_in_creation_order() {
+        java.util.List<String> made = new java.util.ArrayList<>();
+        for (int i = 0; i < 5000; i++) {
+            made.add(Ids.uuidV7Hex(1_790_000_000_000L));   // all in one millisecond
+        }
+        java.util.List<String> sorted = new java.util.ArrayList<>(made);
+        java.util.Collections.sort(sorted);
+        org.assertj.core.api.Assertions.assertThat(sorted).isEqualTo(made);
+        org.assertj.core.api.Assertions.assertThat(new java.util.HashSet<>(made)).hasSize(5000);
+    }
+
+    @org.junit.jupiter.api.Test
+    void a_clock_going_backwards_never_makes_an_older_looking_id() {
+        String later = Ids.uuidV7Hex(1_790_000_001_000L);
+        String afterClockJump = Ids.uuidV7Hex(1_790_000_000_000L);
+        org.assertj.core.api.Assertions.assertThat(afterClockJump).isGreaterThan(later);
+    }
 }

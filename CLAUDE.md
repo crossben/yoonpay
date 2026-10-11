@@ -169,9 +169,16 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   plans are archived, never deleted. A new amount is a new price.
 - PATCH endpoints take a `JsonNode` body: present fields replace, `null` clears, unknown or
   read-only fields are a 400. Every PATCH is idempotent like any write.
-- Subscription and invoice status changes will go through `SubscriptionTransitions` /
-  `InvoiceTransitions` with the core state machines (`SubscriptionStatus`, `InvoiceStatus`), the
-  same way as payments.
+- Subscription and invoice changes go only through `SubscriptionTransitions` /
+  `InvoiceTransitions` (core state machines `SubscriptionStatus`, `InvoiceStatus`), like payments.
+- **Lock order: subscription → invoice → payment**, in every path (renew, change, cancel, the
+  payment hook). Linking a payment updates `payments.subscription_id`, whose foreign key takes a
+  lock on the subscription row: the opposite order deadlocks (found by the concurrent-renew test).
+- Only `BillingPayments.paymentSucceeded`, called by `PaymentTransitions` inside the payment's
+  SUCCEEDED transaction, marks an invoice paid and adds a period. Never activate from a return URL.
+- At most one open invoice per subscription (unique index); `renew` returns it and gives it a
+  fresh hosted payment when its checkout expired. Invoice numbers come from `nextNumber` inside the
+  creating transaction (row-locked counter, gap-free).
 
 ### Idempotency (`IdempotencyStore`)
 

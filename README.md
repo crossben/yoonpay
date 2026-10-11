@@ -63,11 +63,19 @@ once, in Java, instead of in every project.
   through the provider's status API without human action; unpaid payments expire;
   a success that arrives after expiry is still recovered; a payout whose outcome
   stays unknown is flagged for a human instead of guessed.
-- **Billing catalog (0.3.0, in progress)**: customers found by your own user id, plans with
-  free-form `features` (limits, flags), and prices in integer minor units per currency and
-  interval. Prices are immutable (the database refuses edits); plans and prices are archived,
-  never deleted. Subscriptions, invoices and renewals follow in the next steps
-  ([plan](docs/plans/billing-0.3.0.md), ADR-0025 to ADR-0027).
+- **Billing (0.3.0, in progress)** — prepaid subscriptions for mobile money
+  ([plan](docs/plans/billing-0.3.0.md), ADR-0025 to ADR-0027):
+  - customers found by your own user id; plans with free-form `features` (limits, flags); prices
+    in integer minor units per currency and interval, immutable (the database refuses edits),
+    archived, never deleted;
+  - subscriptions: each period is an invoice paid on Yoon's hosted checkout; only a confirmed
+    payment activates or extends (never the return URL). Paying early stacks after the current
+    period; paying in grace does not get the grace days free; paying after expiry starts at the
+    payment. Upgrades apply now and turn unused time into extra days; downgrades and cheaper
+    periods apply at the period end. Cancel now or at the period end, resume;
+  - invoices numbered without gaps per application (billing records, not tax invoices);
+  - events `subscription.*` and `invoice.*` carry the full object, so entitlements can be driven
+    from webhooks alone. Expiry and reminders (the billing sweep) come next.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
@@ -218,6 +226,11 @@ Build and test (needs a running Docker daemon — integration tests start a real
 | `YOON_DEMO_ENABLED` | no | `true` enables the demo provider and its checkout page. Never in production |
 | `YOON_CHECKOUT_TTL` | no | How long a hosted checkout waits for the customer's choice before it fails with `checkout_expired` (default `30m`) |
 | `YOON_CHECKOUT_RATE_LIMIT` | no | Public checkout requests allowed per minute per client address (default `300`, `0` = off) |
+| `YOON_APPS_<APP>_BILLING_GRACE_DAYS` | no | Days a subscription stays entitled (`past_due`) after its period ends unpaid (default 3) |
+| `YOON_APPS_<APP>_BILLING_REMINDER_DAYS` | no | Days before the period end that `subscription.renewal_upcoming` is sent (default 3) |
+| `YOON_APPS_<APP>_BILLING_TIMEZONE` | no | The application's time zone for billing dates (default `Africa/Dakar`) |
+| `YOON_APPS_<APP>_BILLING_INVOICE_PREFIX` | no | Invoice numbers are `<prefix>-<year>-<000001>` (default `INV`) |
+| `YOON_APPS_<APP>_BILLING_INVOICE_TTL` | no | How long an unpaid first invoice keeps a new subscription alive (default `7d`) |
 | `YOON_DASHBOARD_ENABLED` | no | Operator dashboard at `/dashboard` (default `true`). It exists only when `YOON_ADMIN_TOKEN` is set; `false` removes it (404) |
 | `YOON_DB_POOL_SIZE` | no | Database connections per instance (default `20`); keep instances × pool below Postgres' `max_connections` |
 | `YOON_SOURCE_URL` | if modified | Where users get this instance's source code (AGPL-3.0). Defaults to the upstream repository; set it if you run a modified version |

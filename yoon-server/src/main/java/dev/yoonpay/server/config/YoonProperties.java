@@ -3,6 +3,8 @@ package dev.yoonpay.server.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.ZoneId;
 import java.util.Map;
 
 /**
@@ -24,10 +26,48 @@ public record YoonProperties(Map<String, App> apps, URI sourceUrl, URI publicUrl
         publicUrl = publicUrl == null || publicUrl.toString().isBlank() ? null : publicUrl;
     }
 
-    /** @param webhook where Yoon sends this application's events; null: events are only listed via the API */
-    public record App(Map<String, Provider> providers, Webhook webhook) {
+    /**
+     * @param webhook where Yoon sends this application's events; null: events are only listed via the API
+     * @param billing subscription settings ({@code YOON_APPS_<APP>_BILLING_*}, ADR-0026)
+     */
+    public record App(Map<String, Provider> providers, Webhook webhook, Billing billing) {
         public App {
             providers = providers == null ? Map.of() : Map.copyOf(providers);
+            billing = billing == null ? Billing.DEFAULTS : billing;
+        }
+    }
+
+    /**
+     * Billing settings per application (ADR-0026, ADR-0027).
+     *
+     * @param graceDays     days a subscription stays entitled (past due) after its period ends unpaid
+     * @param reminderDays  days before the period end that {@code subscription.renewal_upcoming} is sent
+     * @param timezone      the application's time zone, for "days before" (default Africa/Dakar)
+     * @param invoicePrefix invoice numbers are {@code <prefix>-<year>-<000001>}
+     * @param invoiceTtl    how long an unpaid first invoice keeps an incomplete subscription alive
+     */
+    public record Billing(Integer graceDays, Integer reminderDays, ZoneId timezone, String invoicePrefix,
+                          Duration invoiceTtl) {
+        public static final Billing DEFAULTS = new Billing(null, null, null, null, null);
+
+        public Billing {
+            graceDays = graceDays == null ? 3 : graceDays;
+            reminderDays = reminderDays == null ? 3 : reminderDays;
+            timezone = timezone == null ? ZoneId.of("Africa/Dakar") : timezone;
+            invoicePrefix = invoicePrefix == null || invoicePrefix.isBlank() ? "INV" : invoicePrefix;
+            invoiceTtl = invoiceTtl == null ? Duration.ofDays(7) : invoiceTtl;
+            if (graceDays < 0 || graceDays > 90) {
+                throw new IllegalArgumentException("billing grace days must be 0–90");
+            }
+            if (reminderDays < 0 || reminderDays > 60) {
+                throw new IllegalArgumentException("billing reminder days must be 0–60");
+            }
+            if (!invoicePrefix.matches("[A-Z0-9]{1,12}")) {
+                throw new IllegalArgumentException("billing invoice prefix must be 1–12 capital letters or digits");
+            }
+            if (invoiceTtl.isNegative() || invoiceTtl.isZero()) {
+                throw new IllegalArgumentException("billing invoice TTL must be positive");
+            }
         }
     }
 
@@ -62,6 +102,6 @@ public record YoonProperties(Map<String, App> apps, URI sourceUrl, URI publicUrl
     }
 
     public App app(String name) {
-        return apps.getOrDefault(name, new App(Map.of(), null));
+        return apps.getOrDefault(name, new App(Map.of(), null, null));
     }
 }

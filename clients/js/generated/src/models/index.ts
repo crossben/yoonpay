@@ -182,6 +182,55 @@ export type AdminResolvePayoutRequestStatusEnum = typeof AdminResolvePayoutReque
 /**
  * 
  * @export
+ * @interface CancelSubscriptionRequest
+ */
+export interface CancelSubscriptionRequest {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CancelSubscriptionRequest
+     */
+    at_period_end?: boolean;
+}
+/**
+ * 
+ * @export
+ * @interface ChangeSubscriptionRequest
+ */
+export interface ChangeSubscriptionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ChangeSubscriptionRequest
+     */
+    price: string;
+    /**
+     * Default: `now` for an upgrade, `period_end` otherwise.
+     * @type {string}
+     * @memberof ChangeSubscriptionRequest
+     */
+    when?: ChangeSubscriptionRequestWhenEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChangeSubscriptionRequest
+     */
+    return_url?: string;
+}
+
+
+/**
+ * @export
+ */
+export const ChangeSubscriptionRequestWhenEnum = {
+    Now: 'now',
+    PeriodEnd: 'period_end'
+} as const;
+export type ChangeSubscriptionRequestWhenEnum = typeof ChangeSubscriptionRequestWhenEnum[keyof typeof ChangeSubscriptionRequestWhenEnum];
+
+/**
+ * 
+ * @export
  * @interface CheckoutAttemptRequest
  */
 export interface CheckoutAttemptRequest {
@@ -665,6 +714,43 @@ export interface CreateRefundRequest {
 /**
  * 
  * @export
+ * @interface CreateSubscriptionRequest
+ */
+export interface CreateSubscriptionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateSubscriptionRequest
+     */
+    customer: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateSubscriptionRequest
+     */
+    price: string;
+    /**
+     * Default from the application's billing settings.
+     * @type {number}
+     * @memberof CreateSubscriptionRequest
+     */
+    grace_period_days?: number;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof CreateSubscriptionRequest
+     */
+    metadata?: { [key: string]: string; };
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateSubscriptionRequest
+     */
+    return_url?: string;
+}
+/**
+ * 
+ * @export
  * @interface Customer
  */
 export interface Customer {
@@ -854,7 +940,9 @@ export type EventObjectEnum = typeof EventObjectEnum[keyof typeof EventObjectEnu
 export const EventResourceTypeEnum = {
     Payment: 'payment',
     Refund: 'refund',
-    Payout: 'payout'
+    Payout: 'payout',
+    Subscription: 'subscription',
+    Invoice: 'invoice'
 } as const;
 export type EventResourceTypeEnum = typeof EventResourceTypeEnum[keyof typeof EventResourceTypeEnum];
 
@@ -990,10 +1078,10 @@ export interface EventPayloadData {
 }
 /**
  * @type EventPayloadDataObject
- * The payment, refund or payout as `GET` would return it at the time of the event.
+ * The payment, refund, payout, subscription or invoice as `GET` would return it at the time of the event.
  * @export
  */
-export type EventPayloadDataObject = { object: 'payment' } & Payment | { object: 'payout' } & Payout | { object: 'refund' } & Refund;
+export type EventPayloadDataObject = { object: 'invoice' } & Invoice | { object: 'payment' } & Payment | { object: 'payout' } & Payout | { object: 'refund' } & Refund | { object: 'subscription' } & Subscription;
 
 /**
  * 
@@ -1007,7 +1095,18 @@ export const EventType = {
     RefundFailed: 'refund.failed',
     PayoutPaid: 'payout.paid',
     PayoutFailed: 'payout.failed',
-    PayoutNeedsReview: 'payout.needs_review'
+    PayoutNeedsReview: 'payout.needs_review',
+    SubscriptionCreated: 'subscription.created',
+    SubscriptionActivated: 'subscription.activated',
+    SubscriptionRenewed: 'subscription.renewed',
+    SubscriptionPastDue: 'subscription.past_due',
+    SubscriptionExpired: 'subscription.expired',
+    SubscriptionCanceled: 'subscription.canceled',
+    SubscriptionChanged: 'subscription.changed',
+    SubscriptionRenewalUpcoming: 'subscription.renewal_upcoming',
+    InvoiceCreated: 'invoice.created',
+    InvoicePaid: 'invoice.paid',
+    InvoiceVoided: 'invoice.voided'
 } as const;
 export type EventType = typeof EventType[keyof typeof EventType];
 
@@ -1139,6 +1238,204 @@ export const Interval = {
     Year: 'year'
 } as const;
 export type Interval = typeof Interval[keyof typeof Interval];
+
+/**
+ * A billing record — not a tax invoice (ADR-0027).
+ * @export
+ * @interface Invoice
+ */
+export interface Invoice {
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    object: InvoiceObjectEnum;
+    /**
+     * Gap-free per application.
+     * @type {string}
+     * @memberof Invoice
+     */
+    number: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    customer: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    subscription: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    kind: InvoiceKindEnum;
+    /**
+     * 
+     * @type {InvoiceStatus}
+     * @memberof Invoice
+     */
+    status: InvoiceStatus;
+    /**
+     * 
+     * @type {number}
+     * @memberof Invoice
+     */
+    amount_due: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    currency: string;
+    /**
+     * 
+     * @type {Array<InvoiceLine>}
+     * @memberof Invoice
+     */
+    lines: Array<InvoiceLine>;
+    /**
+     * Set when paid.
+     * @type {string}
+     * @memberof Invoice
+     */
+    period_start?: string | null;
+    /**
+     * Set when paid.
+     * @type {string}
+     * @memberof Invoice
+     */
+    period_end?: string | null;
+    /**
+     * The hosted payment that pays it.
+     * @type {string}
+     * @memberof Invoice
+     */
+    payment?: string | null;
+    /**
+     * Where the customer pays
+     * @type {string}
+     * @memberof Invoice
+     */
+    checkout_url?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    receipt_url?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    paid_at?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    voided_at?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Invoice
+     */
+    created_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const InvoiceObjectEnum = {
+    Invoice: 'invoice'
+} as const;
+export type InvoiceObjectEnum = typeof InvoiceObjectEnum[keyof typeof InvoiceObjectEnum];
+
+/**
+ * @export
+ */
+export const InvoiceKindEnum = {
+    First: 'first',
+    Renewal: 'renewal',
+    Upgrade: 'upgrade'
+} as const;
+export type InvoiceKindEnum = typeof InvoiceKindEnum[keyof typeof InvoiceKindEnum];
+
+/**
+ * 
+ * @export
+ * @interface InvoiceLine
+ */
+export interface InvoiceLine {
+    /**
+     * 
+     * @type {string}
+     * @memberof InvoiceLine
+     */
+    description: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof InvoiceLine
+     */
+    price: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof InvoiceLine
+     */
+    amount: number;
+}
+/**
+ * 
+ * @export
+ * @interface InvoicePage
+ */
+export interface InvoicePage {
+    /**
+     * 
+     * @type {Array<Invoice>}
+     * @memberof InvoicePage
+     */
+    data: Array<Invoice>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof InvoicePage
+     */
+    has_more: boolean;
+    /**
+     * Pass as `starting_after` to get the next page; null on the last page.
+     * @type {string}
+     * @memberof InvoicePage
+     */
+    next_cursor: string | null;
+}
+
+/**
+ * 
+ * @export
+ */
+export const InvoiceStatus = {
+    Open: 'open',
+    Paid: 'paid',
+    Void: 'void',
+    Uncollectible: 'uncollectible'
+} as const;
+export type InvoiceStatus = typeof InvoiceStatus[keyof typeof InvoiceStatus];
 
 /**
  * Positive = debit, negative = credit.
@@ -1767,6 +2064,31 @@ export interface PlanPage {
 /**
  * 
  * @export
+ * @interface PlanRef
+ */
+export interface PlanRef {
+    /**
+     * 
+     * @type {string}
+     * @memberof PlanRef
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PlanRef
+     */
+    slug: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PlanRef
+     */
+    name: string;
+}
+/**
+ * 
+ * @export
  * @interface Price
  */
 export interface Price {
@@ -2055,6 +2377,19 @@ export type RefundStatus = typeof RefundStatus[keyof typeof RefundStatus];
 /**
  * 
  * @export
+ * @interface RenewSubscriptionRequest
+ */
+export interface RenewSubscriptionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof RenewSubscriptionRequest
+     */
+    return_url?: string;
+}
+/**
+ * 
+ * @export
  * @interface StatusEvent
  */
 export interface StatusEvent {
@@ -2123,6 +2458,269 @@ export const StatusEventCauseEnum = {
     Admin: 'admin'
 } as const;
 export type StatusEventCauseEnum = typeof StatusEventCauseEnum[keyof typeof StatusEventCauseEnum];
+
+/**
+ * 
+ * @export
+ * @interface Subscription
+ */
+export interface Subscription {
+    /**
+     * 
+     * @type {string}
+     * @memberof Subscription
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subscription
+     */
+    object: SubscriptionObjectEnum;
+    /**
+     * 
+     * @type {SubscriptionCustomer}
+     * @memberof Subscription
+     */
+    customer: SubscriptionCustomer;
+    /**
+     * 
+     * @type {SubscriptionPrice}
+     * @memberof Subscription
+     */
+    price: SubscriptionPrice;
+    /**
+     * 
+     * @type {SubscriptionStatus}
+     * @memberof Subscription
+     */
+    status: SubscriptionStatus;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subscription
+     */
+    collection_method: SubscriptionCollectionMethodEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subscription
+     */
+    current_period_start?: string | null;
+    /**
+     * Null before the first payment
+     * @type {string}
+     * @memberof Subscription
+     */
+    current_period_end?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof Subscription
+     */
+    grace_period_days: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Subscription
+     */
+    cancel_at_period_end: boolean;
+    /**
+     * 
+     * @type {SubscriptionPendingChange}
+     * @memberof Subscription
+     */
+    pending_change?: SubscriptionPendingChange;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subscription
+     */
+    canceled_at?: string | null;
+    /**
+     * Periods granted by an operator
+     * @type {boolean}
+     * @memberof Subscription
+     */
+    comp: boolean;
+    /**
+     * Whether the customer should have access now (`active` or `past_due`).
+     * @type {boolean}
+     * @memberof Subscription
+     */
+    entitled: boolean;
+    /**
+     * The plan's features
+     * @type {{ [key: string]: any; }}
+     * @memberof Subscription
+     */
+    features: { [key: string]: any; };
+    /**
+     * 
+     * @type {Invoice}
+     * @memberof Subscription
+     */
+    latest_invoice?: Invoice | null;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof Subscription
+     */
+    metadata: { [key: string]: string; };
+    /**
+     * 
+     * @type {string}
+     * @memberof Subscription
+     */
+    created_at: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Subscription
+     */
+    updated_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const SubscriptionObjectEnum = {
+    Subscription: 'subscription'
+} as const;
+export type SubscriptionObjectEnum = typeof SubscriptionObjectEnum[keyof typeof SubscriptionObjectEnum];
+
+/**
+ * @export
+ */
+export const SubscriptionCollectionMethodEnum = {
+    PrepaidManual: 'prepaid_manual'
+} as const;
+export type SubscriptionCollectionMethodEnum = typeof SubscriptionCollectionMethodEnum[keyof typeof SubscriptionCollectionMethodEnum];
+
+/**
+ * 
+ * @export
+ * @interface SubscriptionCustomer
+ */
+export interface SubscriptionCustomer {
+    /**
+     * 
+     * @type {string}
+     * @memberof SubscriptionCustomer
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubscriptionCustomer
+     */
+    external_id: string;
+}
+/**
+ * 
+ * @export
+ * @interface SubscriptionPage
+ */
+export interface SubscriptionPage {
+    /**
+     * 
+     * @type {Array<Subscription>}
+     * @memberof SubscriptionPage
+     */
+    data: Array<Subscription>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof SubscriptionPage
+     */
+    has_more: boolean;
+    /**
+     * Pass as `starting_after` to get the next page; null on the last page.
+     * @type {string}
+     * @memberof SubscriptionPage
+     */
+    next_cursor: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface SubscriptionPendingChange
+ */
+export interface SubscriptionPendingChange {
+    /**
+     * 
+     * @type {SubscriptionPrice}
+     * @memberof SubscriptionPendingChange
+     */
+    price: SubscriptionPrice;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubscriptionPendingChange
+     */
+    effective_at?: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface SubscriptionPrice
+ */
+export interface SubscriptionPrice {
+    /**
+     * 
+     * @type {string}
+     * @memberof SubscriptionPrice
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubscriptionPrice
+     */
+    currency: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof SubscriptionPrice
+     */
+    amount: number;
+    /**
+     * 
+     * @type {Interval}
+     * @memberof SubscriptionPrice
+     */
+    interval: Interval;
+    /**
+     * 
+     * @type {number}
+     * @memberof SubscriptionPrice
+     */
+    interval_count: number;
+    /**
+     * 
+     * @type {PlanRef}
+     * @memberof SubscriptionPrice
+     */
+    plan: PlanRef;
+}
+
+
+
+/**
+ * `active` and `past_due` (in grace) are entitled; see `entitled`. `expired` and `canceled`
+ * come back to `active` if an open invoice is paid late.
+ * 
+ * @export
+ */
+export const SubscriptionStatus = {
+    Incomplete: 'incomplete',
+    Active: 'active',
+    PastDue: 'past_due',
+    Expired: 'expired',
+    Canceled: 'canceled'
+} as const;
+export type SubscriptionStatus = typeof SubscriptionStatus[keyof typeof SubscriptionStatus];
 
 /**
  * 

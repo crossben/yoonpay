@@ -34,9 +34,11 @@ instances.
 - A payment confirmed **after** `void` still marks it paid and applies (money received is never
   ignored), with an alert for a human.
 
-The invoice's hosted payment uses a checkout TTL equal to the invoice's due window
-(per application, default 7 days); when it expires, `renew` creates a new payment for
-the same open invoice (same number).
+An invoice is paid through an ordinary hosted payment, which keeps the normal checkout TTL
+(`YOON_CHECKOUT_TTL`, 30 minutes by default). The invoice itself stays open: when its checkout has
+expired, `renew` gives it a fresh hosted payment (same invoice, same number). An incomplete
+subscription whose first invoice stays unpaid for the application's invoice TTL (default 7 days)
+expires (ADR-0026).
 
 ### Receipts
 `GET /receipts/{invoice id}?t=<token>` on the hosted-checkout domain: a static HTML receipt,

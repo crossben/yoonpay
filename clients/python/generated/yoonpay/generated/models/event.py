@@ -50,8 +50,8 @@ class Event(BaseModel):
     @field_validator('resource_type')
     def resource_type_validate_enum(cls, value):
         """Validates the enum"""
-        if value not in set(['payment', 'refund', 'payout']):
-            raise ValueError("must be one of enum values ('payment', 'refund', 'payout')")
+        if value not in set(['payment', 'refund', 'payout', 'subscription', 'invoice']):
+            raise ValueError("must be one of enum values ('payment', 'refund', 'payout', 'subscription', 'invoice')")
         return value
 
     model_config = ConfigDict(
