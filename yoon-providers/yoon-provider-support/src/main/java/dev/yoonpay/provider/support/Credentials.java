@@ -5,8 +5,9 @@ import java.util.Map;
 
 /**
  * An application's credentials for one provider. Keys are matched case-insensitively and
- * ignoring '-' and '_' (env vars arrive as {@code MASTERKEY}, {@code MASTER_KEY} or
- * {@code master-key}). Values are never printed.
+ * ignoring '-', '_' and '.': written {@code master-key} in YAML, an environment variable
+ * {@code …_CREDENTIALS_MASTER_KEY} reaches the map as {@code master.key} (Spring turns each
+ * '_' into a '.'), and both must match. Values are never printed.
  */
 public final class Credentials {
 
@@ -33,7 +34,7 @@ public final class Credentials {
     }
 
     private static String normalize(String key) {
-        return key.toLowerCase(Locale.ROOT).replace("-", "").replace("_", "");
+        return key.toLowerCase(Locale.ROOT).replace("-", "").replace("_", "").replace(".", "");
     }
 
     @Override

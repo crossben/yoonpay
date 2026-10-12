@@ -3,6 +3,7 @@ target/
 *.iml
 .vscode/
 .env
+.env.sandbox
 *.log
 plan.md
 *.local.md
