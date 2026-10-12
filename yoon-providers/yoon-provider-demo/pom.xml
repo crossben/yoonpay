@@ -7,7 +7,7 @@
     <parent>
         <groupId>dev.yoonpay</groupId>
         <artifactId>yoon-providers</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.0</version>
     </parent>
 
     <artifactId>yoon-provider-demo</artifactId>

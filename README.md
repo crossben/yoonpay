@@ -14,9 +14,10 @@ One API in front of PayDunya, DexPay, NabooPay, CinetPay, Wave, Stripe and PI-SP
 verified webhooks, idempotency, a ledger and automatic reconciliation — written
 once, in Java, instead of in every project.
 
-> **Status: 0.3.1.** The gateway, its operations tooling, its operator dashboard, hosted
-> checkout and prepaid subscriptions, its PayDunya, DexPay, NabooPay, CinetPay, Wave (direct),
-> Stripe and PI-SPI adapters and its clients are built and tested. **DexPay** (sandbox) and
+> **Status: 0.4.0.** The gateway, its operations tooling, its operator dashboard, hosted
+> checkout and prepaid subscriptions (with free trials and coupons), its PayDunya, DexPay,
+> NabooPay, CinetPay, Wave (direct), Stripe and PI-SPI adapters and its clients are built and
+> tested. **DexPay** (sandbox) and
 > **NabooPay** (live, small real payments) have been run end to end against the real APIs:
 > payment, real signed callback, status confirmation. The other adapters are tested against
 > simulated provider APIs (built from production integrations, the providers' public
@@ -87,9 +88,9 @@ once, in Java, instead of in every project.
     plans) from the CLI or the operator API; CSV exports `subscriptions.csv`, `invoices.csv` and `coupons.csv`;
   - Python and JS helpers: entitlement from a subscription event, redirect to the checkout
     (FastAPI, Next.js);
-  - free trials (0.4.0 in progress): `trialing` is entitled with nothing to pay; unpaid at the
+  - free trials: `trialing` is entitled with nothing to pay; unpaid at the
     end → grace → expired; one trial per customer and plan;
-  - coupons (`/v1/coupons`, 0.4.0 in progress): percent or amount off, once, N periods or
+  - coupons (`/v1/coupons`): percent or amount off, once, N periods or
     forever, immutable terms, redeemed when subscribing or later; a 100% coupon pays the
     invoice by itself (no payment, no ledger posting).
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and

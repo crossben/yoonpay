@@ -7,7 +7,7 @@
     <parent>
         <groupId>dev.yoonpay</groupId>
         <artifactId>yoon-parent</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.0</version>
     </parent>
 
     <artifactId>yoon-server</artifactId>
@@ -129,9 +129,9 @@
         <dependency>
             <groupId>io.github.crossben</groupId>
             <artifactId>yoon-java</artifactId>
-            <!-- The Java client follows the API version, not the server's: a server-only patch
-                 release (0.3.1) keeps testing against the published 0.3.0 client. -->
-            <version>0.3.0</version>
+            <!-- The Java client follows the API version, not the server's (built in this reactor,
+                 clients/java). A server-only patch release leaves this at the API version. -->
+            <version>0.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -5,7 +5,14 @@ never changes incompatibly.
 
 ## [Unreleased]
 
-### Trials and coupons (0.4.0, in progress)
+## [0.4.0] - 2026-10-12
+
+Free trials and coupons. Upgrading from 0.3.x: migration `V8` runs on start-up. `/v1` stays
+compatible: new routes and fields only; `amount_due` may now be 0 (100% coupons) and
+`trialing` is a new subscription status. **Upgrade your clients before using trials**: the 0.3
+helpers would deny access to trial users (see below). Automatic charging moves to 0.5.0.
+
+### Trials and coupons
 - Coupons: `POST/GET /v1/coupons`, `GET/PATCH /v1/coupons/{id}` (ADR-0029): percent or fixed
   amount off, for one invoice, N invoices or forever; optional cap, deadline and plan list. Codes
   are unique per application whatever the case. Terms never change (a database trigger refuses

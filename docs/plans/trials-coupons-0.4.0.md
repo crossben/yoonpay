@@ -1,7 +1,7 @@
 # Plan — trials and coupons in 0.4.0
 
 Design: [ADR-0028](../adr/0028-trials.md) (trials), [ADR-0029](../adr/0029-coupons.md) (coupons).
-Status: **proposed — for review before any code.** Automatic charging (Stripe first) moves to 0.5.0.
+Status: **shipped in 0.4.0.** Automatic charging (Stripe first) moves to 0.5.0.
 
 Decisions taken (2026-10-12): an unpaid trial ends in `past_due` (grace) then `expired`;
 coupons: percent, fixed amount, 100% allowed, duration once / N periods / forever; version 0.4.0.
