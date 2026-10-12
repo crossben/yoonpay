@@ -52,6 +52,26 @@ public class ProblemHandler {
         return problem(HttpStatus.NOT_FOUND, "resource_not_found", "No such endpoint");
     }
 
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    ResponseEntity<ProblemDetail> wrongMethod(org.springframework.web.HttpRequestMethodNotSupportedException e) {
+        // e.g. a provider dashboard (or a browser) opening a webhook URL with GET
+        ResponseEntity<ProblemDetail> r = problem(HttpStatus.METHOD_NOT_ALLOWED, "method_not_allowed",
+                "Method " + e.getMethod() + " is not allowed here");
+        return e.getSupportedHttpMethods() == null ? r
+                : ResponseEntity.status(r.getStatusCode()).allow(e.getSupportedHttpMethods().toArray(org.springframework.http.HttpMethod[]::new))
+                        .body(r.getBody());
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
+    ResponseEntity<ProblemDetail> wrongMediaType(org.springframework.web.HttpMediaTypeNotSupportedException e) {
+        return problem(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "unsupported_media_type", "Send application/json");
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    ResponseEntity<ProblemDetail> missingParameter(org.springframework.web.bind.MissingServletRequestParameterException e) {
+        return problem(HttpStatus.BAD_REQUEST, "invalid_request", "Missing parameter " + e.getParameterName());
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ProblemDetail> unexpected(Exception e) {
         log.error("Unhandled error", e);

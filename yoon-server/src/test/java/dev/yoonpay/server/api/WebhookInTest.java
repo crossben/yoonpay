@@ -190,6 +190,15 @@ class WebhookInTest extends ApiTest {
     }
 
     @Test
+    void opening_a_webhook_url_with_get_is_405_not_a_server_error() {
+        Response r = send(null, "GET", hookUrl("shop"), null, null);
+
+        assertThat(r.status()).isEqualTo(405);
+        assertThat(r.text("code")).isEqualTo("method_not_allowed");
+        assertThat(r.headers().get("Allow")).isNotEmpty();
+    }
+
+    @Test
     void oversized_bodies_are_refused() {
         Response r = postRaw(hookUrl("shop"), Map.of("Content-Type", List.of("application/json")), new byte[65 * 1024]);
 
