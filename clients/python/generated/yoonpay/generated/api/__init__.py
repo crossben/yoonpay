@@ -1,6 +1,7 @@
 # flake8: noqa
 
 # import apis into api package
+from yoonpay.generated.api.coupons_api import CouponsApi
 from yoonpay.generated.api.customers_api import CustomersApi
 from yoonpay.generated.api.events_api import EventsApi
 from yoonpay.generated.api.exports_api import ExportsApi

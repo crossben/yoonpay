@@ -192,6 +192,8 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
 - Comp (`CompService`) is the only way to add periods without a payment: one transaction
   (subscription created for a `cus_` target, lock, void the open invoice, transition with cause
   `admin`). The admin endpoint requires an `Idempotency-Key`: a retried comp must not stack twice.
+- Coupon terms are immutable (trigger `coupons_immutable`); codes are matched with
+  `upper(code)` (unique index on it). Discount arithmetic lives only in core `Discounts`.
 - Receipts live under `/checkout/receipts/` so `CheckoutFilter` (CSP, no-store, rate limit)
   covers them; anything that is not a paid invoice with the right token is the same 404.
 

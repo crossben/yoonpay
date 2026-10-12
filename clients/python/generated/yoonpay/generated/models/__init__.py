@@ -19,6 +19,7 @@ from yoonpay.generated.models.admin_list_applications200_response import AdminLi
 from yoonpay.generated.models.admin_list_applications200_response_data_inner import AdminListApplications200ResponseDataInner
 from yoonpay.generated.models.admin_replay_dead_letter202_response import AdminReplayDeadLetter202Response
 from yoonpay.generated.models.admin_resolve_payout_request import AdminResolvePayoutRequest
+from yoonpay.generated.models.amount_off import AmountOff
 from yoonpay.generated.models.cancel_subscription_request import CancelSubscriptionRequest
 from yoonpay.generated.models.change_subscription_request import ChangeSubscriptionRequest
 from yoonpay.generated.models.checkout_attempt_request import CheckoutAttemptRequest
@@ -28,6 +29,9 @@ from yoonpay.generated.models.checkout_view_last_error import CheckoutViewLastEr
 from yoonpay.generated.models.checkout_view_methods_inner import CheckoutViewMethodsInner
 from yoonpay.generated.models.checkout_view_next_action import CheckoutViewNextAction
 from yoonpay.generated.models.comp_request import CompRequest
+from yoonpay.generated.models.coupon import Coupon
+from yoonpay.generated.models.coupon_page import CouponPage
+from yoonpay.generated.models.create_coupon_request import CreateCouponRequest
 from yoonpay.generated.models.create_customer_request import CreateCustomerRequest
 from yoonpay.generated.models.create_payment_request import CreatePaymentRequest
 from yoonpay.generated.models.create_payment_request_customer import CreatePaymentRequestCustomer
@@ -87,6 +91,7 @@ from yoonpay.generated.models.subscription_page import SubscriptionPage
 from yoonpay.generated.models.subscription_pending_change import SubscriptionPendingChange
 from yoonpay.generated.models.subscription_price import SubscriptionPrice
 from yoonpay.generated.models.subscription_status import SubscriptionStatus
+from yoonpay.generated.models.update_coupon_request import UpdateCouponRequest
 from yoonpay.generated.models.update_customer_request import UpdateCustomerRequest
 from yoonpay.generated.models.update_plan_request import UpdatePlanRequest
 from yoonpay.generated.models.update_price_request import UpdatePriceRequest

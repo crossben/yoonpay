@@ -182,6 +182,25 @@ export type AdminResolvePayoutRequestStatusEnum = typeof AdminResolvePayoutReque
 /**
  * 
  * @export
+ * @interface AmountOff
+ */
+export interface AmountOff {
+    /**
+     * 
+     * @type {string}
+     * @memberof AmountOff
+     */
+    currency: string;
+    /**
+     * Minor units.
+     * @type {number}
+     * @memberof AmountOff
+     */
+    amount: number;
+}
+/**
+ * 
+ * @export
  * @interface CancelSubscriptionRequest
  */
 export interface CancelSubscriptionRequest {
@@ -529,6 +548,205 @@ export interface CompRequest {
      */
     note: string;
 }
+/**
+ * 
+ * @export
+ * @interface Coupon
+ */
+export interface Coupon {
+    /**
+     * 
+     * @type {string}
+     * @memberof Coupon
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Coupon
+     */
+    object: CouponObjectEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof Coupon
+     */
+    code: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof Coupon
+     */
+    percent_off: number | null;
+    /**
+     * 
+     * @type {AmountOff}
+     * @memberof Coupon
+     */
+    amount_off: AmountOff | null;
+    /**
+     * `once`, `repeating` or `forever` (open set).
+     * @type {string}
+     * @memberof Coupon
+     */
+    duration: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof Coupon
+     */
+    duration_in_periods: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof Coupon
+     */
+    max_redemptions: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof Coupon
+     */
+    times_redeemed: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Coupon
+     */
+    redeem_by: string | null;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof Coupon
+     */
+    plans: Array<string> | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Coupon
+     */
+    active: boolean;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof Coupon
+     */
+    metadata: { [key: string]: string; };
+    /**
+     * 
+     * @type {string}
+     * @memberof Coupon
+     */
+    created_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const CouponObjectEnum = {
+    Coupon: 'coupon'
+} as const;
+export type CouponObjectEnum = typeof CouponObjectEnum[keyof typeof CouponObjectEnum];
+
+/**
+ * 
+ * @export
+ * @interface CouponPage
+ */
+export interface CouponPage {
+    /**
+     * 
+     * @type {Array<Coupon>}
+     * @memberof CouponPage
+     */
+    data: Array<Coupon>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CouponPage
+     */
+    has_more: boolean;
+    /**
+     * Pass as `starting_after` to get the next page; null on the last page.
+     * @type {string}
+     * @memberof CouponPage
+     */
+    next_cursor: string | null;
+}
+/**
+ * Exactly one of `percent_off` and `amount_off`.
+ * @export
+ * @interface CreateCouponRequest
+ */
+export interface CreateCouponRequest {
+    /**
+     * What customers type. Case-insensitive.
+     * @type {string}
+     * @memberof CreateCouponRequest
+     */
+    code: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateCouponRequest
+     */
+    percent_off?: number;
+    /**
+     * 
+     * @type {AmountOff}
+     * @memberof CreateCouponRequest
+     */
+    amount_off?: AmountOff;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCouponRequest
+     */
+    duration: CreateCouponRequestDurationEnum;
+    /**
+     * Required for, and only for, `repeating`.
+     * @type {number}
+     * @memberof CreateCouponRequest
+     */
+    duration_in_periods?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateCouponRequest
+     */
+    max_redemptions?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCouponRequest
+     */
+    redeem_by?: string;
+    /**
+     * Plan ids it is limited to; omit for every plan.
+     * @type {Array<string>}
+     * @memberof CreateCouponRequest
+     */
+    plans?: Array<string>;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof CreateCouponRequest
+     */
+    metadata?: { [key: string]: string; };
+}
+
+
+/**
+ * @export
+ */
+export const CreateCouponRequestDurationEnum = {
+    Once: 'once',
+    Repeating: 'repeating',
+    Forever: 'forever'
+} as const;
+export type CreateCouponRequestDurationEnum = typeof CreateCouponRequestDurationEnum[keyof typeof CreateCouponRequestDurationEnum];
+
 /**
  * 
  * @export
@@ -2928,6 +3146,31 @@ export const SubscriptionStatus = {
 } as const;
 export type SubscriptionStatus = typeof SubscriptionStatus[keyof typeof SubscriptionStatus];
 
+/**
+ * 
+ * @export
+ * @interface UpdateCouponRequest
+ */
+export interface UpdateCouponRequest {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdateCouponRequest
+     */
+    active?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateCouponRequest
+     */
+    max_redemptions?: number | null;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof UpdateCouponRequest
+     */
+    metadata?: { [key: string]: string; };
+}
 /**
  * 
  * @export

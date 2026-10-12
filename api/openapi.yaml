@@ -42,6 +42,8 @@ tags:
     description: Your users, for billing (found by your own id).
   - name: Plans
     description: What customers subscribe to, and its prices. Archived, never deleted.
+  - name: Coupons
+    description: Discount codes for subscriptions. Terms never change; archived, never deleted.
   - name: Subscriptions
     description: Prepaid periods, invoices and renewals (ADR-0026, ADR-0027).
   - name: Ledger
@@ -544,6 +546,101 @@ paths:
               schema: { $ref: '#/components/schemas/PlanPage' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/coupons:
+    post:
+      tags: [Coupons]
+      operationId: createCoupon
+      summary: Create a coupon
+      description: |
+        A discount code customers redeem on a subscription (ADR-0029): `percent_off` or
+        `amount_off`, for one invoice (`once`), `duration_in_periods` invoices (`repeating`) or
+        every invoice (`forever`). Its terms never change: archive it with `active: false` and
+        create another. Codes are unique per application, case-insensitively.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCouponRequest' }
+            example: { code: WELCOME20, percent_off: 20, duration: repeating, duration_in_periods: 3 }
+      responses:
+        '201':
+          description: Coupon created.
+          headers:
+            Idempotent-Replayed: { $ref: '#/components/headers/IdempotentReplayed' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: '`coupon_exists` — the code is taken (`detail` names the coupon), or an idempotency conflict.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`plan_not_found` — a plan in `plans` does not exist.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [Coupons]
+      operationId: listCoupons
+      summary: List coupons
+      parameters:
+        - { name: code, in: query, description: 'Exact code, case-insensitive.', schema: { type: string } }
+        - { name: active, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of coupons, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CouponPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/coupons/{id}:
+    get:
+      tags: [Coupons]
+      operationId: getCoupon
+      summary: Get a coupon
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The coupon.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Coupons]
+      operationId: updateCoupon
+      summary: Update a coupon
+      description: '`active`, `max_redemptions` (raise, or `null` to remove the cap; never lower) and `metadata`. The terms never change.'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCouponRequest' }
+      responses:
+        '200':
+          description: The updated coupon.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
 
   /v1/plans/{id}:
     get:
@@ -1975,6 +2072,66 @@ components:
         prices: { type: array, items: { $ref: '#/components/schemas/Price' }, description: Oldest first, archived ones included. }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+
+    CreateCouponRequest:
+      type: object
+      required: [code, duration]
+      description: Exactly one of `percent_off` and `amount_off`.
+      properties:
+        code: { type: string, pattern: '^[A-Za-z0-9_-]{3,32}$', description: What customers type. Case-insensitive. }
+        percent_off: { type: integer, minimum: 1, maximum: 100 }
+        amount_off: { $ref: '#/components/schemas/AmountOff' }
+        duration: { type: string, enum: [once, repeating, forever] }
+        duration_in_periods: { type: integer, minimum: 1, maximum: 120, description: 'Required for, and only for, `repeating`.' }
+        max_redemptions: { type: integer, minimum: 1 }
+        redeem_by: { type: string, format: date-time }
+        plans: { type: array, minItems: 1, maxItems: 50, items: { type: string }, description: Plan ids it is limited to; omit for every plan. }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    UpdateCouponRequest:
+      type: object
+      properties:
+        active: { type: boolean }
+        max_redemptions: { type: [integer, 'null'], minimum: 1 }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    AmountOff:
+      type: object
+      required: [currency, amount]
+      properties:
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        amount: { type: integer, format: int64, minimum: 1, description: Minor units. }
+
+    Coupon:
+      type: object
+      required: [id, object, code, percent_off, amount_off, duration, duration_in_periods, max_redemptions,
+                 times_redeemed, redeem_by, plans, active, metadata, created_at]
+      properties:
+        id: { type: string, example: co_01a1… }
+        object: { type: string, const: coupon }
+        code: { type: string }
+        percent_off: { type: [integer, 'null'] }
+        amount_off:
+          oneOf:
+            - { $ref: '#/components/schemas/AmountOff' }
+            - { type: 'null' }
+        duration: { type: string, description: '`once`, `repeating` or `forever` (open set).' }
+        duration_in_periods: { type: [integer, 'null'] }
+        max_redemptions: { type: [integer, 'null'] }
+        times_redeemed: { type: integer }
+        redeem_by: { type: [string, 'null'], format: date-time }
+        plans: { type: [array, 'null'], items: { type: string } }
+        active: { type: boolean }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        created_at: { type: string, format: date-time }
+
+    CouponPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Coupon' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
 
     CreatePlanRequest:
       type: object

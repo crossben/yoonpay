@@ -18,6 +18,7 @@ __version__ = "1.0.0"
 
 # Define package exports
 __all__ = [
+    "CouponsApi",
     "CustomersApi",
     "EventsApi",
     "ExportsApi",
@@ -43,6 +44,7 @@ __all__ = [
     "AdminListApplications200ResponseDataInner",
     "AdminReplayDeadLetter202Response",
     "AdminResolvePayoutRequest",
+    "AmountOff",
     "CancelSubscriptionRequest",
     "ChangeSubscriptionRequest",
     "CheckoutAttemptRequest",
@@ -52,6 +54,9 @@ __all__ = [
     "CheckoutViewMethodsInner",
     "CheckoutViewNextAction",
     "CompRequest",
+    "Coupon",
+    "CouponPage",
+    "CreateCouponRequest",
     "CreateCustomerRequest",
     "CreatePaymentRequest",
     "CreatePaymentRequestCustomer",
@@ -111,12 +116,14 @@ __all__ = [
     "SubscriptionPendingChange",
     "SubscriptionPrice",
     "SubscriptionStatus",
+    "UpdateCouponRequest",
     "UpdateCustomerRequest",
     "UpdatePlanRequest",
     "UpdatePriceRequest",
 ]
 
 # import apis into sdk package
+from yoonpay.generated.api.coupons_api import CouponsApi as CouponsApi
 from yoonpay.generated.api.customers_api import CustomersApi as CustomersApi
 from yoonpay.generated.api.events_api import EventsApi as EventsApi
 from yoonpay.generated.api.exports_api import ExportsApi as ExportsApi
@@ -146,6 +153,7 @@ from yoonpay.generated.models.admin_list_applications200_response import AdminLi
 from yoonpay.generated.models.admin_list_applications200_response_data_inner import AdminListApplications200ResponseDataInner as AdminListApplications200ResponseDataInner
 from yoonpay.generated.models.admin_replay_dead_letter202_response import AdminReplayDeadLetter202Response as AdminReplayDeadLetter202Response
 from yoonpay.generated.models.admin_resolve_payout_request import AdminResolvePayoutRequest as AdminResolvePayoutRequest
+from yoonpay.generated.models.amount_off import AmountOff as AmountOff
 from yoonpay.generated.models.cancel_subscription_request import CancelSubscriptionRequest as CancelSubscriptionRequest
 from yoonpay.generated.models.change_subscription_request import ChangeSubscriptionRequest as ChangeSubscriptionRequest
 from yoonpay.generated.models.checkout_attempt_request import CheckoutAttemptRequest as CheckoutAttemptRequest
@@ -155,6 +163,9 @@ from yoonpay.generated.models.checkout_view_last_error import CheckoutViewLastEr
 from yoonpay.generated.models.checkout_view_methods_inner import CheckoutViewMethodsInner as CheckoutViewMethodsInner
 from yoonpay.generated.models.checkout_view_next_action import CheckoutViewNextAction as CheckoutViewNextAction
 from yoonpay.generated.models.comp_request import CompRequest as CompRequest
+from yoonpay.generated.models.coupon import Coupon as Coupon
+from yoonpay.generated.models.coupon_page import CouponPage as CouponPage
+from yoonpay.generated.models.create_coupon_request import CreateCouponRequest as CreateCouponRequest
 from yoonpay.generated.models.create_customer_request import CreateCustomerRequest as CreateCustomerRequest
 from yoonpay.generated.models.create_payment_request import CreatePaymentRequest as CreatePaymentRequest
 from yoonpay.generated.models.create_payment_request_customer import CreatePaymentRequestCustomer as CreatePaymentRequestCustomer
@@ -214,6 +225,7 @@ from yoonpay.generated.models.subscription_page import SubscriptionPage as Subsc
 from yoonpay.generated.models.subscription_pending_change import SubscriptionPendingChange as SubscriptionPendingChange
 from yoonpay.generated.models.subscription_price import SubscriptionPrice as SubscriptionPrice
 from yoonpay.generated.models.subscription_status import SubscriptionStatus as SubscriptionStatus
+from yoonpay.generated.models.update_coupon_request import UpdateCouponRequest as UpdateCouponRequest
 from yoonpay.generated.models.update_customer_request import UpdateCustomerRequest as UpdateCustomerRequest
 from yoonpay.generated.models.update_plan_request import UpdatePlanRequest as UpdatePlanRequest
 from yoonpay.generated.models.update_price_request import UpdatePriceRequest as UpdatePriceRequest

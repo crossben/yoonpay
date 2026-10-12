@@ -5,6 +5,15 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Trials and coupons (0.4.0, in progress)
+- Coupons: `POST/GET /v1/coupons`, `GET/PATCH /v1/coupons/{id}` (ADR-0029): percent or fixed
+  amount off, for one invoice, N invoices or forever; optional cap, deadline and plan list. Codes
+  are unique per application whatever the case. Terms never change (a database trigger refuses
+  it); archive with `active: false`; the cap can only be raised or removed. Redeeming a coupon
+  on a subscription comes next.
+- Migration `V8` (trials and coupons schema). Invoices gain `subtotal` (equal to `amount_due`
+  until discounts apply).
+
 ## [0.3.1] - 2026-10-12
 
 Found by the first runs against real provider APIs (DexPay sandbox, NabooPay live). Upgrade if

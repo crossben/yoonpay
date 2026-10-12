@@ -86,7 +86,9 @@ once, in Java, instead of in every project.
   - operators grant periods without payment (comp: some periods, or open-ended for "contact us"
     plans) from the CLI or the operator API; CSV exports `subscriptions.csv` and `invoices.csv`;
   - Python and JS helpers: entitlement from a subscription event, redirect to the checkout
-    (FastAPI, Next.js).
+    (FastAPI, Next.js);
+  - coupons (`/v1/coupons`, 0.4.0 in progress): percent or amount off, once, N periods or
+    forever, immutable terms. Redeeming them on subscriptions, and free trials, come next.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
