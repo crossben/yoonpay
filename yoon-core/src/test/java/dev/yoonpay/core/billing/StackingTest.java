@@ -31,6 +31,11 @@ class StackingTest {
     }
 
     @Test
+    void paying_during_a_trial_keeps_the_trial_days() {
+        assertThat(nextPeriodStart(SubscriptionStatus.TRIALING, END, EARLY)).isEqualTo(END);
+    }
+
+    @Test
     void a_first_payment_starts_now() {
         assertThat(nextPeriodStart(SubscriptionStatus.INCOMPLETE, null, EARLY)).isEqualTo(EARLY);
     }

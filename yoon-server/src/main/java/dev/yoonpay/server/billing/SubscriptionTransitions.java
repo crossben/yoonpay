@@ -55,7 +55,7 @@ public class SubscriptionTransitions {
                 case PAST_DUE -> "subscription.past_due";
                 case EXPIRED -> "subscription.expired";
                 case CANCELED -> "subscription.canceled";
-                case INCOMPLETE -> null;
+                case INCOMPLETE, TRIALING -> null; // starting statuses: subscription.created says it
             };
             if (type != null) {
                 outbox.emit(app, type, "subscription", id, views.subscription(updated));

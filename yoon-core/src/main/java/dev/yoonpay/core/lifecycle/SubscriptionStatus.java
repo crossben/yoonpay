@@ -7,7 +7,9 @@ package dev.yoonpay.core.lifecycle;
  * open invoice re-activates them: money received must not be lost.
  */
 public enum SubscriptionStatus {
-    INCOMPLETE, ACTIVE, PAST_DUE, EXPIRED, CANCELED;
+    INCOMPLETE, ACTIVE, PAST_DUE, EXPIRED, CANCELED,
+    /** A free trial (ADR-0028): entitled, nothing paid yet. Only ever a starting status. */
+    TRIALING;
 
     public Decision decide(SubscriptionStatus target) {
         if (target == this) {
@@ -34,11 +36,16 @@ public enum SubscriptionStatus {
                 case PAST_DUE, EXPIRED, CANCELED -> Decision.IGNORE;
                 default -> throw new IllegalTransitionException(this, target);
             };
+            case TRIALING -> switch (target) {
+                // Paid during the trial; the trial ends unpaid (grace, like a renewal); canceled.
+                case ACTIVE, PAST_DUE, CANCELED -> Decision.APPLY;
+                default -> throw new IllegalTransitionException(this, target);
+            };
         };
     }
 
-    /** Whether the customer should have access (ADR-0026: grace is entitled). */
+    /** Whether the customer should have access (ADR-0026: grace is entitled; ADR-0028: so is a trial). */
     public boolean isEntitled() {
-        return this == ACTIVE || this == PAST_DUE;
+        return this == ACTIVE || this == PAST_DUE || this == TRIALING;
     }
 }

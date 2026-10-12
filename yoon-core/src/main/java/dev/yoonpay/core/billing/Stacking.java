@@ -21,7 +21,8 @@ public final class Stacking {
         Objects.requireNonNull(paidAt, "paidAt");
         return switch (status) {
             // Paying early never loses days; paying in grace does not get the grace days free.
-            case ACTIVE, PAST_DUE -> currentPeriodEnd != null ? currentPeriodEnd : paidAt;
+            // Paying during a trial keeps the trial days: the paid period starts at the trial end.
+            case ACTIVE, PAST_DUE, TRIALING -> currentPeriodEnd != null ? currentPeriodEnd : paidAt;
             // A first payment, or one after the subscription ended: a fresh period from now.
             case INCOMPLETE, EXPIRED, CANCELED -> paidAt;
         };

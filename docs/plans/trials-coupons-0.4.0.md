@@ -33,6 +33,10 @@ New: status `trialing`; event `subscription.trial_will_end`; fields `trial_end`,
 5. **Operator + clients:** dashboard coupons tab, exports, admin views; Python/JS helpers count
    `trialing` as entitled; guide section in `docs/billing.md`; website; LinkedIn post.
 
+## Progress
+- M1 core: `TRIALING` (full matrix, entitled, never re-entered), stacking from the trial end,
+  `Discounts` (percent floored without overflow, amount capped, periods) — done.
+
 ## Tests beyond the usual
 - Trial: paid during the trial → period starts at the trial end; unpaid → `past_due` → `expired`;
   second trial on the same plan refused; cancel at trial end → `canceled`; reminder once.

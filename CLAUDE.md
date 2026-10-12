@@ -287,6 +287,9 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   genuine, duplicate, late or forged webhooks.
 - State machine tests list the full from × to matrix; update the matrix
   deliberately when a rule changes.
+- After adding a value to a core enum, build with `./mvnw clean verify`: the incremental
+  build does not recompile the server, so an exhaustive `switch` missing the new value
+  compiles locally and fails at runtime (CI builds clean and catches it).
 
 ## Licensing
 
