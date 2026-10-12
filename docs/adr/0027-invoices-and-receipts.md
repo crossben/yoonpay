@@ -30,7 +30,7 @@ instances.
 - `paid` only through a confirmed payment of the exact `amount_due` (`Settlement` already refuses
   mismatched amounts; a mismatch leaves the invoice open and raises an alert).
 - `void`: a cancelled subscription's open invoice, or one replaced by a plan change.
-- `uncollectible`: reserved for 0.4.0 dunning; not set in 0.3.0.
+- `uncollectible`: reserved for dunning (0.5.0); not set yet.
 - A payment confirmed **after** `void` still marks it paid and applies (money received is never
   ignored), with an alert for a human.
 

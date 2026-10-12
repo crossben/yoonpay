@@ -5,7 +5,7 @@ Design: [ADR-0025](../adr/0025-customers-and-catalog.md) (customers, plans, pric
 [ADR-0027](../adr/0027-invoices-and-receipts.md) (invoices, receipts).
 Status: **shipped in 0.3.0.** Reference merchant: OSIG (FastAPI SaaS).
 
-Out of 0.3.0, planned for 0.4.0: `automatic` collection + dunning (Stripe first, provider
+Out of 0.3.0, planned for 0.5.0 (first 0.4.0, which became trials and coupons): `automatic` collection + dunning (Stripe first, provider
 capability), customer portal, PDF receipts.
 
 ## 1. API (all additive; `/v1/payments` unchanged)

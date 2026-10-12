@@ -44,6 +44,8 @@ New: status `trialing`; event `subscription.trial_will_end`; fields `trial_end`,
   invoice kind, use consumed at payment (changed from the ADR: a voided invoice costs nothing),
   0-due invoices paid at creation, apply/remove later, checkout and receipt show the coupon —
   done. New response fields are optional in the spec (a 0.4 client must read a 0.3 server).
+- M5 dashboard coupons tab, admin coupons view, exports (`coupons.csv`, discount and trial
+  columns); client helpers were done in M3 — done. Website and LinkedIn: outside this repository.
 
 ## Tests beyond the usual
 - Trial: paid during the trial → period starts at the trial end; unpaid → `past_due` → `expired`;

@@ -1177,6 +1177,17 @@ paths:
         '200': { $ref: '#/components/responses/Csv' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /v1/exports/coupons.csv:
+    get:
+      tags: [Exports]
+      operationId: exportCouponRedemptions
+      summary: Export coupon redemptions as CSV
+      description: One row per redemption in the window — coupon, code, subscription and the customer's external id.
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
   /v1/providers:
     get:
       tags: [Meta]
@@ -1745,6 +1756,28 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/applications/{application_id}/coupons:
+    get:
+      tags: [Admin]
+      operationId: adminListApplicationCoupons
+      summary: One application's coupons
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: code, in: query, schema: { type: string } }
+        - { name: active, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of coupons, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CouponPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
 
   /admin/v1/applications/{application_id}/invoices:
     get:

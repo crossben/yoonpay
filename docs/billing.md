@@ -4,7 +4,7 @@ Yoon 0.3.0 bills **prepaid subscriptions**: the customer pays each period (month
 Yoon's hosted checkout, by mobile money, PI-SPI or card, and your application grants access
 from Yoon's webhooks. Nothing is charged automatically: mobile money has no card-style
 auto-debit, so every period is a payment the customer makes. (Automatic charging, Stripe first,
-is planned for 0.4.0.)
+is planned for 0.5.0.)
 
 Design: [ADR-0025](adr/0025-customers-and-catalog.md) (customers, plans, prices),
 [ADR-0026](adr/0026-subscriptions-prepaid.md) (subscriptions, lifecycle),

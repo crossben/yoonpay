@@ -251,6 +251,23 @@ class AdminBillingTest extends BillingTestSupport {
         assertThat(invs.body()).startsWith("id,number,created_at,");
         assertThat(invs.body()).contains("," + number + ",").contains(",first,paid,15000,XOF,");
         assertThat(subs.body() + invs.body()).doesNotContain("771234567");
+        assertThat(subs.body().lines().findFirst().orElseThrow()).endsWith(",trial_end,coupon,discount_periods_remaining");
+        assertThat(invs.body().lines().findFirst().orElseThrow()).endsWith(",subtotal,discount_amount,coupon");
+    }
+
+    @Test
+    void coupons_have_an_admin_view_and_their_redemptions_export() {
+        String code = "ADM" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+        post("shop", "/v1/coupons", Map.of("code", code, "percent_off", 10, "duration", "once"));
+        post("shop", "/v1/subscriptions", Map.of("customer", customer, "price", monthly, "coupon", code,
+                "return_url", "https://shop.example/billing"));
+
+        Response view = admin("GET", base() + "/coupons?code=" + code, null);
+        Response csv = get("shop", "/v1/exports/coupons.csv");
+
+        assertThat(view.json().path("data").get(0).path("times_redeemed").asInt()).isEqualTo(1);
+        assertThat(csv.body()).startsWith("coupon,code,redeemed_at,subscription,customer,customer_external_id");
+        assertThat(csv.body()).contains("," + code + ",");
     }
 
     /** The events list as returned by a history endpoint. */

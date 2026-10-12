@@ -63,7 +63,7 @@ status API anyway.
 ## Operator dashboard
 
 Open `$YOON/dashboard` and paste the admin token. It shows applications; payments, refunds,
-payouts, subscriptions, invoices and plans per application (filter by status, newest first); payouts needing review; dead letters
+payouts, subscriptions, invoices, plans and coupons per application (filter by status, newest first); payouts needing review; dead letters
 (with **Replay**); balances and ledger entries; and the status history of any record (click its id).
 The token stays in that browser tab's session storage; **Sign out** or closing the tab forgets it.
 The dashboard does not resolve payouts or grant comps: use `POST /admin/v1/payouts/{id}/resolve`

@@ -84,7 +84,7 @@ once, in Java, instead of in every project.
     renewal reminders, moves ended periods to `past_due` (with a renewal invoice) and expires
     subscriptions after grace;
   - operators grant periods without payment (comp: some periods, or open-ended for "contact us"
-    plans) from the CLI or the operator API; CSV exports `subscriptions.csv` and `invoices.csv`;
+    plans) from the CLI or the operator API; CSV exports `subscriptions.csv`, `invoices.csv` and `coupons.csv`;
   - Python and JS helpers: entitlement from a subscription event, redirect to the checkout
     (FastAPI, Next.js);
   - free trials (0.4.0 in progress): `trialing` is entitled with nothing to pay; unpaid at the
@@ -144,8 +144,8 @@ never a second one while a provider may have the payment. Until the customer cho
 ## Operator dashboard
 
 Open `https://<your yoon>/dashboard` and paste `YOON_ADMIN_TOKEN`. You see your applications;
-payments, refunds, payouts, subscriptions, invoices and plans per application (filter by
-status, newest first, paginated);
+payments, refunds, payouts, subscriptions, invoices, plans and coupons per application (filter
+by status, newest first, paginated);
 payouts needing review; webhook dead letters, which you can replay; balances and ledger
 entries; and the status history of any record. Phone numbers stay masked. The token is kept
 only in that browser tab (session storage) and sent in the `Authorization` header, never in

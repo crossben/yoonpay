@@ -9,7 +9,8 @@ In West Africa most customers pay by mobile money, which has no card-style auto-
 period is a payment the customer makes. Merchants therefore sell **prepaid periods** and need
 renewals, reminders, grace, expiry and plan changes. Automatic charging (saved cards, mandates)
 needs a new provider operation and only Stripe offers it today: it is **not** in 0.3.0 (planned
-for 0.4.0 with dunning, behind a provider capability and its own ADR).
+for 0.5.0 with dunning, behind a provider capability and its own ADR; first planned for 0.4.0,
+which became trials and coupons).
 
 ## Decision
 
@@ -137,5 +138,5 @@ raw value; JS has no runtime checks), with a test in each client. CI lowers that
   (default 3), `YOON_APPS_<APP>_BILLING_TIMEZONE` (default `Africa/Dakar`),
   `YOON_APPS_<APP>_BILLING_INVOICE_PREFIX` (default `INV`), `YOON_APPS_<APP>_BILLING_INVOICE_TTL`
   (default `7d`).
-- Deferred to 0.4.0: `automatic` collection and dunning (provider capability, Stripe first),
+- Deferred to 0.5.0: `automatic` collection and dunning (provider capability, Stripe first),
   customer portal, PDF receipts.

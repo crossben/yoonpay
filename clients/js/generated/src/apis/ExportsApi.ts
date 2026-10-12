@@ -18,6 +18,11 @@ import type {
   Problem,
 } from '../models/index';
 
+export interface ExportCouponRedemptionsRequest {
+    from?: string;
+    to?: string;
+}
+
 export interface ExportInvoicesRequest {
     from?: string;
     to?: string;
@@ -52,6 +57,57 @@ export interface ExportSubscriptionsRequest {
  * 
  */
 export class ExportsApi extends runtime.BaseAPI {
+
+    /**
+     * One row per redemption in the window — coupon, code, subscription and the customer\'s external id.
+     * Export coupon redemptions as CSV
+     */
+    async exportCouponRedemptionsRaw(requestParameters: ExportCouponRedemptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['from'] != null) {
+            queryParameters['from'] = requestParameters['from'];
+        }
+
+        if (requestParameters['to'] != null) {
+            queryParameters['to'] = requestParameters['to'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("apiKey", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/v1/exports/coupons.csv`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<string>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * One row per redemption in the window — coupon, code, subscription and the customer\'s external id.
+     * Export coupon redemptions as CSV
+     */
+    async exportCouponRedemptions(requestParameters: ExportCouponRedemptionsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportCouponRedemptionsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Created in the window, with number, status, amount, period and the payment that paid it.

@@ -114,7 +114,8 @@ public class ExportController {
     record SubscriptionRow(String id, Instant createdAt, String customerId, String externalId, String plan,
                            String priceId, String status, Instant currentPeriodStart, Instant currentPeriodEnd,
                            boolean cancelAtPeriodEnd, Instant canceledAt, boolean comp, long amount, String currency,
-                           String interval, int intervalCount) {
+                           String interval, int intervalCount, Instant trialEnd, String couponCode,
+                           Integer discountPeriodsRemaining) {
     }
 
     @GetMapping("/v1/exports/subscriptions.csv")
@@ -126,11 +127,13 @@ public class ExportController {
              Stream<SubscriptionRow> rows = jdbc.sql("""
                              SELECT s.id, s.created_at, s.customer_id, c.external_id, pl.slug AS plan, s.price_id,
                                     s.status, s.current_period_start, s.current_period_end, s.cancel_at_period_end,
-                                    s.canceled_at, s.comp, pr.amount, pr.currency, pr.interval, pr.interval_count
+                                    s.canceled_at, s.comp, pr.amount, pr.currency, pr.interval, pr.interval_count,
+                                    s.trial_end, co.code AS coupon_code, s.discount_periods_remaining
                              FROM subscriptions s
                              JOIN customers c ON c.id = s.customer_id
                              JOIN prices pr ON pr.id = s.price_id
                              JOIN plans pl ON pl.id = pr.plan_id
+                             LEFT JOIN coupons co ON co.id = s.coupon_id
                              WHERE s.application_id = :app
                                AND (CAST(:from AS TIMESTAMPTZ) IS NULL OR s.created_at >= :from)
                                AND (CAST(:to AS TIMESTAMPTZ) IS NULL OR s.created_at < :to)
@@ -141,16 +144,18 @@ public class ExportController {
                      .query(SubscriptionRow.class).stream()) {
             row(out, "id", "created_at", "customer", "customer_external_id", "plan", "price", "status",
                     "current_period_start", "current_period_end", "cancel_at_period_end", "canceled_at", "comp",
-                    "amount", "currency", "interval", "interval_count");
+                    "amount", "currency", "interval", "interval_count", "trial_end", "coupon", "discount_periods_remaining");
             rows.forEach(r -> row(out, r.id(), r.createdAt(), r.customerId(), r.externalId(), r.plan(), r.priceId(),
                     r.status().toLowerCase(), r.currentPeriodStart(), r.currentPeriodEnd(), r.cancelAtPeriodEnd(),
-                    r.canceledAt(), r.comp(), r.amount(), r.currency(), r.interval().toLowerCase(), r.intervalCount()));
+                    r.canceledAt(), r.comp(), r.amount(), r.currency(), r.interval().toLowerCase(), r.intervalCount(),
+                    r.trialEnd(), r.couponCode(), r.discountPeriodsRemaining()));
         }
     }
 
     record InvoiceRow(String id, String number, Instant createdAt, String customerId, String subscriptionId,
                       String kind, String status, long amountDue, String currency, Instant periodStart,
-                      Instant periodEnd, String paymentId, Instant paidAt, Instant voidedAt) {
+                      Instant periodEnd, String paymentId, Instant paidAt, Instant voidedAt, long subtotal,
+                      long discountAmount, String couponCode) {
     }
 
     @GetMapping("/v1/exports/invoices.csv")
@@ -160,22 +165,56 @@ public class ExportController {
                          HttpServletResponse response) throws IOException {
         try (PrintWriter out = csv(response, "invoices");
              Stream<InvoiceRow> rows = jdbc.sql("""
-                             SELECT id, number, created_at, customer_id, subscription_id, kind, status, amount_due,
-                                    currency, period_start, period_end, payment_id, paid_at, voided_at
-                             FROM invoices
-                             WHERE application_id = :app
-                               AND (CAST(:from AS TIMESTAMPTZ) IS NULL OR created_at >= :from)
-                               AND (CAST(:to AS TIMESTAMPTZ) IS NULL OR created_at < :to)
-                             ORDER BY id""")
+                             SELECT i.id, i.number, i.created_at, i.customer_id, i.subscription_id, i.kind, i.status,
+                                    i.amount_due, i.currency, i.period_start, i.period_end, i.payment_id, i.paid_at,
+                                    i.voided_at, i.subtotal, i.discount_amount, co.code AS coupon_code
+                             FROM invoices i LEFT JOIN coupons co ON co.id = i.coupon_id
+                             WHERE i.application_id = :app
+                               AND (CAST(:from AS TIMESTAMPTZ) IS NULL OR i.created_at >= :from)
+                               AND (CAST(:to AS TIMESTAMPTZ) IS NULL OR i.created_at < :to)
+                             ORDER BY i.id""")
                      .param("app", app.id())
                      .param("from", from == null ? null : Timestamp.from(from))
                      .param("to", to == null ? null : Timestamp.from(to))
                      .query(InvoiceRow.class).stream()) {
             row(out, "id", "number", "created_at", "customer", "subscription", "kind", "status", "amount_due",
-                    "currency", "period_start", "period_end", "payment", "paid_at", "voided_at");
+                    "currency", "period_start", "period_end", "payment", "paid_at", "voided_at", "subtotal",
+                    "discount_amount", "coupon");
             rows.forEach(r -> row(out, r.id(), r.number(), r.createdAt(), r.customerId(), r.subscriptionId(),
                     r.kind().toLowerCase(), r.status().toLowerCase(), r.amountDue(), r.currency(), r.periodStart(),
-                    r.periodEnd(), r.paymentId(), r.paidAt(), r.voidedAt()));
+                    r.periodEnd(), r.paymentId(), r.paidAt(), r.voidedAt(), r.subtotal(), r.discountAmount(),
+                    r.couponCode()));
+        }
+    }
+
+    record RedemptionRow(String couponId, String code, Instant redeemedAt, String subscriptionId, String customerId,
+                         String externalId) {
+    }
+
+    /** One row per redemption: which customer and subscription used which coupon, when. */
+    @GetMapping("/v1/exports/coupons.csv")
+    @Transactional(readOnly = true)
+    public void coupons(AppPrincipal app, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+                        HttpServletResponse response) throws IOException {
+        try (PrintWriter out = csv(response, "coupons");
+             Stream<RedemptionRow> rows = jdbc.sql("""
+                             SELECT r.coupon_id, co.code, r.created_at AS redeemed_at, r.subscription_id, r.customer_id,
+                                    c.external_id
+                             FROM coupon_redemptions r
+                             JOIN coupons co ON co.id = r.coupon_id
+                             JOIN customers c ON c.id = r.customer_id
+                             WHERE r.application_id = :app
+                               AND (CAST(:from AS TIMESTAMPTZ) IS NULL OR r.created_at >= :from)
+                               AND (CAST(:to AS TIMESTAMPTZ) IS NULL OR r.created_at < :to)
+                             ORDER BY r.id""")
+                     .param("app", app.id())
+                     .param("from", from == null ? null : Timestamp.from(from))
+                     .param("to", to == null ? null : Timestamp.from(to))
+                     .query(RedemptionRow.class).stream()) {
+            row(out, "coupon", "code", "redeemed_at", "subscription", "customer", "customer_external_id");
+            rows.forEach(r -> row(out, r.couponId(), r.code(), r.redeemedAt(), r.subscriptionId(), r.customerId(),
+                    r.externalId()));
         }
     }
 

@@ -45,13 +45,15 @@ public class AdminBillingController {
     private final PlanController plans;
     private final SubscriptionController subscriptions;
     private final InvoiceController invoices;
+    private final CouponController couponController;
     private final CompService comp;
     private final BillingViews views;
     private final IdempotentCall idempotent;
 
     public AdminBillingController(Applications applications, PlanController plans, SubscriptionController subscriptions,
                                   InvoiceController invoices, CompService comp, BillingViews views,
-                                  IdempotentCall idempotent) {
+                                  IdempotentCall idempotent, CouponController couponController) {
+        this.couponController = couponController;
         this.applications = applications;
         this.plans = plans;
         this.subscriptions = subscriptions;
@@ -81,6 +83,15 @@ public class AdminBillingController {
     @GetMapping("/subscriptions/{id}/events")
     List<EventResponse> subscriptionEvents(@PathVariable String applicationId, @PathVariable String id) {
         return subscriptions.history(app(applicationId), id);
+    }
+
+    @GetMapping("/coupons")
+    Page<dev.yoonpay.server.billing.CouponResponse> coupons(@PathVariable String applicationId,
+                                                           @RequestParam(required = false) String code,
+                                                           @RequestParam(required = false) Boolean active,
+                                                           @RequestParam(name = "starting_after", required = false) String startingAfter,
+                                                           @RequestParam(required = false) Integer limit) {
+        return couponController.list(app(applicationId), code, active, startingAfter, limit);
     }
 
     @GetMapping("/invoices")

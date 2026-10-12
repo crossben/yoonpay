@@ -18,6 +18,10 @@ never changes incompatibly.
 - **100% off**: an invoice with nothing to pay is paid at creation, without a payment or ledger
   posting; the subscription is activated or renewed as usual and the receipt says which coupon
   paid it. The checkout and the receipt show the coupon and the discount.
+- Operator: dashboard **Coupons** tab (code, discount, uses / cap, plans) and a discount column
+  on invoices; `GET /admin/v1/applications/{app}/coupons`. Exports: `coupons.csv` (one row per
+  redemption), `subscriptions.csv` gains `trial_end`, `coupon`, `discount_periods_remaining`,
+  `invoices.csv` gains `subtotal`, `discount_amount`, `coupon`.
 - Free trials (ADR-0028): `Plan.trial_days` (default trial) and `trial_days` on
   `POST /v1/subscriptions`. A trial starts `trialing` (entitled), with nothing to pay and no
   invoice; one trial per customer and plan (`409 trial_already_used` when asked again). Paying
