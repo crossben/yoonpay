@@ -56,6 +56,7 @@ import dev.yoonpay.client.generated.ApiClient;
   Subscription.JSON_PROPERTY_CANCELED_AT,
   Subscription.JSON_PROPERTY_COMP,
   Subscription.JSON_PROPERTY_ENTITLED,
+  Subscription.JSON_PROPERTY_TRIAL_END,
   Subscription.JSON_PROPERTY_FEATURES,
   Subscription.JSON_PROPERTY_LATEST_INVOICE,
   Subscription.JSON_PROPERTY_METADATA,
@@ -189,6 +190,10 @@ public class Subscription {
   public static final String JSON_PROPERTY_ENTITLED = "entitled";
   @jakarta.annotation.Nonnull
   private Boolean entitled;
+
+  public static final String JSON_PROPERTY_TRIAL_END = "trial_end";
+  @jakarta.annotation.Nullable
+  private OffsetDateTime trialEnd;
 
   public static final String JSON_PROPERTY_FEATURES = "features";
   @jakarta.annotation.Nonnull
@@ -531,7 +536,7 @@ public class Subscription {
   }
 
   /**
-   * Whether the customer should have access now (&#x60;active&#x60; or &#x60;past_due&#x60;).
+   * Whether the customer should have access now (&#x60;active&#x60;, &#x60;past_due&#x60; or &#x60;trialing&#x60;).
    * @return entitled
    */
   @jakarta.annotation.Nonnull
@@ -546,6 +551,30 @@ public class Subscription {
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
   public void setEntitled(@jakarta.annotation.Nonnull Boolean entitled) {
     this.entitled = entitled;
+  }
+
+
+  public Subscription trialEnd(@jakarta.annotation.Nullable OffsetDateTime trialEnd) {
+    this.trialEnd = trialEnd;
+    return this;
+  }
+
+  /**
+   * When its free trial ends (or ended); null without a trial.
+   * @return trialEnd
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_END, required = false)
+  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  public OffsetDateTime getTrialEnd() {
+    return trialEnd;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_END, required = false)
+  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  public void setTrialEnd(@jakarta.annotation.Nullable OffsetDateTime trialEnd) {
+    this.trialEnd = trialEnd;
   }
 
 
@@ -711,6 +740,7 @@ public class Subscription {
         Objects.equals(this.canceledAt, subscription.canceledAt) &&
         Objects.equals(this.comp, subscription.comp) &&
         Objects.equals(this.entitled, subscription.entitled) &&
+        Objects.equals(this.trialEnd, subscription.trialEnd) &&
         Objects.equals(this.features, subscription.features) &&
         Objects.equals(this.latestInvoice, subscription.latestInvoice) &&
         Objects.equals(this.metadata, subscription.metadata) &&
@@ -720,7 +750,7 @@ public class Subscription {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, customer, price, status, collectionMethod, currentPeriodStart, currentPeriodEnd, gracePeriodDays, cancelAtPeriodEnd, pendingChange, canceledAt, comp, entitled, features, latestInvoice, metadata, createdAt, updatedAt);
+    return Objects.hash(id, _object, customer, price, status, collectionMethod, currentPeriodStart, currentPeriodEnd, gracePeriodDays, cancelAtPeriodEnd, pendingChange, canceledAt, comp, entitled, trialEnd, features, latestInvoice, metadata, createdAt, updatedAt);
   }
 
   @Override
@@ -741,6 +771,7 @@ public class Subscription {
     sb.append("    canceledAt: ").append(toIndentedString(canceledAt)).append("\n");
     sb.append("    comp: ").append(toIndentedString(comp)).append("\n");
     sb.append("    entitled: ").append(toIndentedString(entitled)).append("\n");
+    sb.append("    trialEnd: ").append(toIndentedString(trialEnd)).append("\n");
     sb.append("    features: ").append(toIndentedString(features)).append("\n");
     sb.append("    latestInvoice: ").append(toIndentedString(latestInvoice)).append("\n");
     sb.append("    metadata: ").append(toIndentedString(metadata)).append("\n");
@@ -861,6 +892,11 @@ public class Subscription {
     // add `entitled` to the URL query string
     if (getEntitled() != null) {
       joiner.add(String.format(Locale.ROOT, "%sentitled%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getEntitled()))));
+    }
+
+    // add `trial_end` to the URL query string
+    if (getTrialEnd() != null) {
+      joiner.add(String.format(Locale.ROOT, "%strial_end%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getTrialEnd()))));
     }
 
     // add `features` to the URL query string

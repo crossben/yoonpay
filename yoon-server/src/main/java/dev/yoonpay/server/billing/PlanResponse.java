@@ -17,6 +17,7 @@ public record PlanResponse(
         JsonNode features,
         JsonNode metadata,
         List<PriceResponse> prices,
+        int trialDays,
         Instant createdAt,
         Instant updatedAt) {
 
@@ -40,6 +41,6 @@ public record PlanResponse(
     public static PlanResponse of(PlanRecord p, List<PriceRecord> prices, ObjectMapper json) {
         return new PlanResponse(p.id(), "plan", p.slug(), p.name(), p.active(), Metadata.read(p.features(), json),
                 Metadata.read(p.metadata(), json), prices.stream().map(PriceResponse::of).toList(),
-                p.createdAt(), p.updatedAt());
+                p.trialDays(), p.createdAt(), p.updatedAt());
     }
 }

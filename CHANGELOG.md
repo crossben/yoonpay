@@ -11,6 +11,16 @@ never changes incompatibly.
   are unique per application whatever the case. Terms never change (a database trigger refuses
   it); archive with `active: false`; the cap can only be raised or removed. Redeeming a coupon
   on a subscription comes next.
+- Free trials (ADR-0028): `Plan.trial_days` (default trial) and `trial_days` on
+  `POST /v1/subscriptions`. A trial starts `trialing` (entitled), with nothing to pay and no
+  invoice; one trial per customer and plan (`409 trial_already_used` when asked again). Paying
+  during the trial (`/renew`) starts the paid period at the trial end. Unpaid at the end: the
+  first invoice opens and the subscription goes `past_due` (grace), then `expired`. Cancel at the
+  trial end works; a plan change during the trial only switches the price. New event
+  `subscription.trial_will_end` (reminder days before), field `Subscription.trial_end`.
+- **Upgrade your clients before using trials.** The 0.4 Python and JS helpers count `trialing`
+  as entitled and treat `subscription.created` as an entitlement event (a subscription may now
+  start entitled); the 0.3 helpers would deny access to trial users.
 - Migration `V8` (trials and coupons schema). Invoices gain `subtotal` (equal to `amount_due`
   until discounts apply).
 

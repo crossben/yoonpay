@@ -14,7 +14,7 @@ public class CatalogRepository {
 
     private static final String PLAN = """
             SELECT id, application_id, slug, name, active, features::text AS features, metadata::text AS metadata,
-                   created_at, updated_at
+                   created_at, updated_at, trial_days
             FROM plans""";
 
     private final JdbcClient jdbc;
@@ -25,9 +25,10 @@ public class CatalogRepository {
 
     public void insertPlan(PlanRecord p) {
         jdbc.sql("""
-                        INSERT INTO plans (id, application_id, slug, name, active, features, metadata)
-                        VALUES (:id, :app, :slug, :name, true, CAST(:features AS jsonb), CAST(:metadata AS jsonb))""")
+                        INSERT INTO plans (id, application_id, slug, name, active, features, metadata, trial_days)
+                        VALUES (:id, :app, :slug, :name, true, CAST(:features AS jsonb), CAST(:metadata AS jsonb), :trial)""")
                 .param("id", p.id()).param("app", p.applicationId()).param("slug", p.slug()).param("name", p.name())
+                .param("trial", p.trialDays())
                 .param("features", p.features()).param("metadata", p.metadata())
                 .update();
     }
@@ -35,9 +36,10 @@ public class CatalogRepository {
     public void updatePlan(PlanRecord p) {
         jdbc.sql("""
                         UPDATE plans SET name = :name, active = :active, features = CAST(:features AS jsonb),
-                               metadata = CAST(:metadata AS jsonb), updated_at = now()
+                               metadata = CAST(:metadata AS jsonb), trial_days = :trial, updated_at = now()
                         WHERE application_id = :app AND id = :id""")
                 .param("id", p.id()).param("app", p.applicationId()).param("name", p.name()).param("active", p.active())
+                .param("trial", p.trialDays())
                 .param("features", p.features()).param("metadata", p.metadata())
                 .update();
     }

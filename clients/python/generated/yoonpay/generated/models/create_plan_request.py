@@ -33,7 +33,8 @@ class CreatePlanRequest(BaseModel):
     features: Optional[Dict[str, Any]] = None
     metadata: Optional[Dict[str, Annotated[str, Field(strict=True, max_length=500)]]] = Field(default=None, description="Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.")
     prices: Optional[Annotated[List[PriceInput], Field(max_length=20)]] = None
-    __properties: ClassVar[List[str]] = ["slug", "name", "features", "metadata", "prices"]
+    trial_days: Optional[Annotated[int, Field(le=90, strict=True, ge=0)]] = Field(default=None, description="Default free trial for new subscriptions.")
+    __properties: ClassVar[List[str]] = ["slug", "name", "features", "metadata", "prices", "trial_days"]
 
     @field_validator('slug')
     def slug_validate_regular_expression(cls, value):
@@ -104,7 +105,8 @@ class CreatePlanRequest(BaseModel):
             "name": obj.get("name"),
             "features": obj.get("features"),
             "metadata": obj.get("metadata"),
-            "prices": [PriceInput.from_dict(_item) for _item in obj["prices"]] if obj.get("prices") is not None else None
+            "prices": [PriceInput.from_dict(_item) for _item in obj["prices"]] if obj.get("prices") is not None else None,
+            "trial_days": obj.get("trial_days")
         })
         return _obj
 

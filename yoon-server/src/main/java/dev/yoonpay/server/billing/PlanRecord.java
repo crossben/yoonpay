@@ -13,5 +13,6 @@ public record PlanRecord(
         String features,
         String metadata,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        int trialDays) {
 }

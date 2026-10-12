@@ -36,7 +36,7 @@ import java.util.Map;
 public class SubscriptionService {
 
     public record CreateRequest(String customer, String price, Integer gracePeriodDays, JsonNode metadata,
-                                String returnUrl) {
+                                String returnUrl, Integer trialDays) {
     }
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -80,7 +80,6 @@ public class SubscriptionService {
     // ------------------------------------------------------------------ create
 
     public SubscriptionRecord create(AppPrincipal app, CreateRequest req) {
-        requirePublicUrl();
         CustomerRecord customer = customers.find(app.id(), req.customer())
                 .orElseThrow(() -> ApiProblem.unprocessable("customer_not_found", "No customer " + req.customer()));
         PriceRecord price = activePrice(app, req.price());
@@ -88,9 +87,24 @@ public class SubscriptionService {
         if (grace < 0 || grace > 90) {
             throw ApiProblem.invalid("grace_period_days must be 0–90");
         }
+        int trialDays = trialDays(app, customer, price, req.trialDays());
+        if (trialDays > 0) {
+            // A trial (ADR-0028): entitled now, nothing to pay until it ends; no invoice yet.
+            Instant now = clock.instant();
+            Instant trialEnd = now.plus(java.time.Duration.ofDays(trialDays));
+            SubscriptionRecord s = new SubscriptionRecord(Ids.next("sub"), app.id(), customer.id(), price.id(),
+                    SubscriptionStatus.TRIALING.name(), "PREPAID_MANUAL", null, now, trialEnd, grace, false, null, null,
+                    false, null, Metadata.metadata(req.metadata(), json), null, null, trialEnd);
+            tx.executeWithoutResult(t -> {
+                subscriptions.insert(s);
+                transitions.created(app, s.id());
+            });
+            return subscriptions.find(app.id(), s.id()).orElseThrow();
+        }
+        requirePublicUrl();
         SubscriptionRecord s = new SubscriptionRecord(Ids.next("sub"), app.id(), customer.id(), price.id(),
                 SubscriptionStatus.INCOMPLETE.name(), "PREPAID_MANUAL", null, null, null, grace, false, null, null,
-                false, null, Metadata.metadata(req.metadata(), json), null, null);
+                false, null, Metadata.metadata(req.metadata(), json), null, null, null);
         InvoiceRecord invoice = tx.execute(t -> {
             subscriptions.insert(s);
             transitions.created(app, s.id());
@@ -100,13 +114,31 @@ public class SubscriptionService {
         return subscriptions.find(app.id(), s.id()).orElseThrow();
     }
 
+    /** The trial this subscription gets: the request's, else the plan's; none if the customer had one on this plan. */
+    private int trialDays(AppPrincipal app, CustomerRecord customer, PriceRecord price, Integer requested) {
+        if (requested != null && (requested < 0 || requested > 90)) {
+            throw ApiProblem.invalid("trial_days must be 0–90");
+        }
+        int days = requested != null ? requested
+                : catalog.findPlan(app.id(), price.planId()).orElseThrow().trialDays();
+        if (days == 0 || !subscriptions.hadTrial(customer.id(), price.planId())) {
+            return days;
+        }
+        if (requested != null) {
+            throw new ApiProblem(org.springframework.http.HttpStatus.CONFLICT, "trial_already_used",
+                    "This customer already had a trial on this plan; grant more time with a comp instead");
+        }
+        return 0; // the plan's default trial is for first-timers only
+    }
+
     // ------------------------------------------------------------------ renew
 
     /** The open invoice (created if there is none) with a payable checkout. Safe to call repeatedly. */
     public InvoiceRecord renew(AppPrincipal app, String id, String returnUrl) {
         requirePublicUrl();
         SubscriptionRecord s = subscriptions.find(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
-        InvoiceRecord invoice = openInvoice(app, s, "RENEWAL");
+        InvoiceRecord invoice = openInvoice(app, s,
+                SubscriptionStatus.TRIALING.name().equals(s.status()) ? "FIRST" : "RENEWAL");
         CustomerRecord customer = customers.find(app.id(), s.customerId()).orElseThrow();
         ensurePayment(app, invoice, customer, returnUrl);
         return invoices.find(app.id(), invoice.id()).orElseThrow();
@@ -135,6 +167,9 @@ public class SubscriptionService {
     public SubscriptionRecord change(AppPrincipal app, String id, String priceId, String when, String returnUrl) {
         SubscriptionRecord s = subscriptions.find(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
         SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
+        if (status == SubscriptionStatus.TRIALING) {
+            return changeDuringTrial(app, s, priceId);
+        }
         if (status != SubscriptionStatus.ACTIVE && status != SubscriptionStatus.PAST_DUE) {
             throw ApiProblem.unprocessable("subscription_not_active", "Only an active or past-due subscription can change plan");
         }
@@ -168,12 +203,31 @@ public class SubscriptionService {
         return subscriptions.find(app.id(), id).orElseThrow();
     }
 
+    /** Nothing was paid during a trial: a change only switches the price the first invoice will charge. */
+    private SubscriptionRecord changeDuringTrial(AppPrincipal app, SubscriptionRecord s, String priceId) {
+        PriceRecord current = catalog.findPrice(app.id(), s.priceId()).orElseThrow();
+        PriceRecord next = activePrice(app, priceId);
+        if (!next.currency().equals(current.currency())) {
+            throw ApiProblem.unprocessable("currency_mismatch", "A plan change keeps the currency; start a new subscription instead");
+        }
+        if (next.id().equals(current.id())) {
+            return s;
+        }
+        voidOpenInvoice(app, s.id(), "replaced by a plan change during the trial");
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("price_id", next.id());
+        fields.put("pending_price_id", null);
+        transitions.update(app, s.id(), Cause.api, "change to " + next.id() + " during the trial", fields, "subscription.changed");
+        return subscriptions.find(app.id(), s.id()).orElseThrow();
+    }
+
     // ------------------------------------------------------------------ cancel / resume
 
     public SubscriptionRecord cancel(AppPrincipal app, String id, boolean atPeriodEnd) {
         SubscriptionRecord s = subscriptions.find(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
         SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
-        if (atPeriodEnd && status == SubscriptionStatus.ACTIVE && s.currentPeriodEnd() != null) {
+        if (atPeriodEnd && (status == SubscriptionStatus.ACTIVE || status == SubscriptionStatus.TRIALING)
+                && s.currentPeriodEnd() != null) {
             transitions.update(app, id, Cause.api, "cancel at period end", Map.of("cancel_at_period_end", true),
                     "subscription.changed");
         } else if (status == SubscriptionStatus.EXPIRED || status == SubscriptionStatus.CANCELED) {

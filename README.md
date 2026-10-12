@@ -87,8 +87,10 @@ once, in Java, instead of in every project.
     plans) from the CLI or the operator API; CSV exports `subscriptions.csv` and `invoices.csv`;
   - Python and JS helpers: entitlement from a subscription event, redirect to the checkout
     (FastAPI, Next.js);
+  - free trials (0.4.0 in progress): `trialing` is entitled with nothing to pay; unpaid at the
+    end → grace → expired; one trial per customer and plan;
   - coupons (`/v1/coupons`, 0.4.0 in progress): percent or amount off, once, N periods or
-    forever, immutable terms. Redeeming them on subscriptions, and free trials, come next.
+    forever, immutable terms. Redeeming them on subscriptions comes next.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount

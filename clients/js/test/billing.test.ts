@@ -65,6 +65,10 @@ describe("entitlementOf", () => {
     });
   });
 
+  it("trialing is entitled (free trial, 0.4)", () => {
+    expect(entitlementOf(subscription({ status: "trialing" })).entitled).toBe(true);
+  });
+
   it("past_due is entitled (grace)", () => {
     expect(entitlementOf(subscription({ status: "past_due" })).entitled).toBe(true);
   });
@@ -115,12 +119,14 @@ describe("billing event types", () => {
         "subscription.activated",
         "subscription.canceled",
         "subscription.changed",
+        "subscription.created",
         "subscription.expired",
         "subscription.past_due",
         "subscription.renewed",
       ],
     );
     expect(INFORMATIONAL_BILLING_EVENT_TYPES.has("subscription.renewal_upcoming")).toBe(true);
+    expect(INFORMATIONAL_BILLING_EVENT_TYPES.has("subscription.trial_will_end")).toBe(true);
     expect(INFORMATIONAL_BILLING_EVENT_TYPES.has("invoice.paid")).toBe(true);
   });
 

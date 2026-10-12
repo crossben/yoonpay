@@ -61,7 +61,8 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'price' => 'string',
         'grace_period_days' => 'int',
         'metadata' => 'array<string,string>',
-        'return_url' => 'string'
+        'return_url' => 'string',
+        'trial_days' => 'int'
     ];
 
     /**
@@ -76,7 +77,8 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'price' => null,
         'grace_period_days' => null,
         'metadata' => null,
-        'return_url' => 'uri'
+        'return_url' => 'uri',
+        'trial_days' => null
     ];
 
     /**
@@ -89,7 +91,8 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'price' => false,
         'grace_period_days' => false,
         'metadata' => false,
-        'return_url' => false
+        'return_url' => false,
+        'trial_days' => false
     ];
 
     /**
@@ -182,7 +185,8 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'price' => 'price',
         'grace_period_days' => 'grace_period_days',
         'metadata' => 'metadata',
-        'return_url' => 'return_url'
+        'return_url' => 'return_url',
+        'trial_days' => 'trial_days'
     ];
 
     /**
@@ -195,7 +199,8 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'price' => 'setPrice',
         'grace_period_days' => 'setGracePeriodDays',
         'metadata' => 'setMetadata',
-        'return_url' => 'setReturnUrl'
+        'return_url' => 'setReturnUrl',
+        'trial_days' => 'setTrialDays'
     ];
 
     /**
@@ -208,7 +213,8 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'price' => 'getPrice',
         'grace_period_days' => 'getGracePeriodDays',
         'metadata' => 'getMetadata',
-        'return_url' => 'getReturnUrl'
+        'return_url' => 'getReturnUrl',
+        'trial_days' => 'getTrialDays'
     ];
 
     /**
@@ -273,6 +279,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         $this->setIfExists('grace_period_days', $data ?? [], null);
         $this->setIfExists('metadata', $data ?? [], null);
         $this->setIfExists('return_url', $data ?? [], null);
+        $this->setIfExists('trial_days', $data ?? [], null);
     }
 
     /**
@@ -322,6 +329,14 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
 
         if (!is_null($this->container['return_url']) && (mb_strlen($this->container['return_url']) > 2048)) {
             $invalidProperties[] = "invalid value for 'return_url', the character length must be smaller than or equal to 2048.";
+        }
+
+        if (!is_null($this->container['trial_days']) && ($this->container['trial_days'] > 90)) {
+            $invalidProperties[] = "invalid value for 'trial_days', must be smaller than or equal to 90.";
+        }
+
+        if (!is_null($this->container['trial_days']) && ($this->container['trial_days'] < 0)) {
+            $invalidProperties[] = "invalid value for 'trial_days', must be bigger than or equal to 0.";
         }
 
         return $invalidProperties;
@@ -472,7 +487,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
     /**
      * Sets return_url
      *
-     * @param string|null $return_url return_url
+     * @param string|null $return_url Required unless the subscription starts with a trial.
      *
      * @return self
      */
@@ -486,6 +501,41 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         }
 
         $this->container['return_url'] = $return_url;
+
+        return $this;
+    }
+
+    /**
+     * Gets trial_days
+     *
+     * @return int|null
+     */
+    public function getTrialDays()
+    {
+        return $this->container['trial_days'];
+    }
+
+    /**
+     * Sets trial_days
+     *
+     * @param int|null $trial_days Free trial (ADR-0028); default: the plan's `trial_days`, 0 for none. A customer gets one trial per plan: asking for one again is `409 trial_already_used`; without `trial_days` the plan's default is simply not applied.
+     *
+     * @return self
+     */
+    public function setTrialDays($trial_days)
+    {
+        if (is_null($trial_days)) {
+            throw new \InvalidArgumentException('non-nullable trial_days cannot be null');
+        }
+
+        if (($trial_days > 90)) {
+            throw new \InvalidArgumentException('invalid value for $trial_days when calling CreateSubscriptionRequest., must be smaller than or equal to 90.');
+        }
+        if (($trial_days < 0)) {
+            throw new \InvalidArgumentException('invalid value for $trial_days when calling CreateSubscriptionRequest., must be bigger than or equal to 0.');
+        }
+
+        $this->container['trial_days'] = $trial_days;
 
         return $this;
     }

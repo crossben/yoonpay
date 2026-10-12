@@ -61,7 +61,8 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'string',
         'features' => 'array<string,mixed>',
         'metadata' => 'array<string,string>',
-        'prices' => '\Yoon\Generated\Model\PriceInput[]'
+        'prices' => '\Yoon\Generated\Model\PriceInput[]',
+        'trial_days' => 'int'
     ];
 
     /**
@@ -76,7 +77,8 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => null,
         'features' => null,
         'metadata' => null,
-        'prices' => null
+        'prices' => null,
+        'trial_days' => null
     ];
 
     /**
@@ -89,7 +91,8 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => false,
         'features' => false,
         'metadata' => false,
-        'prices' => false
+        'prices' => false,
+        'trial_days' => false
     ];
 
     /**
@@ -182,7 +185,8 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'name',
         'features' => 'features',
         'metadata' => 'metadata',
-        'prices' => 'prices'
+        'prices' => 'prices',
+        'trial_days' => 'trial_days'
     ];
 
     /**
@@ -195,7 +199,8 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'setName',
         'features' => 'setFeatures',
         'metadata' => 'setMetadata',
-        'prices' => 'setPrices'
+        'prices' => 'setPrices',
+        'trial_days' => 'setTrialDays'
     ];
 
     /**
@@ -208,7 +213,8 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'getName',
         'features' => 'getFeatures',
         'metadata' => 'getMetadata',
-        'prices' => 'getPrices'
+        'prices' => 'getPrices',
+        'trial_days' => 'getTrialDays'
     ];
 
     /**
@@ -273,6 +279,7 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         $this->setIfExists('features', $data ?? [], null);
         $this->setIfExists('metadata', $data ?? [], null);
         $this->setIfExists('prices', $data ?? [], null);
+        $this->setIfExists('trial_days', $data ?? [], null);
     }
 
     /**
@@ -326,6 +333,14 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
 
         if (!is_null($this->container['prices']) && (count($this->container['prices']) > 20)) {
             $invalidProperties[] = "invalid value for 'prices', number of items must be less than or equal to 20.";
+        }
+
+        if (!is_null($this->container['trial_days']) && ($this->container['trial_days'] > 90)) {
+            $invalidProperties[] = "invalid value for 'trial_days', must be smaller than or equal to 90.";
+        }
+
+        if (!is_null($this->container['trial_days']) && ($this->container['trial_days'] < 0)) {
+            $invalidProperties[] = "invalid value for 'trial_days', must be bigger than or equal to 0.";
         }
 
         return $invalidProperties;
@@ -494,6 +509,41 @@ class CreatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
             throw new \InvalidArgumentException('invalid value for $prices when calling CreatePlanRequest., number of items must be less than or equal to 20.');
         }
         $this->container['prices'] = $prices;
+
+        return $this;
+    }
+
+    /**
+     * Gets trial_days
+     *
+     * @return int|null
+     */
+    public function getTrialDays()
+    {
+        return $this->container['trial_days'];
+    }
+
+    /**
+     * Sets trial_days
+     *
+     * @param int|null $trial_days Default free trial for new subscriptions.
+     *
+     * @return self
+     */
+    public function setTrialDays($trial_days)
+    {
+        if (is_null($trial_days)) {
+            throw new \InvalidArgumentException('non-nullable trial_days cannot be null');
+        }
+
+        if (($trial_days > 90)) {
+            throw new \InvalidArgumentException('invalid value for $trial_days when calling CreatePlanRequest., must be smaller than or equal to 90.');
+        }
+        if (($trial_days < 0)) {
+            throw new \InvalidArgumentException('invalid value for $trial_days when calling CreatePlanRequest., must be bigger than or equal to 0.');
+        }
+
+        $this->container['trial_days'] = $trial_days;
 
         return $this;
     }

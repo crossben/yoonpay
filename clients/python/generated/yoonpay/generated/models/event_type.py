@@ -42,6 +42,7 @@ class EventType(str, Enum):
     SUBSCRIPTION_DOT_CANCELED = 'subscription.canceled'
     SUBSCRIPTION_DOT_CHANGED = 'subscription.changed'
     SUBSCRIPTION_DOT_RENEWAL_UPCOMING = 'subscription.renewal_upcoming'
+    SUBSCRIPTION_DOT_TRIAL_WILL_END = 'subscription.trial_will_end'
     INVOICE_DOT_CREATED = 'invoice.created'
     INVOICE_DOT_PAID = 'invoice.paid'
     INVOICE_DOT_VOIDED = 'invoice.voided'

@@ -167,15 +167,15 @@ return redirect_to_checkout(sub)
 # 2. Entitle only from webhooks (never from the return URL).
 @webhooks.post("/yoon/webhook", status_code=204)
 def yoon_events(event: Event = Depends(yoon_event)) -> None:
-    if changes_entitlement(event.type):     # subscription.activated|renewed|changed|past_due|expired|canceled
+    if changes_entitlement(event.type):     # subscription.created|activated|renewed|changed|past_due|expired|canceled
         e = Entitlement.from_subscription(event.object)
         save_access(e.external_id, entitled=e.entitled, plan=e.plan, until=e.until, features=e.features)
 ```
 
-`Entitlement` is entitled for `active` and `past_due` (the grace period); `until` is
+`Entitlement` is entitled for `active`, `past_due` (the grace period) and `trialing`; `until` is
 `current_period_end`, `None` for an open-ended comp. An unknown status gives
 `entitled=False` and an unknown event type is not in `ENTITLEMENT_EVENTS`: neither raises.
-`INFORMATIONAL_EVENTS` (`subscription.created`, `subscription.renewal_upcoming`,
+`INFORMATIONAL_EVENTS` (`subscription.renewal_upcoming`, `subscription.trial_will_end`,
 `invoice.created|paid|voided`) never change access. `yoonpay.billing` needs no framework; only
 `redirect_to_checkout` lives in `yoonpay.fastapi` (`checkout_url(obj)` gives the URL anywhere).
 

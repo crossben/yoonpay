@@ -31,7 +31,8 @@ class UpdatePlanRequest(BaseModel):
     active: Optional[StrictBool] = None
     features: Optional[Dict[str, Any]] = None
     metadata: Optional[Dict[str, Annotated[str, Field(strict=True, max_length=500)]]] = Field(default=None, description="Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.")
-    __properties: ClassVar[List[str]] = ["name", "active", "features", "metadata"]
+    trial_days: Optional[Annotated[int, Field(le=90, strict=True, ge=0)]] = None
+    __properties: ClassVar[List[str]] = ["name", "active", "features", "metadata", "trial_days"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -87,7 +88,8 @@ class UpdatePlanRequest(BaseModel):
             "name": obj.get("name"),
             "active": obj.get("active"),
             "features": obj.get("features"),
-            "metadata": obj.get("metadata")
+            "metadata": obj.get("metadata"),
+            "trial_days": obj.get("trial_days")
         })
         return _obj
 

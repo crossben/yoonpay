@@ -39,7 +39,8 @@ import dev.yoonpay.client.generated.ApiClient;
   UpdatePlanRequest.JSON_PROPERTY_NAME,
   UpdatePlanRequest.JSON_PROPERTY_ACTIVE,
   UpdatePlanRequest.JSON_PROPERTY_FEATURES,
-  UpdatePlanRequest.JSON_PROPERTY_METADATA
+  UpdatePlanRequest.JSON_PROPERTY_METADATA,
+  UpdatePlanRequest.JSON_PROPERTY_TRIAL_DAYS
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class UpdatePlanRequest {
@@ -58,6 +59,10 @@ public class UpdatePlanRequest {
   public static final String JSON_PROPERTY_METADATA = "metadata";
   @jakarta.annotation.Nullable
   private Map<String, String> metadata = new HashMap<>();
+
+  public static final String JSON_PROPERTY_TRIAL_DAYS = "trial_days";
+  @jakarta.annotation.Nullable
+  private Integer trialDays;
 
   public UpdatePlanRequest() { 
   }
@@ -174,6 +179,32 @@ public class UpdatePlanRequest {
   }
 
 
+  public UpdatePlanRequest trialDays(@jakarta.annotation.Nullable Integer trialDays) {
+    this.trialDays = trialDays;
+    return this;
+  }
+
+  /**
+   * Get trialDays
+   * minimum: 0
+   * maximum: 90
+   * @return trialDays
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Integer getTrialDays() {
+    return trialDays;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setTrialDays(@jakarta.annotation.Nullable Integer trialDays) {
+    this.trialDays = trialDays;
+  }
+
+
   /**
    * Return true if this UpdatePlanRequest object is equal to o.
    */
@@ -189,12 +220,13 @@ public class UpdatePlanRequest {
     return Objects.equals(this.name, updatePlanRequest.name) &&
         Objects.equals(this.active, updatePlanRequest.active) &&
         Objects.equals(this.features, updatePlanRequest.features) &&
-        Objects.equals(this.metadata, updatePlanRequest.metadata);
+        Objects.equals(this.metadata, updatePlanRequest.metadata) &&
+        Objects.equals(this.trialDays, updatePlanRequest.trialDays);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, active, features, metadata);
+    return Objects.hash(name, active, features, metadata, trialDays);
   }
 
   @Override
@@ -205,6 +237,7 @@ public class UpdatePlanRequest {
     sb.append("    active: ").append(toIndentedString(active)).append("\n");
     sb.append("    features: ").append(toIndentedString(features)).append("\n");
     sb.append("    metadata: ").append(toIndentedString(metadata)).append("\n");
+    sb.append("    trialDays: ").append(toIndentedString(trialDays)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -278,6 +311,11 @@ public class UpdatePlanRequest {
             "".equals(suffix) ? "" : String.format(Locale.ROOT, "%s%d%s", containerPrefix, _key, containerSuffix),
             getMetadata().get(_key), ApiClient.urlEncode(ApiClient.valueToString(getMetadata().get(_key)))));
       }
+    }
+
+    // add `trial_days` to the URL query string
+    if (getTrialDays() != null) {
+      joiner.add(String.format(Locale.ROOT, "%strial_days%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getTrialDays()))));
     }
 
     return joiner.toString();

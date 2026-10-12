@@ -93,6 +93,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'canceled_at' => '\DateTime',
         'comp' => 'bool',
         'entitled' => 'bool',
+        'trial_end' => '\DateTime',
         'features' => 'array<string,mixed>',
         'latest_invoice' => '\Yoon\Generated\Model\Invoice',
         'metadata' => 'array<string,string>',
@@ -152,6 +153,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'canceled_at' => 'date-time',
         'comp' => null,
         'entitled' => null,
+        'trial_end' => 'date-time',
         'features' => null,
         'latest_invoice' => null,
         'metadata' => null,
@@ -209,6 +211,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'canceled_at' => false,
         'comp' => false,
         'entitled' => false,
+        'trial_end' => false,
         'features' => false,
         'latest_invoice' => false,
         'metadata' => false,
@@ -346,6 +349,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'canceled_at' => 'canceled_at',
         'comp' => 'comp',
         'entitled' => 'entitled',
+        'trial_end' => 'trial_end',
         'features' => 'features',
         'latest_invoice' => 'latest_invoice',
         'metadata' => 'metadata',
@@ -403,6 +407,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'canceled_at' => 'setCanceledAt',
         'comp' => 'setComp',
         'entitled' => 'setEntitled',
+        'trial_end' => 'setTrialEnd',
         'features' => 'setFeatures',
         'latest_invoice' => 'setLatestInvoice',
         'metadata' => 'setMetadata',
@@ -460,6 +465,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'canceled_at' => 'getCanceledAt',
         'comp' => 'getComp',
         'entitled' => 'getEntitled',
+        'trial_end' => 'getTrialEnd',
         'features' => 'getFeatures',
         'latest_invoice' => 'getLatestInvoice',
         'metadata' => 'getMetadata',
@@ -626,6 +632,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('canceled_at', $data ?? [], null);
         $this->setIfExists('comp', $data ?? [], null);
         $this->setIfExists('entitled', $data ?? [], null);
+        $this->setIfExists('trial_end', $data ?? [], null);
         $this->setIfExists('features', $data ?? [], null);
         $this->setIfExists('latest_invoice', $data ?? [], null);
         $this->setIfExists('metadata', $data ?? [], null);
@@ -761,6 +768,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         }
         if ($this->container['entitled'] === null) {
             $invalidProperties[] = "'entitled' can't be null";
+        }
+        if ($this->container['trial_end'] === null) {
+            $invalidProperties[] = "'trial_end' can't be null";
         }
         if ($this->container['features'] === null) {
             $invalidProperties[] = "'features' can't be null";
@@ -1742,7 +1752,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets entitled
      *
-     * @param bool $entitled Whether the customer should have access now (`active` or `past_due`).
+     * @param bool $entitled Whether the customer should have access now (`active`, `past_due` or `trialing`).
      *
      * @return self
      */
@@ -1752,6 +1762,33 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
             throw new \InvalidArgumentException('non-nullable entitled cannot be null');
         }
         $this->container['entitled'] = $entitled;
+
+        return $this;
+    }
+
+    /**
+     * Gets trial_end
+     *
+     * @return \DateTime
+     */
+    public function getTrialEnd()
+    {
+        return $this->container['trial_end'];
+    }
+
+    /**
+     * Sets trial_end
+     *
+     * @param \DateTime $trial_end When its free trial ends (or ended); null without a trial.
+     *
+     * @return self
+     */
+    public function setTrialEnd($trial_end)
+    {
+        if (is_null($trial_end)) {
+            throw new \InvalidArgumentException('non-nullable trial_end cannot be null');
+        }
+        $this->container['trial_end'] = $trial_end;
 
         return $this;
     }

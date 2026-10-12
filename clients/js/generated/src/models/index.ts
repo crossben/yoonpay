@@ -1001,6 +1001,12 @@ export interface CreatePlanRequest {
      * @memberof CreatePlanRequest
      */
     prices?: Array<PriceInput>;
+    /**
+     * Default free trial for new subscriptions.
+     * @type {number}
+     * @memberof CreatePlanRequest
+     */
+    trial_days?: number;
 }
 /**
  * 
@@ -1052,11 +1058,20 @@ export interface CreateSubscriptionRequest {
      */
     metadata?: { [key: string]: string; };
     /**
-     * 
+     * Required unless the subscription starts with a trial.
      * @type {string}
      * @memberof CreateSubscriptionRequest
      */
     return_url?: string;
+    /**
+     * Free trial (ADR-0028); default: the plan's `trial_days`, 0 for none. A customer gets one
+     * trial per plan: asking for one again is `409 trial_already_used`; without `trial_days`
+     * the plan's default is simply not applied.
+     * 
+     * @type {number}
+     * @memberof CreateSubscriptionRequest
+     */
+    trial_days?: number;
 }
 /**
  * 
@@ -1414,6 +1429,7 @@ export const EventType = {
     SubscriptionCanceled: 'subscription.canceled',
     SubscriptionChanged: 'subscription.changed',
     SubscriptionRenewalUpcoming: 'subscription.renewal_upcoming',
+    SubscriptionTrialWillEnd: 'subscription.trial_will_end',
     InvoiceCreated: 'invoice.created',
     InvoicePaid: 'invoice.paid',
     InvoiceVoided: 'invoice.voided'
@@ -2324,6 +2340,12 @@ export interface Plan {
      */
     prices: Array<Price>;
     /**
+     * Default free trial for new subscriptions, 0 for none (ADR-0028).
+     * @type {number}
+     * @memberof Plan
+     */
+    trial_days: number;
+    /**
      * 
      * @type {string}
      * @memberof Plan
@@ -2968,11 +2990,17 @@ export interface Subscription {
      */
     comp: boolean;
     /**
-     * Whether the customer should have access now (`active` or `past_due`).
+     * Whether the customer should have access now (`active`, `past_due` or `trialing`).
      * @type {boolean}
      * @memberof Subscription
      */
     entitled: boolean;
+    /**
+     * When its free trial ends (or ended); null without a trial.
+     * @type {string}
+     * @memberof Subscription
+     */
+    trial_end: string | null;
     /**
      * The plan's features
      * @type {{ [key: string]: any; }}
@@ -3132,8 +3160,9 @@ export interface SubscriptionPrice {
 
 
 /**
- * `active` and `past_due` (in grace) are entitled; see `entitled`. `expired` and `canceled`
- * come back to `active` if an open invoice is paid late.
+ * `active`, `past_due` (in grace) and `trialing` are entitled; see `entitled`. `expired` and
+ * `canceled` come back to `active` if an open invoice is paid late. Upgrade your client to
+ * 0.4 before using trials: older helpers treat `trialing` as not entitled.
  * 
  * @export
  */
@@ -3142,7 +3171,8 @@ export const SubscriptionStatus = {
     Active: 'active',
     PastDue: 'past_due',
     Expired: 'expired',
-    Canceled: 'canceled'
+    Canceled: 'canceled',
+    Trialing: 'trialing'
 } as const;
 export type SubscriptionStatus = typeof SubscriptionStatus[keyof typeof SubscriptionStatus];
 
@@ -3244,6 +3274,12 @@ export interface UpdatePlanRequest {
      * @memberof UpdatePlanRequest
      */
     metadata?: { [key: string]: string; };
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdatePlanRequest
+     */
+    trial_days?: number;
 }
 /**
  * 

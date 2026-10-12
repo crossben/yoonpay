@@ -112,6 +112,7 @@ outage on your side, reconcile with `GET /v1/subscriptions?customer=…`.
 
 | Status | Meaning | Entitled |
 | --- | --- | --- |
+| `trialing` | Free trial (0.4), nothing paid yet | **yes** |
 | `incomplete` | Created, first invoice not paid | no |
 | `active` | Paid up to `current_period_end` | yes |
 | `past_due` | Period ended unpaid, within the grace days; a renewal invoice is open | **yes** |
@@ -122,10 +123,23 @@ A late payment of an open invoice still re-activates an `expired` or `canceled` 
 money received is never ignored. New statuses or event types may appear in later versions;
 the helpers treat unknown statuses as not entitled and never raise.
 
-Events: `subscription.created|activated|renewed|changed|past_due|expired|canceled|renewal_upcoming`,
+Events: `subscription.created|activated|renewed|changed|past_due|expired|canceled|renewal_upcoming|trial_will_end`,
 `invoice.created|paid|voided`.
 
-## 6. Periods, upgrades, cancellation
+## 6. Free trials (0.4)
+
+Give a plan a default trial with `"trial_days": 14` (on `POST /v1/plans` or `PATCH`), or pass
+`trial_days` when subscribing (`0` for none). The subscription starts `trialing`: entitled, no
+invoice, nothing to pay. Each customer gets one trial per plan. To keep access after the trial,
+the customer pays through `POST /v1/subscriptions/{id}/renew` at any time during it — the paid
+period starts when the trial ends, so no trial day is lost. `subscription.trial_will_end` arrives
+the reminder days before; unpaid at the end, the subscription goes `past_due` (grace) with the
+first invoice open, then `expired`.
+
+**Upgrade your Yoon client to 0.4 before using trials**: the 0.3 helpers treat `trialing` as not
+entitled and `subscription.created` as informational, so trial users would be denied access.
+
+## 7. Periods, upgrades, cancellation
 
 - **Paying early** stacks after the current period. **Paying in grace** starts from the old
   period end (grace days are not free). **Paying after expiry** starts at the payment.
@@ -138,14 +152,14 @@ Events: `subscription.created|activated|renewed|changed|past_due|expired|cancele
 - `POST /v1/subscriptions/{id}/cancel`: at the period end by default (reversible with
   `/resume`), or `{"at_period_end": false}` to end now. No automatic refund.
 
-## 7. Invoices and receipts
+## 8. Invoices and receipts
 
 Each period is an invoice numbered without gaps. Once paid, `receipt_url` opens a printable
 payment receipt (French/English). It is **a payment receipt, not a tax invoice**: if you must
 issue tax invoices, produce them from `invoice.paid` in your own system. Exports:
 `GET /v1/exports/subscriptions.csv`, `GET /v1/exports/invoices.csv`.
 
-## 8. Operators: periods without payment (comp)
+## 9. Operators: periods without payment (comp)
 
 For partners, support gestures or "contact us" plans, without payment or ledger posting:
 
@@ -157,7 +171,7 @@ or `POST /admin/v1/applications/{app}/subscriptions/{id}/comp` (see the
 [runbook](runbook.md#grant-periods-without-payment-comp)). The subscription shows `comp: true`
 until the customer pays a period.
 
-## 9. Migrating from your own billing
+## 10. Migrating from your own billing
 
 If you built subscriptions on top of one-off payments:
 

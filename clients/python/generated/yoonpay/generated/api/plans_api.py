@@ -1513,7 +1513,7 @@ class PlansApi:
     ) -> Plan:
         """Update a plan
 
-        `name`, `active`, `features`, `metadata`. The slug and prices never change here.
+        `name`, `active`, `features`, `metadata`, `trial_days`. The slug and prices never change here.
 
         :param id: (required)
         :type id: str
@@ -1592,7 +1592,7 @@ class PlansApi:
     ) -> ApiResponse[Plan]:
         """Update a plan
 
-        `name`, `active`, `features`, `metadata`. The slug and prices never change here.
+        `name`, `active`, `features`, `metadata`, `trial_days`. The slug and prices never change here.
 
         :param id: (required)
         :type id: str
@@ -1671,7 +1671,7 @@ class PlansApi:
     ) -> RESTResponseType:
         """Update a plan
 
-        `name`, `active`, `features`, `metadata`. The slug and prices never change here.
+        `name`, `active`, `features`, `metadata`, `trial_days`. The slug and prices never change here.
 
         :param id: (required)
         :type id: str

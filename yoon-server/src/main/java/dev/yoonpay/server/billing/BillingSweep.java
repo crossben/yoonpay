@@ -68,44 +68,54 @@ public class BillingSweep {
 
     // ------------------------------------------------------------------ stages
 
-    /** {@code subscription.renewal_upcoming}, once per period, the application's reminder days before its end. */
+    /**
+     * {@code subscription.renewal_upcoming} (or {@code subscription.trial_will_end} for a trial), once
+     * per period, the application's reminder days before its end.
+     */
     public int remind() {
         Instant now = clock.instant();
         List<Row> rows = candidates("""
                 SELECT id, application_id FROM subscriptions
-                WHERE status = 'ACTIVE' AND cancel_at_period_end = false AND current_period_end IS NOT NULL
+                WHERE status IN ('ACTIVE', 'TRIALING') AND cancel_at_period_end = false AND current_period_end IS NOT NULL
                   AND current_period_end > :now AND current_period_end <= :horizon
                   AND reminded_period_end IS DISTINCT FROM current_period_end
                 ORDER BY current_period_end LIMIT :limit""", now, now.plus(Duration.ofDays(61)));
         return each(rows, (app, s) -> {
             YoonProperties.Billing b = billing(app);
-            if (s.status().equals("ACTIVE") && !s.cancelAtPeriodEnd() && s.currentPeriodEnd() != null
+            boolean trial = s.status().equals("TRIALING");
+            if ((trial || s.status().equals("ACTIVE")) && !s.cancelAtPeriodEnd() && s.currentPeriodEnd() != null
                     && s.currentPeriodEnd().isAfter(now) && !s.currentPeriodEnd().equals(s.remindedPeriodEnd())
                     && !now.isBefore(reminderAt(s.currentPeriodEnd(), b))) {
-                transitions.update(app, s.id(), Cause.sweep, "renewal reminder",
-                        Map.of("reminded_period_end", s.currentPeriodEnd()), "subscription.renewal_upcoming");
+                transitions.update(app, s.id(), Cause.sweep, trial ? "trial ending reminder" : "renewal reminder",
+                        Map.of("reminded_period_end", s.currentPeriodEnd()),
+                        trial ? "subscription.trial_will_end" : "subscription.renewal_upcoming");
                 return true;
             }
             return false;
         });
     }
 
-    /** Period over: canceled if asked, else past due with the scheduled change applied and an invoice to pay. */
+    /**
+     * Period (or trial, ADR-0028) over: canceled if asked, else past due with the scheduled change
+     * applied and an invoice to pay — the first one after a trial, a renewal otherwise.
+     */
     public int endPeriods() {
         Instant now = clock.instant();
         List<Row> rows = candidates("""
                 SELECT id, application_id FROM subscriptions
-                WHERE status = 'ACTIVE' AND current_period_end IS NOT NULL AND current_period_end <= :now
+                WHERE status IN ('ACTIVE', 'TRIALING') AND current_period_end IS NOT NULL AND current_period_end <= :now
                 ORDER BY current_period_end LIMIT :limit""", now, null);
         return each(rows, (app, s) -> {
-            if (!s.status().equals("ACTIVE") || s.currentPeriodEnd() == null || s.currentPeriodEnd().isAfter(now)) {
+            boolean trial = s.status().equals("TRIALING");
+            if (!(trial || s.status().equals("ACTIVE")) || s.currentPeriodEnd() == null || s.currentPeriodEnd().isAfter(now)) {
                 return false; // renewed meanwhile
             }
             if (s.cancelAtPeriodEnd()) {
                 Map<String, Object> fields = new HashMap<>();
                 fields.put("canceled_at", s.currentPeriodEnd());
                 fields.put("cancel_at_period_end", false);
-                transitions.apply(app, s.id(), SubscriptionStatus.CANCELED, Cause.sweep, "canceled at period end", fields);
+                transitions.apply(app, s.id(), SubscriptionStatus.CANCELED, Cause.sweep,
+                        trial ? "canceled at trial end" : "canceled at period end", fields);
                 return true;
             }
             Map<String, Object> fields = new HashMap<>();
@@ -113,9 +123,10 @@ public class BillingSweep {
                 fields.put("price_id", s.pendingPriceId());
                 fields.put("pending_price_id", null);
             }
-            transitions.apply(app, s.id(), SubscriptionStatus.PAST_DUE, Cause.sweep, "period ended unpaid", fields);
-            // Something to pay: the renewal invoice at the price of the next period.
-            service.openInvoice(app, subscriptions.find(app.id(), s.id()).orElseThrow(), "RENEWAL");
+            transitions.apply(app, s.id(), SubscriptionStatus.PAST_DUE, Cause.sweep,
+                    trial ? "trial ended unpaid" : "period ended unpaid", fields);
+            // Something to pay: the first invoice after a trial, else the renewal, at the next period's price.
+            service.openInvoice(app, subscriptions.find(app.id(), s.id()).orElseThrow(), trial ? "FIRST" : "RENEWAL");
             return true;
         });
     }

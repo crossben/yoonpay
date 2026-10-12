@@ -41,7 +41,8 @@ import dev.yoonpay.client.generated.ApiClient;
   CreateSubscriptionRequest.JSON_PROPERTY_PRICE,
   CreateSubscriptionRequest.JSON_PROPERTY_GRACE_PERIOD_DAYS,
   CreateSubscriptionRequest.JSON_PROPERTY_METADATA,
-  CreateSubscriptionRequest.JSON_PROPERTY_RETURN_URL
+  CreateSubscriptionRequest.JSON_PROPERTY_RETURN_URL,
+  CreateSubscriptionRequest.JSON_PROPERTY_TRIAL_DAYS
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class CreateSubscriptionRequest {
@@ -64,6 +65,10 @@ public class CreateSubscriptionRequest {
   public static final String JSON_PROPERTY_RETURN_URL = "return_url";
   @jakarta.annotation.Nullable
   private URI returnUrl;
+
+  public static final String JSON_PROPERTY_TRIAL_DAYS = "trial_days";
+  @jakarta.annotation.Nullable
+  private Integer trialDays;
 
   public CreateSubscriptionRequest() { 
   }
@@ -180,7 +185,7 @@ public class CreateSubscriptionRequest {
   }
 
   /**
-   * Get returnUrl
+   * Required unless the subscription starts with a trial.
    * @return returnUrl
    */
   @jakarta.annotation.Nullable
@@ -195,6 +200,32 @@ public class CreateSubscriptionRequest {
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setReturnUrl(@jakarta.annotation.Nullable URI returnUrl) {
     this.returnUrl = returnUrl;
+  }
+
+
+  public CreateSubscriptionRequest trialDays(@jakarta.annotation.Nullable Integer trialDays) {
+    this.trialDays = trialDays;
+    return this;
+  }
+
+  /**
+   * Free trial (ADR-0028); default: the plan&#39;s &#x60;trial_days&#x60;, 0 for none. A customer gets one trial per plan: asking for one again is &#x60;409 trial_already_used&#x60;; without &#x60;trial_days&#x60; the plan&#39;s default is simply not applied. 
+   * minimum: 0
+   * maximum: 90
+   * @return trialDays
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Integer getTrialDays() {
+    return trialDays;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setTrialDays(@jakarta.annotation.Nullable Integer trialDays) {
+    this.trialDays = trialDays;
   }
 
 
@@ -214,12 +245,13 @@ public class CreateSubscriptionRequest {
         Objects.equals(this.price, createSubscriptionRequest.price) &&
         Objects.equals(this.gracePeriodDays, createSubscriptionRequest.gracePeriodDays) &&
         Objects.equals(this.metadata, createSubscriptionRequest.metadata) &&
-        Objects.equals(this.returnUrl, createSubscriptionRequest.returnUrl);
+        Objects.equals(this.returnUrl, createSubscriptionRequest.returnUrl) &&
+        Objects.equals(this.trialDays, createSubscriptionRequest.trialDays);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(customer, price, gracePeriodDays, metadata, returnUrl);
+    return Objects.hash(customer, price, gracePeriodDays, metadata, returnUrl, trialDays);
   }
 
   @Override
@@ -231,6 +263,7 @@ public class CreateSubscriptionRequest {
     sb.append("    gracePeriodDays: ").append(toIndentedString(gracePeriodDays)).append("\n");
     sb.append("    metadata: ").append(toIndentedString(metadata)).append("\n");
     sb.append("    returnUrl: ").append(toIndentedString(returnUrl)).append("\n");
+    sb.append("    trialDays: ").append(toIndentedString(trialDays)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -305,6 +338,11 @@ public class CreateSubscriptionRequest {
     // add `return_url` to the URL query string
     if (getReturnUrl() != null) {
       joiner.add(String.format(Locale.ROOT, "%sreturn_url%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getReturnUrl()))));
+    }
+
+    // add `trial_days` to the URL query string
+    if (getTrialDays() != null) {
+      joiner.add(String.format(Locale.ROOT, "%strial_days%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getTrialDays()))));
     }
 
     return joiner.toString();

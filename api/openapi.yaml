@@ -661,7 +661,7 @@ paths:
       tags: [Plans]
       operationId: updatePlan
       summary: Update a plan
-      description: '`name`, `active`, `features`, `metadata`. The slug and prices never change here.'
+      description: '`name`, `active`, `features`, `metadata`, `trial_days`. The slug and prices never change here.'
       parameters:
         - $ref: '#/components/parameters/Id'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -767,7 +767,7 @@ paths:
             example: { customer: cus_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d, price: price_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d, return_url: 'https://shop.example/billing' }
       responses:
         '201':
-          description: Subscription created, waiting for its first payment.
+          description: Subscription created, waiting for its first payment (or `trialing`, with nothing to pay yet).
           headers:
             Idempotent-Replayed: { $ref: '#/components/headers/IdempotentReplayed' }
           content:
@@ -775,7 +775,16 @@ paths:
               schema: { $ref: '#/components/schemas/Subscription' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '409':
+          description: |
+            `trial_already_used` — the customer had a trial on this plan. Or an idempotency conflict:
+            `idempotency_in_progress` (retry after `Retry-After` seconds) or `idempotency_key_reused`.
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
         '422':
           description: '`customer_not_found`, `price_not_found`, `price_archived`, `public_url_required`, `no_provider_for_method`.'
           content:
@@ -2057,7 +2066,7 @@ components:
 
     Plan:
       type: object
-      required: [id, object, slug, name, active, features, metadata, prices, created_at, updated_at]
+      required: [id, object, slug, name, active, features, metadata, prices, trial_days, created_at, updated_at]
       properties:
         id: { type: string, example: plan_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
         object: { type: string, const: plan }
@@ -2070,6 +2079,7 @@ components:
           description: Free-form JSON (limits, flags) returned on subscriptions, so you can enforce limits from it.
         metadata: { $ref: '#/components/schemas/Metadata' }
         prices: { type: array, items: { $ref: '#/components/schemas/Price' }, description: Oldest first, archived ones included. }
+        trial_days: { type: integer, description: 'Default free trial for new subscriptions, 0 for none (ADR-0028).' }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
@@ -2142,6 +2152,7 @@ components:
         features: { type: object, additionalProperties: true }
         metadata: { $ref: '#/components/schemas/Metadata' }
         prices: { type: array, maxItems: 20, items: { $ref: '#/components/schemas/PriceInput' } }
+        trial_days: { type: integer, minimum: 0, maximum: 90, description: Default free trial for new subscriptions. }
 
     UpdatePlanRequest:
       type: object
@@ -2150,6 +2161,7 @@ components:
         active: { type: boolean }
         features: { type: object, additionalProperties: true }
         metadata: { $ref: '#/components/schemas/Metadata' }
+        trial_days: { type: integer, minimum: 0, maximum: 90 }
 
     PlanPage:
       type: object
@@ -2161,10 +2173,11 @@ components:
 
     SubscriptionStatus:
       type: string
-      enum: [incomplete, active, past_due, expired, canceled]
+      enum: [incomplete, active, past_due, expired, canceled, trialing]
       description: |
-        `active` and `past_due` (in grace) are entitled; see `entitled`. `expired` and `canceled`
-        come back to `active` if an open invoice is paid late.
+        `active`, `past_due` (in grace) and `trialing` are entitled; see `entitled`. `expired` and
+        `canceled` come back to `active` if an open invoice is paid late. Upgrade your client to
+        0.4 before using trials: older helpers treat `trialing` as not entitled.
 
     InvoiceStatus:
       type: string
@@ -2226,7 +2239,7 @@ components:
     Subscription:
       type: object
       required: [id, object, customer, price, status, collection_method, grace_period_days, cancel_at_period_end,
-                 comp, entitled, features, metadata, created_at, updated_at]
+                 comp, entitled, features, metadata, trial_end, created_at, updated_at]
       properties:
         id: { type: string, example: sub_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
         object: { type: string, const: subscription }
@@ -2251,7 +2264,8 @@ components:
             effective_at: { type: [string, 'null'], format: date-time }
         canceled_at: { type: [string, 'null'], format: date-time }
         comp: { type: boolean, description: Periods granted by an operator, without payment. }
-        entitled: { type: boolean, description: 'Whether the customer should have access now (`active` or `past_due`).' }
+        entitled: { type: boolean, description: 'Whether the customer should have access now (`active`, `past_due` or `trialing`).' }
+        trial_end: { type: [string, 'null'], format: date-time, description: 'When its free trial ends (or ended); null without a trial.' }
         features: { type: object, additionalProperties: true, description: The plan's features, for enforcing limits. }
         latest_invoice:
           oneOf:
@@ -2269,7 +2283,15 @@ components:
         price: { type: string }
         grace_period_days: { type: integer, minimum: 0, maximum: 90, description: Default from the application's billing settings. }
         metadata: { $ref: '#/components/schemas/Metadata' }
-        return_url: { type: string, format: uri, maxLength: 2048 }
+        return_url: { type: string, format: uri, maxLength: 2048, description: 'Required unless the subscription starts with a trial.' }
+        trial_days:
+          type: integer
+          minimum: 0
+          maximum: 90
+          description: |
+            Free trial (ADR-0028); default: the plan's `trial_days`, 0 for none. A customer gets one
+            trial per plan: asking for one again is `409 trial_already_used`; without `trial_days`
+            the plan's default is simply not applied.
 
     RenewSubscriptionRequest:
       type: object
@@ -2335,7 +2357,7 @@ components:
              payout.paid, payout.failed, payout.needs_review,
              subscription.created, subscription.activated, subscription.renewed, subscription.past_due,
              subscription.expired, subscription.canceled, subscription.changed, subscription.renewal_upcoming,
-             invoice.created, invoice.paid, invoice.voided]
+             subscription.trial_will_end, invoice.created, invoice.paid, invoice.voided]
 
     DeliveryStatus:
       type: string

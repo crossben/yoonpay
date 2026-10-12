@@ -794,7 +794,7 @@ public class PlansApi {
 
   /**
    * Update a plan
-   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;. The slug and prices never change here.
+   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;, &#x60;trial_days&#x60;. The slug and prices never change here.
    * @param id  (required)
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param updatePlanRequest  (required)
@@ -807,7 +807,7 @@ public class PlansApi {
 
   /**
    * Update a plan
-   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;. The slug and prices never change here.
+   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;, &#x60;trial_days&#x60;. The slug and prices never change here.
    * @param id  (required)
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param updatePlanRequest  (required)
@@ -822,7 +822,7 @@ public class PlansApi {
 
   /**
    * Update a plan
-   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;. The slug and prices never change here.
+   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;, &#x60;trial_days&#x60;. The slug and prices never change here.
    * @param id  (required)
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param updatePlanRequest  (required)
@@ -835,7 +835,7 @@ public class PlansApi {
 
   /**
    * Update a plan
-   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;. The slug and prices never change here.
+   * &#x60;name&#x60;, &#x60;active&#x60;, &#x60;features&#x60;, &#x60;metadata&#x60;, &#x60;trial_days&#x60;. The slug and prices never change here.
    * @param id  (required)
    * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
    * @param updatePlanRequest  (required)

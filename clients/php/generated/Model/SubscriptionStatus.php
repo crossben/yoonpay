@@ -33,7 +33,7 @@ use \Yoon\Generated\ObjectSerializer;
  * SubscriptionStatus Class Doc Comment
  *
  * @category Class
- * @description &#x60;active&#x60; and &#x60;past_due&#x60; (in grace) are entitled; see &#x60;entitled&#x60;. &#x60;expired&#x60; and &#x60;canceled&#x60; come back to &#x60;active&#x60; if an open invoice is paid late.
+ * @description &#x60;active&#x60;, &#x60;past_due&#x60; (in grace) and &#x60;trialing&#x60; are entitled; see &#x60;entitled&#x60;. &#x60;expired&#x60; and &#x60;canceled&#x60; come back to &#x60;active&#x60; if an open invoice is paid late. Upgrade your client to 0.4 before using trials: older helpers treat &#x60;trialing&#x60; as not entitled.
  * @package  Yoon\Generated
  * @author   OpenAPI Generator team
  * @link     https://openapi-generator.tech
@@ -53,6 +53,8 @@ class SubscriptionStatus
 
     public const CANCELED = 'canceled';
 
+    public const TRIALING = 'trialing';
+
     /**
      * Gets allowable values of the enum
      * @return string[]
@@ -64,7 +66,8 @@ class SubscriptionStatus
             self::ACTIVE,
             self::PAST_DUE,
             self::EXPIRED,
-            self::CANCELED
+            self::CANCELED,
+            self::TRIALING
         ];
     }
 }

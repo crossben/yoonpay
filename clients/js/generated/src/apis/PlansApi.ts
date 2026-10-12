@@ -335,7 +335,7 @@ export class PlansApi extends runtime.BaseAPI {
     }
 
     /**
-     * `name`, `active`, `features`, `metadata`. The slug and prices never change here.
+     * `name`, `active`, `features`, `metadata`, `trial_days`. The slug and prices never change here.
      * Update a plan
      */
     async updatePlanRaw(requestParameters: UpdatePlanOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Plan>> {
@@ -394,7 +394,7 @@ export class PlansApi extends runtime.BaseAPI {
     }
 
     /**
-     * `name`, `active`, `features`, `metadata`. The slug and prices never change here.
+     * `name`, `active`, `features`, `metadata`, `trial_days`. The slug and prices never change here.
      * Update a plan
      */
     async updatePlan(requestParameters: UpdatePlanOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Plan> {

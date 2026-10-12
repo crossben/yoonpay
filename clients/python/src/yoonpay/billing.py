@@ -18,13 +18,15 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Mapping, Optional, Union
 
-#: Subscription statuses that give access now. ``past_due`` is the grace period: still entitled.
-ENTITLED_STATUSES: frozenset[str] = frozenset({"active", "past_due"})
+#: Subscription statuses that give access now. ``past_due`` is the grace period and ``trialing``
+#: a free trial (Yoon 0.4): both entitled.
+ENTITLED_STATUSES: frozenset[str] = frozenset({"active", "past_due", "trialing"})
 
 #: Event types after which the customer's access may have changed: recompute the entitlement
 #: from ``event.object`` (a subscription).
 ENTITLEMENT_EVENTS: frozenset[str] = frozenset(
     {
+        "subscription.created",  # since 0.4 a subscription may start ``trialing``: entitled
         "subscription.activated",
         "subscription.renewed",
         "subscription.changed",
@@ -34,12 +36,12 @@ ENTITLEMENT_EVENTS: frozenset[str] = frozenset(
     }
 )
 
-#: Billing event types that never change access (reminders, invoices, a new incomplete
-#: subscription). ``event.object`` is a subscription or an invoice.
+#: Billing event types that never change access (reminders, invoices). ``event.object`` is a
+#: subscription or an invoice.
 INFORMATIONAL_EVENTS: frozenset[str] = frozenset(
     {
-        "subscription.created",
         "subscription.renewal_upcoming",
+        "subscription.trial_will_end",
         "invoice.created",
         "invoice.paid",
         "invoice.voided",

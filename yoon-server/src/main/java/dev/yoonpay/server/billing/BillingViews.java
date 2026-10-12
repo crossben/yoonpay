@@ -42,7 +42,7 @@ public class BillingViews {
                                    String collectionMethod, Instant currentPeriodStart, Instant currentPeriodEnd,
                                    int gracePeriodDays, boolean cancelAtPeriodEnd, PendingChange pendingChange,
                                    Instant canceledAt, boolean comp, boolean entitled, JsonNode features,
-                                   InvoiceView latestInvoice, JsonNode metadata, Instant createdAt,
+                                   InvoiceView latestInvoice, JsonNode metadata, Instant trialEnd, Instant createdAt,
                                    Instant updatedAt) {
     }
 
@@ -75,7 +75,7 @@ public class BillingViews {
                 lower(s.status()), lower(s.collectionMethod()), s.currentPeriodStart(), s.currentPeriodEnd(),
                 s.gracePeriodDays(), s.cancelAtPeriodEnd(), pending, s.canceledAt(), s.comp(), status.isEntitled(),
                 Metadata.read(plan.features(), json), invoices.latest(s.id()).map(this::invoice).orElse(null),
-                Metadata.read(s.metadata(), json), s.createdAt(), s.updatedAt());
+                Metadata.read(s.metadata(), json), s.trialEnd(), s.createdAt(), s.updatedAt());
     }
 
     public InvoiceView invoice(InvoiceRecord i) {

@@ -9,7 +9,7 @@ const STATUSES = {
     payments: ['created', 'pending', 'succeeded', 'failed', 'expired'],
     refunds: ['created', 'pending', 'unknown', 'refunded', 'failed'],
     payouts: ['created', 'processing', 'unknown', 'paid', 'failed'],
-    subscriptions: ['incomplete', 'active', 'past_due', 'expired', 'canceled'],
+    subscriptions: ['trialing', 'incomplete', 'active', 'past_due', 'expired', 'canceled'],
     invoices: ['open', 'paid', 'void', 'uncollectible'],
 };
 const GOOD = new Set(['succeeded', 'refunded', 'paid', 'delivered', 'apply', 'active']);
@@ -198,7 +198,7 @@ const VIEWS = {
                 { label: 'Status', value: (r) => badge(r.status) },
                 { label: 'Customer', value: (r) => r.customer.external_id },
                 { label: 'Plan', value: (r) => `${r.price.plan.name} — ${money(r.price.amount, r.price.currency)} / ${every(r.price)}` },
-                { label: 'Paid until', value: (r) => (r.current_period_end ? when(r.current_period_end) : (r.status === 'active' ? 'open-ended' : '')) },
+                { label: 'Paid until', value: (r) => (r.status === 'trialing' ? `trial until ${when(r.trial_end)}` : r.current_period_end ? when(r.current_period_end) : (r.status === 'active' ? 'open-ended' : '')) },
                 { label: 'Notes', class: 'wrap', value: (r) => [r.comp ? 'comp' : '', r.cancel_at_period_end ? 'ends at period end' : '',
                     r.pending_change ? `changes to ${r.pending_change.price.plan.name}` : ''].filter(Boolean).join(', ') },
                 { label: 'Created', value: (r) => when(r.created_at) },

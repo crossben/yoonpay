@@ -15,5 +15,6 @@ public record CreatePlanRequest(
         @NotBlank @Size(max = 200) String name,
         JsonNode features,
         JsonNode metadata,
-        @Size(max = 20) List<@Valid PriceInput> prices) {
+        @Size(max = 20) List<@Valid PriceInput> prices,
+        @jakarta.validation.constraints.Min(0) @jakarta.validation.constraints.Max(90) Integer trialDays) {
 }

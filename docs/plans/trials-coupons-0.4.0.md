@@ -37,6 +37,9 @@ New: status `trialing`; event `subscription.trial_will_end`; fields `trial_end`,
 - M1 core: `TRIALING` (full matrix, entitled, never re-entered), stacking from the trial end,
   `Discounts` (percent floored without overflow, amount capped, periods) — done.
 - M2 migration `V8` (all 0.4.0 schema), coupons API, contract, regenerated clients — done.
+- M3 trials: create, one per customer and plan, pay during the trial, sweep (reminder, end →
+  `past_due`), change and cancel during the trial; client helpers count `trialing` as entitled
+  (moved from M5: without it trial users would be denied access) — done.
 
 ## Tests beyond the usual
 - Trial: paid during the trial → period starts at the trial end; unpaid → `past_due` → `expired`;

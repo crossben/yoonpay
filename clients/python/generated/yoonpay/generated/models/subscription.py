@@ -46,13 +46,14 @@ class Subscription(BaseModel):
     pending_change: Optional[SubscriptionPendingChange] = None
     canceled_at: Optional[datetime] = None
     comp: StrictBool = Field(description="Periods granted by an operator")
-    entitled: StrictBool = Field(description="Whether the customer should have access now (`active` or `past_due`).")
+    entitled: StrictBool = Field(description="Whether the customer should have access now (`active`, `past_due` or `trialing`).")
+    trial_end: Optional[datetime] = Field(description="When its free trial ends (or ended); null without a trial.")
     features: Dict[str, Any] = Field(description="The plan's features")
     latest_invoice: Optional[Invoice] = None
     metadata: Dict[str, Annotated[str, Field(strict=True, max_length=500)]] = Field(description="Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.")
     created_at: datetime
     updated_at: datetime
-    __properties: ClassVar[List[str]] = ["id", "object", "customer", "price", "status", "collection_method", "current_period_start", "current_period_end", "grace_period_days", "cancel_at_period_end", "pending_change", "canceled_at", "comp", "entitled", "features", "latest_invoice", "metadata", "created_at", "updated_at"]
+    __properties: ClassVar[List[str]] = ["id", "object", "customer", "price", "status", "collection_method", "current_period_start", "current_period_end", "grace_period_days", "cancel_at_period_end", "pending_change", "canceled_at", "comp", "entitled", "trial_end", "features", "latest_invoice", "metadata", "created_at", "updated_at"]
 
     @field_validator('object')
     def object_validate_enum(cls, value):
@@ -134,6 +135,11 @@ class Subscription(BaseModel):
         if self.canceled_at is None and "canceled_at" in self.model_fields_set:
             _dict['canceled_at'] = None
 
+        # set to None if trial_end (nullable) is None
+        # and model_fields_set contains the field
+        if self.trial_end is None and "trial_end" in self.model_fields_set:
+            _dict['trial_end'] = None
+
         # set to None if latest_invoice (nullable) is None
         # and model_fields_set contains the field
         if self.latest_invoice is None and "latest_invoice" in self.model_fields_set:
@@ -165,6 +171,7 @@ class Subscription(BaseModel):
             "canceled_at": obj.get("canceled_at"),
             "comp": obj.get("comp"),
             "entitled": obj.get("entitled"),
+            "trial_end": obj.get("trial_end"),
             "features": obj.get("features"),
             "latest_invoice": Invoice.from_dict(obj["latest_invoice"]) if obj.get("latest_invoice") is not None else None,
             "metadata": obj.get("metadata"),

@@ -22,5 +22,6 @@ public record SubscriptionRecord(
         Instant remindedPeriodEnd,
         String metadata,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        Instant trialEnd) {
 }

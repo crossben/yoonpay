@@ -15,7 +15,7 @@ public class SubscriptionRepository {
             SELECT id, application_id, customer_id, price_id, status, collection_method, billing_anchor,
                    current_period_start, current_period_end, grace_period_days, cancel_at_period_end,
                    pending_price_id, canceled_at, comp, reminded_period_end, metadata::text AS metadata,
-                   created_at, updated_at
+                   created_at, updated_at, trial_end
             FROM subscriptions""";
 
     private final JdbcClient jdbc;
@@ -26,10 +26,14 @@ public class SubscriptionRepository {
 
     public void insert(SubscriptionRecord s) {
         jdbc.sql("""
-                        INSERT INTO subscriptions (id, application_id, customer_id, price_id, status, grace_period_days, metadata)
-                        VALUES (:id, :app, :customer, :price, :status, :grace, CAST(:metadata AS jsonb))""")
+                        INSERT INTO subscriptions (id, application_id, customer_id, price_id, status, grace_period_days,
+                                                   metadata, current_period_start, current_period_end, trial_end)
+                        VALUES (:id, :app, :customer, :price, :status, :grace, CAST(:metadata AS jsonb), :start, :end,
+                                :trialEnd)""")
                 .param("id", s.id()).param("app", s.applicationId()).param("customer", s.customerId())
                 .param("price", s.priceId()).param("status", s.status()).param("grace", s.gracePeriodDays())
+                .param("start", ts(s.currentPeriodStart())).param("end", ts(s.currentPeriodEnd()))
+                .param("trialEnd", ts(s.trialEnd()))
                 .param("metadata", s.metadata())
                 .update();
     }
@@ -66,5 +70,17 @@ public class SubscriptionRepository {
                 .param("app", app).param("customer", customerId).param("status", status)
                 .param("cursor", startingAfter).param("limit", limit + 1)
                 .query(SubscriptionRecord.class).list();
+    }
+
+    private static java.sql.Timestamp ts(java.time.Instant i) {
+        return i == null ? null : java.sql.Timestamp.from(i);
+    }
+
+    /** Whether this customer already had a trial on this plan (ADR-0028: one trial per customer and plan). */
+    public boolean hadTrial(String customerId, String planId) {
+        return jdbc.sql("""
+                        SELECT EXISTS (SELECT 1 FROM subscriptions s JOIN prices p ON p.id = s.price_id
+                                       WHERE s.customer_id = :customer AND p.plan_id = :plan AND s.trial_end IS NOT NULL)""")
+                .param("customer", customerId).param("plan", planId).query(Boolean.class).single();
     }
 }

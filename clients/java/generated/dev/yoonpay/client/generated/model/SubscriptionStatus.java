@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Locale;
 
 /**
- * &#x60;active&#x60; and &#x60;past_due&#x60; (in grace) are entitled; see &#x60;entitled&#x60;. &#x60;expired&#x60; and &#x60;canceled&#x60; come back to &#x60;active&#x60; if an open invoice is paid late. 
+ * &#x60;active&#x60;, &#x60;past_due&#x60; (in grace) and &#x60;trialing&#x60; are entitled; see &#x60;entitled&#x60;. &#x60;expired&#x60; and &#x60;canceled&#x60; come back to &#x60;active&#x60; if an open invoice is paid late. Upgrade your client to 0.4 before using trials: older helpers treat &#x60;trialing&#x60; as not entitled. 
  */
 public enum SubscriptionStatus {
   
@@ -41,6 +41,8 @@ public enum SubscriptionStatus {
   EXPIRED("expired"),
   
   CANCELED("canceled"),
+  
+  TRIALING("trialing"),
   
   UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
 

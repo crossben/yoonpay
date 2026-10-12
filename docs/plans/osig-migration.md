@@ -1,6 +1,6 @@
 # Migrating from one-off payments to Yoon billing — OSIG as the reference case
 
-The generic steps are in [docs/billing.md](../billing.md#9-migrating-from-your-own-billing). Written against OSIG's billing code as of 2026-10-11 (`osig/backend/app/services/billing_service.py`,
+The generic steps are in [docs/billing.md](../billing.md#10-migrating-from-your-own-billing). Written against OSIG's billing code as of 2026-10-11 (`osig/backend/app/services/billing_service.py`,
 `models/billing.py`, `api/v1/billing.py`) and the 0.3.0 design (ADR-0025 to ADR-0027). It becomes the
 "Migrating" section of the "Billing for SaaS" docs page when 0.3.0 ships.
 

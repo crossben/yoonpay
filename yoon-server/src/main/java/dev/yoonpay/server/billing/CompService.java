@@ -127,7 +127,7 @@ public class CompService {
                 .orElseThrow(() -> ApiProblem.notFound("Customer", customerId));
         SubscriptionRecord s = new SubscriptionRecord(Ids.next("sub"), app.id(), customer.id(), price.id(),
                 SubscriptionStatus.INCOMPLETE.name(), "PREPAID_MANUAL", null, null, null,
-                properties.app(app.name()).billing().graceDays(), false, null, null, true, null, "{}", null, null);
+                properties.app(app.name()).billing().graceDays(), false, null, null, true, null, "{}", null, null, null);
         subscriptions.insert(s);
         transitions.created(app, s.id());
         return s.id();

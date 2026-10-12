@@ -71,6 +71,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         'canceled_at' => '\DateTime',
         'comp' => 'bool',
         'entitled' => 'bool',
+        'trial_end' => '\DateTime',
         'features' => 'array<string,mixed>',
         'latest_invoice' => '\Yoon\Generated\Model\Invoice',
         'metadata' => 'array<string,string>',
@@ -100,6 +101,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         'canceled_at' => 'date-time',
         'comp' => null,
         'entitled' => null,
+        'trial_end' => 'date-time',
         'features' => null,
         'latest_invoice' => null,
         'metadata' => null,
@@ -127,6 +129,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         'canceled_at' => true,
         'comp' => false,
         'entitled' => false,
+        'trial_end' => true,
         'features' => false,
         'latest_invoice' => true,
         'metadata' => false,
@@ -234,6 +237,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         'canceled_at' => 'canceled_at',
         'comp' => 'comp',
         'entitled' => 'entitled',
+        'trial_end' => 'trial_end',
         'features' => 'features',
         'latest_invoice' => 'latest_invoice',
         'metadata' => 'metadata',
@@ -261,6 +265,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         'canceled_at' => 'setCanceledAt',
         'comp' => 'setComp',
         'entitled' => 'setEntitled',
+        'trial_end' => 'setTrialEnd',
         'features' => 'setFeatures',
         'latest_invoice' => 'setLatestInvoice',
         'metadata' => 'setMetadata',
@@ -288,6 +293,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         'canceled_at' => 'getCanceledAt',
         'comp' => 'getComp',
         'entitled' => 'getEntitled',
+        'trial_end' => 'getTrialEnd',
         'features' => 'getFeatures',
         'latest_invoice' => 'getLatestInvoice',
         'metadata' => 'getMetadata',
@@ -392,6 +398,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('canceled_at', $data ?? [], null);
         $this->setIfExists('comp', $data ?? [], null);
         $this->setIfExists('entitled', $data ?? [], null);
+        $this->setIfExists('trial_end', $data ?? [], null);
         $this->setIfExists('features', $data ?? [], null);
         $this->setIfExists('latest_invoice', $data ?? [], null);
         $this->setIfExists('metadata', $data ?? [], null);
@@ -473,6 +480,9 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         }
         if ($this->container['entitled'] === null) {
             $invalidProperties[] = "'entitled' can't be null";
+        }
+        if ($this->container['trial_end'] === null) {
+            $invalidProperties[] = "'trial_end' can't be null";
         }
         if ($this->container['features'] === null) {
             $invalidProperties[] = "'features' can't be null";
@@ -890,7 +900,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Sets entitled
      *
-     * @param bool $entitled Whether the customer should have access now (`active` or `past_due`).
+     * @param bool $entitled Whether the customer should have access now (`active`, `past_due` or `trialing`).
      *
      * @return self
      */
@@ -900,6 +910,40 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable entitled cannot be null');
         }
         $this->container['entitled'] = $entitled;
+
+        return $this;
+    }
+
+    /**
+     * Gets trial_end
+     *
+     * @return \DateTime
+     */
+    public function getTrialEnd()
+    {
+        return $this->container['trial_end'];
+    }
+
+    /**
+     * Sets trial_end
+     *
+     * @param \DateTime $trial_end When its free trial ends (or ended); null without a trial.
+     *
+     * @return self
+     */
+    public function setTrialEnd($trial_end)
+    {
+        if (is_null($trial_end)) {
+            array_push($this->openAPINullablesSetToNull, 'trial_end');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('trial_end', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['trial_end'] = $trial_end;
 
         return $this;
     }

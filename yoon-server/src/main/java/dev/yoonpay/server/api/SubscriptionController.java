@@ -39,7 +39,8 @@ public class SubscriptionController {
 
     public record CreateSubscriptionRequest(@NotBlank String customer, @NotBlank String price,
                                             @Min(0) @Max(90) Integer gracePeriodDays, JsonNode metadata,
-                                            @Size(max = 2048) String returnUrl) {
+                                            @Size(max = 2048) String returnUrl,
+                                            @Min(0) @Max(90) Integer trialDays) {
     }
 
     public record RenewRequest(@Size(max = 2048) String returnUrl) {
@@ -74,7 +75,7 @@ public class SubscriptionController {
                                   @Valid @RequestBody CreateSubscriptionRequest body, HttpServletRequest request) {
         return idempotent.run(app, key, request, body, HttpStatus.CREATED, () -> views.subscription(service.create(app,
                 new SubscriptionService.CreateRequest(body.customer(), body.price(), body.gracePeriodDays(),
-                        body.metadata(), body.returnUrl()))));
+                        body.metadata(), body.returnUrl(), body.trialDays()))));
     }
 
     @GetMapping("/{id}")

@@ -74,6 +74,8 @@ class EventType
 
     public const SUBSCRIPTION_RENEWAL_UPCOMING = 'subscription.renewal_upcoming';
 
+    public const SUBSCRIPTION_TRIAL_WILL_END = 'subscription.trial_will_end';
+
     public const INVOICE_CREATED = 'invoice.created';
 
     public const INVOICE_PAID = 'invoice.paid';
@@ -103,6 +105,7 @@ class EventType
             self::SUBSCRIPTION_CANCELED,
             self::SUBSCRIPTION_CHANGED,
             self::SUBSCRIPTION_RENEWAL_UPCOMING,
+            self::SUBSCRIPTION_TRIAL_WILL_END,
             self::INVOICE_CREATED,
             self::INVOICE_PAID,
             self::INVOICE_VOIDED

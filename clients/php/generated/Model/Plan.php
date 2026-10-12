@@ -65,6 +65,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         'features' => 'array<string,mixed>',
         'metadata' => 'array<string,string>',
         'prices' => '\Yoon\Generated\Model\Price[]',
+        'trial_days' => 'int',
         'created_at' => '\DateTime',
         'updated_at' => '\DateTime'
     ];
@@ -85,6 +86,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         'features' => null,
         'metadata' => null,
         'prices' => null,
+        'trial_days' => null,
         'created_at' => 'date-time',
         'updated_at' => 'date-time'
     ];
@@ -103,6 +105,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         'features' => false,
         'metadata' => false,
         'prices' => false,
+        'trial_days' => false,
         'created_at' => false,
         'updated_at' => false
     ];
@@ -201,6 +204,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         'features' => 'features',
         'metadata' => 'metadata',
         'prices' => 'prices',
+        'trial_days' => 'trial_days',
         'created_at' => 'created_at',
         'updated_at' => 'updated_at'
     ];
@@ -219,6 +223,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         'features' => 'setFeatures',
         'metadata' => 'setMetadata',
         'prices' => 'setPrices',
+        'trial_days' => 'setTrialDays',
         'created_at' => 'setCreatedAt',
         'updated_at' => 'setUpdatedAt'
     ];
@@ -237,6 +242,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         'features' => 'getFeatures',
         'metadata' => 'getMetadata',
         'prices' => 'getPrices',
+        'trial_days' => 'getTrialDays',
         'created_at' => 'getCreatedAt',
         'updated_at' => 'getUpdatedAt'
     ];
@@ -319,6 +325,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('features', $data ?? [], null);
         $this->setIfExists('metadata', $data ?? [], null);
         $this->setIfExists('prices', $data ?? [], null);
+        $this->setIfExists('trial_days', $data ?? [], null);
         $this->setIfExists('created_at', $data ?? [], null);
         $this->setIfExists('updated_at', $data ?? [], null);
     }
@@ -386,6 +393,9 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
 
         if ($this->container['prices'] === null) {
             $invalidProperties[] = "'prices' can't be null";
+        }
+        if ($this->container['trial_days'] === null) {
+            $invalidProperties[] = "'trial_days' can't be null";
         }
         if ($this->container['created_at'] === null) {
             $invalidProperties[] = "'created_at' can't be null";
@@ -624,6 +634,33 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable prices cannot be null');
         }
         $this->container['prices'] = $prices;
+
+        return $this;
+    }
+
+    /**
+     * Gets trial_days
+     *
+     * @return int
+     */
+    public function getTrialDays()
+    {
+        return $this->container['trial_days'];
+    }
+
+    /**
+     * Sets trial_days
+     *
+     * @param int $trial_days Default free trial for new subscriptions, 0 for none (ADR-0028).
+     *
+     * @return self
+     */
+    public function setTrialDays($trial_days)
+    {
+        if (is_null($trial_days)) {
+            throw new \InvalidArgumentException('non-nullable trial_days cannot be null');
+        }
+        $this->container['trial_days'] = $trial_days;
 
         return $this;
     }

@@ -20,7 +20,7 @@ from typing_extensions import Self
 
 class SubscriptionStatus(str, Enum):
     """
-    `active` and `past_due` (in grace) are entitled; see `entitled`. `expired` and `canceled` come back to `active` if an open invoice is paid late. 
+    `active`, `past_due` (in grace) and `trialing` are entitled; see `entitled`. `expired` and `canceled` come back to `active` if an open invoice is paid late. Upgrade your client to 0.4 before using trials: older helpers treat `trialing` as not entitled. 
     """
 
     """
@@ -31,6 +31,7 @@ class SubscriptionStatus(str, Enum):
     PAST_DUE = 'past_due'
     EXPIRED = 'expired'
     CANCELED = 'canceled'
+    TRIALING = 'trialing'
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:

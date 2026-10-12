@@ -19,7 +19,7 @@ import java.util.Set;
 @Service
 public class CatalogService {
 
-    private static final Set<String> PLAN_PATCHABLE = Set.of("name", "active", "features", "metadata");
+    private static final Set<String> PLAN_PATCHABLE = Set.of("name", "active", "features", "metadata", "trial_days");
 
     private final CatalogRepository catalog;
     private final TransactionTemplate tx;
@@ -33,7 +33,8 @@ public class CatalogService {
 
     public PlanResponse createPlan(AppPrincipal app, CreatePlanRequest req) {
         PlanRecord plan = new PlanRecord(Ids.next("plan"), app.id(), req.slug(), req.name().trim(), true,
-                Metadata.features(req.features(), json), Metadata.metadata(req.metadata(), json), null, null);
+                Metadata.features(req.features(), json), Metadata.metadata(req.metadata(), json), null, null,
+                req.trialDays() == null ? 0 : req.trialDays());
         List<PriceInput> prices = req.prices() == null ? List.of() : req.prices();
         prices.forEach(CatalogService::checkCurrency);
         try {
@@ -87,10 +88,18 @@ public class CatalogService {
             }
             active = body.get("active").asBoolean();
         }
+        int trialDays = p.trialDays();
+        if (body.has("trial_days")) {
+            JsonNode t = body.get("trial_days");
+            if (!t.isInt() || t.asInt() < 0 || t.asInt() > 90) {
+                throw ApiProblem.invalid("trial_days must be 0–90");
+            }
+            trialDays = t.asInt();
+        }
         catalog.updatePlan(new PlanRecord(p.id(), p.applicationId(), p.slug(), name, active,
                 body.has("features") ? Metadata.features(body.get("features"), json) : p.features(),
                 body.has("metadata") ? Metadata.metadata(body.get("metadata"), json) : p.metadata(),
-                p.createdAt(), p.updatedAt()));
+                p.createdAt(), p.updatedAt(), trialDays));
         return getPlan(app, id);
     }
 

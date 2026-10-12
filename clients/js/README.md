@@ -195,12 +195,12 @@ export const POST = yoonWebhookRoute({
 });
 ```
 
-- `entitlementOf(subscription)` → `{ entitled, plan, until, features, status }`. `active` and
-  `past_due` (grace) are entitled; `incomplete`, `expired`, `canceled` and any status this client
+- `entitlementOf(subscription)` → `{ entitled, plan, until, features, status }`. `active`,
+  `past_due` (grace) and `trialing` are entitled; `incomplete`, `expired`, `canceled` and any status this client
   does not know are not. `until` is `current_period_end`; `null` on an entitled subscription is an
   open-ended operator comp. It reads the status only: it does not compare `until` with the clock.
-- `changesEntitlement(type)` is true for `subscription.activated|renewed|changed|past_due|expired|canceled`;
-  `isInformationalBillingEvent(type)` for `subscription.created`, `subscription.renewal_upcoming`
+- `changesEntitlement(type)` is true for `subscription.created|activated|renewed|changed|past_due|expired|canceled`;
+  `isInformationalBillingEvent(type)` for `subscription.renewal_upcoming`, `subscription.trial_will_end`
   and `invoice.*` (send reminders or receipts from those). Unknown types are neither.
 - `checkoutRedirect(invoiceOrSubscription)` (and the framework-free `checkoutUrlOf`) throw
   `NoCheckoutError` when there is nothing to pay (`reason`: `paid`, `void`, `no_invoice`,
@@ -254,8 +254,8 @@ Rules (they protect real money; follow them exactly):
 - Subscriptions (prepaid, Yoon 0.3+): yoon.createSubscription({ customer, price, return_url },
   `sub-${user.id}-${price}`), then redirect to its latest_invoice.checkout_url (checkoutRedirect
   from "@yoonpay/yoon/next", or checkoutUrlOf). Grant access ONLY from webhooks: when
-  changesEntitlement(event.type), store entitlementOf(event.object) (entitled is true for active
-  and past_due; unknown statuses are not entitled). No checkout_url (expired)? Call
+  changesEntitlement(event.type), store entitlementOf(event.object) (entitled is true for active,
+  past_due and trialing; unknown statuses are not entitled). No checkout_url (expired)? Call
   yoon.renewSubscription(id, key) for a fresh one. Billing events: subscription.* and invoice.*.
 - Optional: "checkout": "hosted" (without "method") sends the customer to Yoon's own page to
   choose Wave, Orange Money, card, …; redirect them to the returned checkout_url.

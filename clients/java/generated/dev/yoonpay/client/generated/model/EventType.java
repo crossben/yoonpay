@@ -64,6 +64,8 @@ public enum EventType {
   
   SUBSCRIPTION_RENEWAL_UPCOMING("subscription.renewal_upcoming"),
   
+  SUBSCRIPTION_TRIAL_WILL_END("subscription.trial_will_end"),
+  
   INVOICE_CREATED("invoice.created"),
   
   INVOICE_PAID("invoice.paid"),

@@ -48,6 +48,7 @@ import dev.yoonpay.client.generated.ApiClient;
   Plan.JSON_PROPERTY_FEATURES,
   Plan.JSON_PROPERTY_METADATA,
   Plan.JSON_PROPERTY_PRICES,
+  Plan.JSON_PROPERTY_TRIAL_DAYS,
   Plan.JSON_PROPERTY_CREATED_AT,
   Plan.JSON_PROPERTY_UPDATED_AT
 })
@@ -119,6 +120,10 @@ public class Plan {
   public static final String JSON_PROPERTY_PRICES = "prices";
   @jakarta.annotation.Nonnull
   private List<Price> prices = new ArrayList<>();
+
+  public static final String JSON_PROPERTY_TRIAL_DAYS = "trial_days";
+  @jakarta.annotation.Nonnull
+  private Integer trialDays;
 
   public static final String JSON_PROPERTY_CREATED_AT = "created_at";
   @jakarta.annotation.Nonnull
@@ -347,6 +352,30 @@ public class Plan {
   }
 
 
+  public Plan trialDays(@jakarta.annotation.Nonnull Integer trialDays) {
+    this.trialDays = trialDays;
+    return this;
+  }
+
+  /**
+   * Default free trial for new subscriptions, 0 for none (ADR-0028).
+   * @return trialDays
+   */
+  @jakarta.annotation.Nonnull
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = true)
+  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  public Integer getTrialDays() {
+    return trialDays;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = true)
+  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  public void setTrialDays(@jakarta.annotation.Nonnull Integer trialDays) {
+    this.trialDays = trialDays;
+  }
+
+
   public Plan createdAt(@jakarta.annotation.Nonnull OffsetDateTime createdAt) {
     this.createdAt = createdAt;
     return this;
@@ -415,13 +444,14 @@ public class Plan {
         Objects.equals(this.features, plan.features) &&
         Objects.equals(this.metadata, plan.metadata) &&
         Objects.equals(this.prices, plan.prices) &&
+        Objects.equals(this.trialDays, plan.trialDays) &&
         Objects.equals(this.createdAt, plan.createdAt) &&
         Objects.equals(this.updatedAt, plan.updatedAt);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, slug, name, active, features, metadata, prices, createdAt, updatedAt);
+    return Objects.hash(id, _object, slug, name, active, features, metadata, prices, trialDays, createdAt, updatedAt);
   }
 
   @Override
@@ -436,6 +466,7 @@ public class Plan {
     sb.append("    features: ").append(toIndentedString(features)).append("\n");
     sb.append("    metadata: ").append(toIndentedString(metadata)).append("\n");
     sb.append("    prices: ").append(toIndentedString(prices)).append("\n");
+    sb.append("    trialDays: ").append(toIndentedString(trialDays)).append("\n");
     sb.append("    createdAt: ").append(toIndentedString(createdAt)).append("\n");
     sb.append("    updatedAt: ").append(toIndentedString(updatedAt)).append("\n");
     sb.append("}");
@@ -536,6 +567,11 @@ public class Plan {
           "".equals(suffix) ? "" : String.format(Locale.ROOT, "%s%d%s", containerPrefix, i, containerSuffix))));
         }
       }
+    }
+
+    // add `trial_days` to the URL query string
+    if (getTrialDays() != null) {
+      joiner.add(String.format(Locale.ROOT, "%strial_days%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getTrialDays()))));
     }
 
     // add `created_at` to the URL query string

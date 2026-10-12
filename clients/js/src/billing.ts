@@ -6,11 +6,16 @@
  * event type neither changes entitlement nor counts as informational.
  */
 
-/** Statuses that give access: `active`, and `past_due` (renewal unpaid, still in grace). */
-export const ENTITLED_STATUSES: ReadonlySet<string> = new Set(["active", "past_due"]);
+/**
+ * Statuses that give access: `active`, `past_due` (renewal unpaid, still in grace) and
+ * `trialing` (a free trial, Yoon 0.4).
+ */
+export const ENTITLED_STATUSES: ReadonlySet<string> = new Set(["active", "past_due", "trialing"]);
 
 /** Event types after which a customer's access may have changed: re-read `entitlementOf(event.object)`. */
 export const ENTITLEMENT_EVENT_TYPES: ReadonlySet<string> = new Set([
+  // Since 0.4 a subscription may start `trialing` (entitled), so its creation matters too.
+  "subscription.created",
   "subscription.activated",
   "subscription.renewed",
   "subscription.changed",
@@ -20,13 +25,13 @@ export const ENTITLEMENT_EVENT_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Billing event types that never change access: reminders and invoice bookkeeping (and
- * `subscription.created`, which starts `incomplete`, i.e. not entitled). Use them to send
- * messages ("your plan renews in 3 days", a receipt link), not to grant or revoke.
+ * Billing event types that never change access: reminders and invoice bookkeeping. Use them to
+ * send messages ("your plan renews in 3 days", "your trial ends soon", a receipt link), not to
+ * grant or revoke.
  */
 export const INFORMATIONAL_BILLING_EVENT_TYPES: ReadonlySet<string> = new Set([
-  "subscription.created",
   "subscription.renewal_upcoming",
+  "subscription.trial_will_end",
   "invoice.created",
   "invoice.paid",
   "invoice.voided",

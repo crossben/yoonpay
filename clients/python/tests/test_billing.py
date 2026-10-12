@@ -39,7 +39,7 @@ def subscription(status: str = "active", **overrides) -> dict:
 
 
 @pytest.mark.parametrize("status, entitled", [
-    ("active", True), ("past_due", True), ("incomplete", False), ("expired", False), ("canceled", False),
+    ("active", True), ("past_due", True), ("trialing", True), ("incomplete", False), ("expired", False), ("canceled", False),
     ("paused_by_a_newer_server", False), ("", False),
 ])
 def test_entitlement_follows_the_status(status, entitled):
@@ -97,3 +97,10 @@ def test_no_checkout_url(sub):
     assert checkout_url(sub) is None
     assert checkout_url({**INVOICE, "checkout_url": None}) is None
     assert checkout_url(None) is None
+
+
+def test_a_new_subscription_may_start_in_a_trial_so_its_creation_changes_entitlement():
+    assert changes_entitlement("subscription.created")
+    assert "subscription.created" not in INFORMATIONAL_EVENTS
+    assert "subscription.trial_will_end" in INFORMATIONAL_EVENTS
+    assert not changes_entitlement("subscription.trial_will_end")

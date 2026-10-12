@@ -60,7 +60,8 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'string',
         'active' => 'bool',
         'features' => 'array<string,mixed>',
-        'metadata' => 'array<string,string>'
+        'metadata' => 'array<string,string>',
+        'trial_days' => 'int'
     ];
 
     /**
@@ -74,7 +75,8 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => null,
         'active' => null,
         'features' => null,
-        'metadata' => null
+        'metadata' => null,
+        'trial_days' => null
     ];
 
     /**
@@ -86,7 +88,8 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => false,
         'active' => false,
         'features' => false,
-        'metadata' => false
+        'metadata' => false,
+        'trial_days' => false
     ];
 
     /**
@@ -178,7 +181,8 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'name',
         'active' => 'active',
         'features' => 'features',
-        'metadata' => 'metadata'
+        'metadata' => 'metadata',
+        'trial_days' => 'trial_days'
     ];
 
     /**
@@ -190,7 +194,8 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'setName',
         'active' => 'setActive',
         'features' => 'setFeatures',
-        'metadata' => 'setMetadata'
+        'metadata' => 'setMetadata',
+        'trial_days' => 'setTrialDays'
     ];
 
     /**
@@ -202,7 +207,8 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         'name' => 'getName',
         'active' => 'getActive',
         'features' => 'getFeatures',
-        'metadata' => 'getMetadata'
+        'metadata' => 'getMetadata',
+        'trial_days' => 'getTrialDays'
     ];
 
     /**
@@ -266,6 +272,7 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
         $this->setIfExists('active', $data ?? [], null);
         $this->setIfExists('features', $data ?? [], null);
         $this->setIfExists('metadata', $data ?? [], null);
+        $this->setIfExists('trial_days', $data ?? [], null);
     }
 
     /**
@@ -305,6 +312,14 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
 
         if (!is_null($this->container['metadata']) && (count($this->container['metadata']) > 20)) {
             $invalidProperties[] = "invalid value for 'metadata', number of items must be less than or equal to 20.";
+        }
+
+        if (!is_null($this->container['trial_days']) && ($this->container['trial_days'] > 90)) {
+            $invalidProperties[] = "invalid value for 'trial_days', must be smaller than or equal to 90.";
+        }
+
+        if (!is_null($this->container['trial_days']) && ($this->container['trial_days'] < 0)) {
+            $invalidProperties[] = "invalid value for 'trial_days', must be bigger than or equal to 0.";
         }
 
         return $invalidProperties;
@@ -437,6 +452,41 @@ class UpdatePlanRequest implements ModelInterface, ArrayAccess, \JsonSerializabl
             throw new \InvalidArgumentException('invalid value for $metadata when calling UpdatePlanRequest., number of items must be less than or equal to 20.');
         }
         $this->container['metadata'] = $metadata;
+
+        return $this;
+    }
+
+    /**
+     * Gets trial_days
+     *
+     * @return int|null
+     */
+    public function getTrialDays()
+    {
+        return $this->container['trial_days'];
+    }
+
+    /**
+     * Sets trial_days
+     *
+     * @param int|null $trial_days trial_days
+     *
+     * @return self
+     */
+    public function setTrialDays($trial_days)
+    {
+        if (is_null($trial_days)) {
+            throw new \InvalidArgumentException('non-nullable trial_days cannot be null');
+        }
+
+        if (($trial_days > 90)) {
+            throw new \InvalidArgumentException('invalid value for $trial_days when calling UpdatePlanRequest., must be smaller than or equal to 90.');
+        }
+        if (($trial_days < 0)) {
+            throw new \InvalidArgumentException('invalid value for $trial_days when calling UpdatePlanRequest., must be bigger than or equal to 0.');
+        }
+
+        $this->container['trial_days'] = $trial_days;
 
         return $this;
     }

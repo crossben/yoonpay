@@ -31,8 +31,9 @@ class CreateSubscriptionRequest(BaseModel):
     price: StrictStr
     grace_period_days: Optional[Annotated[int, Field(le=90, strict=True, ge=0)]] = Field(default=None, description="Default from the application's billing settings.")
     metadata: Optional[Dict[str, Annotated[str, Field(strict=True, max_length=500)]]] = Field(default=None, description="Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.")
-    return_url: Optional[Annotated[str, Field(strict=True, max_length=2048)]] = None
-    __properties: ClassVar[List[str]] = ["customer", "price", "grace_period_days", "metadata", "return_url"]
+    return_url: Optional[Annotated[str, Field(strict=True, max_length=2048)]] = Field(default=None, description="Required unless the subscription starts with a trial.")
+    trial_days: Optional[Annotated[int, Field(le=90, strict=True, ge=0)]] = Field(default=None, description="Free trial (ADR-0028); default: the plan's `trial_days`, 0 for none. A customer gets one trial per plan: asking for one again is `409 trial_already_used`; without `trial_days` the plan's default is simply not applied. ")
+    __properties: ClassVar[List[str]] = ["customer", "price", "grace_period_days", "metadata", "return_url", "trial_days"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -89,7 +90,8 @@ class CreateSubscriptionRequest(BaseModel):
             "price": obj.get("price"),
             "grace_period_days": obj.get("grace_period_days"),
             "metadata": obj.get("metadata"),
-            "return_url": obj.get("return_url")
+            "return_url": obj.get("return_url"),
+            "trial_days": obj.get("trial_days")
         })
         return _obj
 
