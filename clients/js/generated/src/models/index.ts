@@ -201,6 +201,19 @@ export interface AmountOff {
 /**
  * 
  * @export
+ * @interface ApplySubscriptionDiscountRequest
+ */
+export interface ApplySubscriptionDiscountRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ApplySubscriptionDiscountRequest
+     */
+    coupon: string;
+}
+/**
+ * 
+ * @export
  * @interface CancelSubscriptionRequest
  */
 export interface CancelSubscriptionRequest {
@@ -419,6 +432,18 @@ export interface CheckoutViewBilling {
      * @memberof CheckoutViewBilling
      */
     receipt_url: string | null;
+    /**
+     * Before discount; the payment amount is what is due.
+     * @type {number}
+     * @memberof CheckoutViewBilling
+     */
+    subtotal?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutViewBilling
+     */
+    coupon_code?: string | null;
 }
 
 
@@ -1064,6 +1089,12 @@ export interface CreateSubscriptionRequest {
      */
     return_url?: string;
     /**
+     * A coupon code (case-insensitive) for its first invoices; `422 coupon_not_applicable` with a `reason` if it cannot be used.
+     * @type {string}
+     * @memberof CreateSubscriptionRequest
+     */
+    coupon?: string;
+    /**
      * Free trial (ADR-0028); default: the plan's `trial_days`, 0 for none. A customer gets one
      * trial per plan: asking for one again is `409 trial_already_used`; without `trial_days`
      * the plan's default is simply not applied.
@@ -1194,6 +1225,43 @@ export const DeliveryStatus = {
 } as const;
 export type DeliveryStatus = typeof DeliveryStatus[keyof typeof DeliveryStatus];
 
+/**
+ * 
+ * @export
+ * @interface Discount
+ */
+export interface Discount {
+    /**
+     * 
+     * @type {string}
+     * @memberof Discount
+     */
+    coupon: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Discount
+     */
+    code: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof Discount
+     */
+    percent_off: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof Discount
+     */
+    amount_off: number | null;
+    /**
+     * On a subscription: invoices it still discounts (null = forever). Null on an invoice.
+     * @type {number}
+     * @memberof Discount
+     */
+    periods_remaining: number | null;
+}
 /**
  * 
  * @export
@@ -1614,11 +1682,29 @@ export interface Invoice {
      */
     status: InvoiceStatus;
     /**
-     * 
+     * `subtotal − discount_amount`. 0 with a 100% coupon: paid at creation, without a payment.
      * @type {number}
      * @memberof Invoice
      */
     amount_due: number;
+    /**
+     * The price before discount.
+     * @type {number}
+     * @memberof Invoice
+     */
+    subtotal?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Invoice
+     */
+    discount_amount?: number;
+    /**
+     * 
+     * @type {Discount}
+     * @memberof Invoice
+     */
+    discount?: Discount | null;
     /**
      * 
      * @type {string}
@@ -2344,7 +2430,7 @@ export interface Plan {
      * @type {number}
      * @memberof Plan
      */
-    trial_days: number;
+    trial_days?: number;
     /**
      * 
      * @type {string}
@@ -2564,6 +2650,12 @@ export interface Problem {
      * @memberof Problem
      */
     code: string;
+    /**
+     * For `coupon_not_applicable`: `unknown`, `archived`, `expired`, `exhausted`, `plan`, `currency` (open set).
+     * @type {string}
+     * @memberof Problem
+     */
+    reason?: string;
 }
 /**
  * A paid invoice as its public receipt shows it. Not a tax invoice; no contact details.
@@ -2578,6 +2670,24 @@ export interface ReceiptView {
      * @memberof ReceiptView
      */
     number: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ReceiptView
+     */
+    subtotal?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ReceiptView
+     */
+    discount_amount?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReceiptView
+     */
+    coupon_code?: string | null;
     /**
      * The application's name.
      * @type {string}
@@ -2913,6 +3023,12 @@ export type StatusEventCauseEnum = typeof StatusEventCauseEnum[keyof typeof Stat
 export interface Subscription {
     /**
      * 
+     * @type {Discount}
+     * @memberof Subscription
+     */
+    discount?: Discount | null;
+    /**
+     * 
      * @type {string}
      * @memberof Subscription
      */
@@ -3000,7 +3116,7 @@ export interface Subscription {
      * @type {string}
      * @memberof Subscription
      */
-    trial_end: string | null;
+    trial_end?: string | null;
     /**
      * The plan's features
      * @type {{ [key: string]: any; }}

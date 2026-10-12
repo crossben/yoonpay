@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
+import dev.yoonpay.client.generated.model.Discount;
 import dev.yoonpay.client.generated.model.InvoiceLine;
 import dev.yoonpay.client.generated.model.InvoiceStatus;
 import java.time.OffsetDateTime;
@@ -47,6 +48,9 @@ import dev.yoonpay.client.generated.ApiClient;
   Invoice.JSON_PROPERTY_KIND,
   Invoice.JSON_PROPERTY_STATUS,
   Invoice.JSON_PROPERTY_AMOUNT_DUE,
+  Invoice.JSON_PROPERTY_SUBTOTAL,
+  Invoice.JSON_PROPERTY_DISCOUNT_AMOUNT,
+  Invoice.JSON_PROPERTY_DISCOUNT,
   Invoice.JSON_PROPERTY_CURRENCY,
   Invoice.JSON_PROPERTY_LINES,
   Invoice.JSON_PROPERTY_PERIOD_START,
@@ -165,6 +169,18 @@ public class Invoice {
   public static final String JSON_PROPERTY_AMOUNT_DUE = "amount_due";
   @jakarta.annotation.Nonnull
   private Long amountDue;
+
+  public static final String JSON_PROPERTY_SUBTOTAL = "subtotal";
+  @jakarta.annotation.Nullable
+  private Long subtotal;
+
+  public static final String JSON_PROPERTY_DISCOUNT_AMOUNT = "discount_amount";
+  @jakarta.annotation.Nullable
+  private Long discountAmount;
+
+  public static final String JSON_PROPERTY_DISCOUNT = "discount";
+  @jakarta.annotation.Nullable
+  private Discount discount;
 
   public static final String JSON_PROPERTY_CURRENCY = "currency";
   @jakarta.annotation.Nonnull
@@ -383,7 +399,7 @@ public class Invoice {
   }
 
   /**
-   * Get amountDue
+   * &#x60;subtotal − discount_amount&#x60;. 0 with a 100% coupon: paid at creation, without a payment.
    * @return amountDue
    */
   @jakarta.annotation.Nonnull
@@ -398,6 +414,78 @@ public class Invoice {
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
   public void setAmountDue(@jakarta.annotation.Nonnull Long amountDue) {
     this.amountDue = amountDue;
+  }
+
+
+  public Invoice subtotal(@jakarta.annotation.Nullable Long subtotal) {
+    this.subtotal = subtotal;
+    return this;
+  }
+
+  /**
+   * The price before discount.
+   * @return subtotal
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_SUBTOTAL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Long getSubtotal() {
+    return subtotal;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_SUBTOTAL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setSubtotal(@jakarta.annotation.Nullable Long subtotal) {
+    this.subtotal = subtotal;
+  }
+
+
+  public Invoice discountAmount(@jakarta.annotation.Nullable Long discountAmount) {
+    this.discountAmount = discountAmount;
+    return this;
+  }
+
+  /**
+   * Get discountAmount
+   * @return discountAmount
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT_AMOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Long getDiscountAmount() {
+    return discountAmount;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT_AMOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setDiscountAmount(@jakarta.annotation.Nullable Long discountAmount) {
+    this.discountAmount = discountAmount;
+  }
+
+
+  public Invoice discount(@jakarta.annotation.Nullable Discount discount) {
+    this.discount = discount;
+    return this;
+  }
+
+  /**
+   * Get discount
+   * @return discount
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Discount getDiscount() {
+    return discount;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setDiscount(@jakarta.annotation.Nullable Discount discount) {
+    this.discount = discount;
   }
 
 
@@ -669,6 +757,9 @@ public class Invoice {
         Objects.equals(this.kind, invoice.kind) &&
         Objects.equals(this.status, invoice.status) &&
         Objects.equals(this.amountDue, invoice.amountDue) &&
+        Objects.equals(this.subtotal, invoice.subtotal) &&
+        Objects.equals(this.discountAmount, invoice.discountAmount) &&
+        Objects.equals(this.discount, invoice.discount) &&
         Objects.equals(this.currency, invoice.currency) &&
         Objects.equals(this.lines, invoice.lines) &&
         Objects.equals(this.periodStart, invoice.periodStart) &&
@@ -683,7 +774,7 @@ public class Invoice {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, number, customer, subscription, kind, status, amountDue, currency, lines, periodStart, periodEnd, payment, checkoutUrl, receiptUrl, paidAt, voidedAt, createdAt);
+    return Objects.hash(id, _object, number, customer, subscription, kind, status, amountDue, subtotal, discountAmount, discount, currency, lines, periodStart, periodEnd, payment, checkoutUrl, receiptUrl, paidAt, voidedAt, createdAt);
   }
 
   @Override
@@ -698,6 +789,9 @@ public class Invoice {
     sb.append("    kind: ").append(toIndentedString(kind)).append("\n");
     sb.append("    status: ").append(toIndentedString(status)).append("\n");
     sb.append("    amountDue: ").append(toIndentedString(amountDue)).append("\n");
+    sb.append("    subtotal: ").append(toIndentedString(subtotal)).append("\n");
+    sb.append("    discountAmount: ").append(toIndentedString(discountAmount)).append("\n");
+    sb.append("    discount: ").append(toIndentedString(discount)).append("\n");
     sb.append("    currency: ").append(toIndentedString(currency)).append("\n");
     sb.append("    lines: ").append(toIndentedString(lines)).append("\n");
     sb.append("    periodStart: ").append(toIndentedString(periodStart)).append("\n");
@@ -793,6 +887,21 @@ public class Invoice {
     // add `amount_due` to the URL query string
     if (getAmountDue() != null) {
       joiner.add(String.format(Locale.ROOT, "%samount_due%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getAmountDue()))));
+    }
+
+    // add `subtotal` to the URL query string
+    if (getSubtotal() != null) {
+      joiner.add(String.format(Locale.ROOT, "%ssubtotal%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getSubtotal()))));
+    }
+
+    // add `discount_amount` to the URL query string
+    if (getDiscountAmount() != null) {
+      joiner.add(String.format(Locale.ROOT, "%sdiscount_amount%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getDiscountAmount()))));
+    }
+
+    // add `discount` to the URL query string
+    if (getDiscount() != null) {
+      joiner.add(getDiscount().toUrlQueryString(prefix + "discount" + suffix));
     }
 
     // add `currency` to the URL query string

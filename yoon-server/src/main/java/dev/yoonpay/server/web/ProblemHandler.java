@@ -25,7 +25,14 @@ public class ProblemHandler {
 
     @ExceptionHandler(ApiProblem.class)
     ResponseEntity<ProblemDetail> api(ApiProblem e) {
-        return problem(e.status(), e.code(), e.getMessage());
+        return problem(e);
+    }
+
+    /** An expected error with its extra members ({@code reason}…); also what idempotent calls store and replay. */
+    public static ResponseEntity<ProblemDetail> problem(ApiProblem e) {
+        ResponseEntity<ProblemDetail> r = problem(e.status(), e.code(), e.getMessage());
+        e.properties().forEach(r.getBody()::setProperty);
+        return r;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

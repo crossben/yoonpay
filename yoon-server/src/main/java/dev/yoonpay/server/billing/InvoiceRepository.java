@@ -40,9 +40,11 @@ public class InvoiceRepository {
     public void insert(InvoiceRecord i, List<Line> lines) {
         jdbc.sql("""
                         INSERT INTO invoices (id, application_id, number, customer_id, subscription_id, price_id, kind,
-                                              status, subtotal, amount_due, currency, receipt_token)
-                        VALUES (:id, :app, :number, :customer, :subscription, :price, :kind, :status, :amount, :amount,
-                                :currency, :token)""")
+                                              status, subtotal, discount_amount, coupon_id, amount_due, currency,
+                                              receipt_token)
+                        VALUES (:id, :app, :number, :customer, :subscription, :price, :kind, :status, :subtotal, :discount,
+                                :coupon, :amount, :currency, :token)""")
+                .param("subtotal", i.subtotal()).param("discount", i.discountAmount()).param("coupon", i.couponId())
                 .param("id", i.id()).param("app", i.applicationId()).param("number", i.number())
                 .param("customer", i.customerId()).param("subscription", i.subscriptionId()).param("price", i.priceId())
                 .param("kind", i.kind()).param("status", i.status()).param("amount", i.amountDue())

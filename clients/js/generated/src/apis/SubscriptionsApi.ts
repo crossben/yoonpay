@@ -15,6 +15,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  ApplySubscriptionDiscountRequest,
   CancelSubscriptionRequest,
   ChangeSubscriptionRequest,
   CreateSubscriptionRequest,
@@ -28,6 +29,12 @@ import type {
   SubscriptionPage,
   SubscriptionStatus,
 } from '../models/index';
+
+export interface ApplySubscriptionDiscountOperationRequest {
+    id: string;
+    Idempotency_Key: string;
+    ApplySubscriptionDiscountRequest: ApplySubscriptionDiscountRequest;
+}
 
 export interface CancelSubscriptionOperationRequest {
     id: string;
@@ -73,6 +80,11 @@ export interface ListSubscriptionsRequest {
     limit?: number;
 }
 
+export interface RemoveSubscriptionDiscountRequest {
+    id: string;
+    Idempotency_Key: string;
+}
+
 export interface RenewSubscriptionOperationRequest {
     id: string;
     Idempotency_Key: string;
@@ -88,6 +100,74 @@ export interface ResumeSubscriptionRequest {
  * 
  */
 export class SubscriptionsApi extends runtime.BaseAPI {
+
+    /**
+     * Replaces the subscription\'s current discount. A use of the coupon is counted now; each paid invoice consumes one of its periods. An open invoice without a payment in progress is voided so the next one (`/renew`) carries the discount; with a payment in progress: 409. 
+     * Apply a coupon to the next invoices
+     */
+    async applySubscriptionDiscountRaw(requestParameters: ApplySubscriptionDiscountOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling applySubscriptionDiscount().'
+            );
+        }
+
+        if (requestParameters['Idempotency_Key'] == null) {
+            throw new runtime.RequiredError(
+                'Idempotency_Key',
+                'Required parameter "Idempotency_Key" was null or undefined when calling applySubscriptionDiscount().'
+            );
+        }
+
+        if (requestParameters['ApplySubscriptionDiscountRequest'] == null) {
+            throw new runtime.RequiredError(
+                'ApplySubscriptionDiscountRequest',
+                'Required parameter "ApplySubscriptionDiscountRequest" was null or undefined when calling applySubscriptionDiscount().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['Idempotency_Key'] != null) {
+            headerParameters['Idempotency-Key'] = String(requestParameters['Idempotency_Key']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("apiKey", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/v1/subscriptions/{id}/discount`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['ApplySubscriptionDiscountRequest'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response);
+    }
+
+    /**
+     * Replaces the subscription\'s current discount. A use of the coupon is counted now; each paid invoice consumes one of its periods. An open invoice without a payment in progress is voided so the next one (`/renew`) carries the discount; with a payment in progress: 409. 
+     * Apply a coupon to the next invoices
+     */
+    async applySubscriptionDiscount(requestParameters: ApplySubscriptionDiscountOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.applySubscriptionDiscountRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * By default at the period end (`cancel_at_period_end`, reversible with `resume`). With `at_period_end: false` it ends now and its open invoice is voided. No automatic refund: refund a payment explicitly if you want to. 
@@ -520,6 +600,62 @@ export class SubscriptionsApi extends runtime.BaseAPI {
      */
     async listSubscriptions(requestParameters: ListSubscriptionsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubscriptionPage> {
         const response = await this.listSubscriptionsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Remove the discount from the next invoices
+     */
+    async removeSubscriptionDiscountRaw(requestParameters: RemoveSubscriptionDiscountRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling removeSubscriptionDiscount().'
+            );
+        }
+
+        if (requestParameters['Idempotency_Key'] == null) {
+            throw new runtime.RequiredError(
+                'Idempotency_Key',
+                'Required parameter "Idempotency_Key" was null or undefined when calling removeSubscriptionDiscount().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (requestParameters['Idempotency_Key'] != null) {
+            headerParameters['Idempotency-Key'] = String(requestParameters['Idempotency_Key']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("apiKey", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/v1/subscriptions/{id}/discount`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response);
+    }
+
+    /**
+     * Remove the discount from the next invoices
+     */
+    async removeSubscriptionDiscount(requestParameters: RemoveSubscriptionDiscountRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.removeSubscriptionDiscountRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -23,5 +23,7 @@ public record SubscriptionRecord(
         String metadata,
         Instant createdAt,
         Instant updatedAt,
-        Instant trialEnd) {
+        Instant trialEnd,
+        String couponId,
+        Integer discountPeriodsRemaining) {
 }

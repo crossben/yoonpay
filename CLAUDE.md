@@ -194,6 +194,12 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   `admin`). The admin endpoint requires an `Idempotency-Key`: a retried comp must not stack twice.
 - Coupon terms are immutable (trigger `coupons_immutable`); codes are matched with
   `upper(code)` (unique index on it). Discount arithmetic lives only in core `Discounts`.
+- `Discounting`: redeeming locks the coupon after the subscription (**subscription → coupon →
+  invoice → payment**); a discount use is consumed when an invoice is **paid**
+  (`BillingPayments.settle`), not created. An invoice with 0 due is paid inside the creating
+  transaction by `BillingPayments.paidWithoutPayment` (no payment, no ledger posting).
+- An `ApiProblem` may carry extra members (`with("reason", …)`); `ProblemHandler.problem(ApiProblem)`
+  renders them, and `IdempotentCall` stores that rendering for replays.
 - Receipts live under `/checkout/receipts/` so `CheckoutFilter` (CSP, no-store, rate limit)
   covers them; anything that is not a paid invoice with the right token is the same 404.
 
@@ -238,6 +244,10 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   `generate.sh` for PHP and Python; Java uses `enumUnknownDefaultCase` and
   `useOneOfDiscriminatorLookup`). Adding a response enum value is allowed by CI
   (`api/oasdiff/severity-levels.txt`); removing one is not.
+- A response field added after a release is **never `required`** in the spec: the Python client
+  (pydantic) rejects a response missing a required field, so a new client would break against a
+  not-yet-upgraded server. oasdiff checks only old clients against the new server; this is the
+  other direction (found in 0.4.0 with `Invoice.subtotal`).
 - `JavaClientTest` (server) runs the Java client against the real server; `clients/php` tests
   run on lowest and highest dependencies (Guzzle 7 and 8); `clients/js` tests run on Node 20 and
   current, with vitest, and its e2e script (`clients/js/e2e/run.mjs`) runs the shared scenario

@@ -63,7 +63,9 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
         'plan' => 'string',
         'interval' => '\Yoon\Generated\Model\Interval',
         'interval_count' => 'int',
-        'receipt_url' => 'string'
+        'receipt_url' => 'string',
+        'subtotal' => 'int',
+        'coupon_code' => 'string'
     ];
 
     /**
@@ -79,7 +81,9 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
         'plan' => null,
         'interval' => null,
         'interval_count' => null,
-        'receipt_url' => null
+        'receipt_url' => null,
+        'subtotal' => 'int64',
+        'coupon_code' => null
     ];
 
     /**
@@ -93,7 +97,9 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
         'plan' => false,
         'interval' => false,
         'interval_count' => false,
-        'receipt_url' => true
+        'receipt_url' => true,
+        'subtotal' => false,
+        'coupon_code' => true
     ];
 
     /**
@@ -187,7 +193,9 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
         'plan' => 'plan',
         'interval' => 'interval',
         'interval_count' => 'interval_count',
-        'receipt_url' => 'receipt_url'
+        'receipt_url' => 'receipt_url',
+        'subtotal' => 'subtotal',
+        'coupon_code' => 'coupon_code'
     ];
 
     /**
@@ -201,7 +209,9 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
         'plan' => 'setPlan',
         'interval' => 'setInterval',
         'interval_count' => 'setIntervalCount',
-        'receipt_url' => 'setReceiptUrl'
+        'receipt_url' => 'setReceiptUrl',
+        'subtotal' => 'setSubtotal',
+        'coupon_code' => 'setCouponCode'
     ];
 
     /**
@@ -215,7 +225,9 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
         'plan' => 'getPlan',
         'interval' => 'getInterval',
         'interval_count' => 'getIntervalCount',
-        'receipt_url' => 'getReceiptUrl'
+        'receipt_url' => 'getReceiptUrl',
+        'subtotal' => 'getSubtotal',
+        'coupon_code' => 'getCouponCode'
     ];
 
     /**
@@ -281,6 +293,8 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
         $this->setIfExists('interval', $data ?? [], null);
         $this->setIfExists('interval_count', $data ?? [], null);
         $this->setIfExists('receipt_url', $data ?? [], null);
+        $this->setIfExists('subtotal', $data ?? [], null);
+        $this->setIfExists('coupon_code', $data ?? [], null);
     }
 
     /**
@@ -508,6 +522,67 @@ class CheckoutViewBilling implements ModelInterface, ArrayAccess, \JsonSerializa
             }
         }
         $this->container['receipt_url'] = $receipt_url;
+
+        return $this;
+    }
+
+    /**
+     * Gets subtotal
+     *
+     * @return int|null
+     */
+    public function getSubtotal()
+    {
+        return $this->container['subtotal'];
+    }
+
+    /**
+     * Sets subtotal
+     *
+     * @param int|null $subtotal Before discount; the payment amount is what is due.
+     *
+     * @return self
+     */
+    public function setSubtotal($subtotal)
+    {
+        if (is_null($subtotal)) {
+            throw new \InvalidArgumentException('non-nullable subtotal cannot be null');
+        }
+        $this->container['subtotal'] = $subtotal;
+
+        return $this;
+    }
+
+    /**
+     * Gets coupon_code
+     *
+     * @return string|null
+     */
+    public function getCouponCode()
+    {
+        return $this->container['coupon_code'];
+    }
+
+    /**
+     * Sets coupon_code
+     *
+     * @param string|null $coupon_code coupon_code
+     *
+     * @return self
+     */
+    public function setCouponCode($coupon_code)
+    {
+        if (is_null($coupon_code)) {
+            array_push($this->openAPINullablesSetToNull, 'coupon_code');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('coupon_code', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['coupon_code'] = $coupon_code;
 
         return $this;
     }

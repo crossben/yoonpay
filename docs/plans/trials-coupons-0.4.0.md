@@ -40,6 +40,10 @@ New: status `trialing`; event `subscription.trial_will_end`; fields `trial_end`,
 - M3 trials: create, one per customer and plan, pay during the trial, sweep (reminder, end →
   `past_due`), change and cancel during the trial; client helpers count `trialing` as entitled
   (moved from M5: without it trial users would be denied access) — done.
+- M4 discounts on invoices: redemption (locked cap, `reason` on refusals), discount on every
+  invoice kind, use consumed at payment (changed from the ADR: a voided invoice costs nothing),
+  0-due invoices paid at creation, apply/remove later, checkout and receipt show the coupon —
+  done. New response fields are optional in the spec (a 0.4 client must read a 0.3 server).
 
 ## Tests beyond the usual
 - Trial: paid during the trial → period starts at the trial end; unpaid → `past_due` → `expired`;

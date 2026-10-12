@@ -18,6 +18,7 @@ import dev.yoonpay.client.generated.ApiResponse;
 import dev.yoonpay.client.generated.Configuration;
 import dev.yoonpay.client.generated.Pair;
 
+import dev.yoonpay.client.generated.model.ApplySubscriptionDiscountRequest;
 import dev.yoonpay.client.generated.model.CancelSubscriptionRequest;
 import dev.yoonpay.client.generated.model.ChangeSubscriptionRequest;
 import dev.yoonpay.client.generated.model.CreateSubscriptionRequest;
@@ -161,6 +162,145 @@ public class SubscriptionsApi {
       file.deleteOnExit(); // best effort cleanup
     }
     return file;
+  }
+
+  /**
+   * Apply a coupon to the next invoices
+   * Replaces the subscription&#39;s current discount. A use of the coupon is counted now; each paid invoice consumes one of its periods. An open invoice without a payment in progress is voided so the next one (&#x60;/renew&#x60;) carries the discount; with a payment in progress: 409. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param applySubscriptionDiscountRequest  (required)
+   * @return Subscription
+   * @throws ApiException if fails to make API call
+   */
+  public Subscription applySubscriptionDiscount(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull ApplySubscriptionDiscountRequest applySubscriptionDiscountRequest) throws ApiException {
+    return applySubscriptionDiscount(id, idempotencyKey, applySubscriptionDiscountRequest, null);
+  }
+
+  /**
+   * Apply a coupon to the next invoices
+   * Replaces the subscription&#39;s current discount. A use of the coupon is counted now; each paid invoice consumes one of its periods. An open invoice without a payment in progress is voided so the next one (&#x60;/renew&#x60;) carries the discount; with a payment in progress: 409. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param applySubscriptionDiscountRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return Subscription
+   * @throws ApiException if fails to make API call
+   */
+  public Subscription applySubscriptionDiscount(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull ApplySubscriptionDiscountRequest applySubscriptionDiscountRequest, Map<String, String> headers) throws ApiException {
+    ApiResponse<Subscription> localVarResponse = applySubscriptionDiscountWithHttpInfo(id, idempotencyKey, applySubscriptionDiscountRequest, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * Apply a coupon to the next invoices
+   * Replaces the subscription&#39;s current discount. A use of the coupon is counted now; each paid invoice consumes one of its periods. An open invoice without a payment in progress is voided so the next one (&#x60;/renew&#x60;) carries the discount; with a payment in progress: 409. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param applySubscriptionDiscountRequest  (required)
+   * @return ApiResponse&lt;Subscription&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Subscription> applySubscriptionDiscountWithHttpInfo(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull ApplySubscriptionDiscountRequest applySubscriptionDiscountRequest) throws ApiException {
+    return applySubscriptionDiscountWithHttpInfo(id, idempotencyKey, applySubscriptionDiscountRequest, null);
+  }
+
+  /**
+   * Apply a coupon to the next invoices
+   * Replaces the subscription&#39;s current discount. A use of the coupon is counted now; each paid invoice consumes one of its periods. An open invoice without a payment in progress is voided so the next one (&#x60;/renew&#x60;) carries the discount; with a payment in progress: 409. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param applySubscriptionDiscountRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Subscription&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Subscription> applySubscriptionDiscountWithHttpInfo(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull ApplySubscriptionDiscountRequest applySubscriptionDiscountRequest, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = applySubscriptionDiscountRequestBuilder(id, idempotencyKey, applySubscriptionDiscountRequest, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("applySubscriptionDiscount", localVarResponse);
+        }
+        if (localVarResponse.body() == null) {
+          return new ApiResponse<Subscription>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponse.body().readAllBytes());
+        Subscription responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<Subscription>() {});
+        
+        localVarResponse.body().close();
+
+        return new ApiResponse<Subscription>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder applySubscriptionDiscountRequestBuilder(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull ApplySubscriptionDiscountRequest applySubscriptionDiscountRequest, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'id' is set
+    if (id == null) {
+      throw new ApiException(400, "Missing the required parameter 'id' when calling applySubscriptionDiscount");
+    }
+    // verify the required parameter 'idempotencyKey' is set
+    if (idempotencyKey == null) {
+      throw new ApiException(400, "Missing the required parameter 'idempotencyKey' when calling applySubscriptionDiscount");
+    }
+    // verify the required parameter 'applySubscriptionDiscountRequest' is set
+    if (applySubscriptionDiscountRequest == null) {
+      throw new ApiException(400, "Missing the required parameter 'applySubscriptionDiscountRequest' when calling applySubscriptionDiscount");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/v1/subscriptions/{id}/discount"
+        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+    if (idempotencyKey != null) {
+      localVarRequestBuilder.header("Idempotency-Key", idempotencyKey.toString());
+    }
+    localVarRequestBuilder.header("Content-Type", "application/json");
+    localVarRequestBuilder.header("Accept", "application/json, application/problem+json");
+
+    try {
+      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(applySubscriptionDiscountRequest);
+      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
   }
 
   /**
@@ -1188,6 +1328,131 @@ public class SubscriptionsApi {
     localVarRequestBuilder.header("Accept", "application/json, application/problem+json");
 
     localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * Remove the discount from the next invoices
+   * 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @return Subscription
+   * @throws ApiException if fails to make API call
+   */
+  public Subscription removeSubscriptionDiscount(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey) throws ApiException {
+    return removeSubscriptionDiscount(id, idempotencyKey, null);
+  }
+
+  /**
+   * Remove the discount from the next invoices
+   * 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param headers Optional headers to include in the request
+   * @return Subscription
+   * @throws ApiException if fails to make API call
+   */
+  public Subscription removeSubscriptionDiscount(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, Map<String, String> headers) throws ApiException {
+    ApiResponse<Subscription> localVarResponse = removeSubscriptionDiscountWithHttpInfo(id, idempotencyKey, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * Remove the discount from the next invoices
+   * 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @return ApiResponse&lt;Subscription&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Subscription> removeSubscriptionDiscountWithHttpInfo(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey) throws ApiException {
+    return removeSubscriptionDiscountWithHttpInfo(id, idempotencyKey, null);
+  }
+
+  /**
+   * Remove the discount from the next invoices
+   * 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Subscription&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Subscription> removeSubscriptionDiscountWithHttpInfo(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = removeSubscriptionDiscountRequestBuilder(id, idempotencyKey, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("removeSubscriptionDiscount", localVarResponse);
+        }
+        if (localVarResponse.body() == null) {
+          return new ApiResponse<Subscription>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponse.body().readAllBytes());
+        Subscription responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<Subscription>() {});
+        
+        localVarResponse.body().close();
+
+        return new ApiResponse<Subscription>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder removeSubscriptionDiscountRequestBuilder(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'id' is set
+    if (id == null) {
+      throw new ApiException(400, "Missing the required parameter 'id' when calling removeSubscriptionDiscount");
+    }
+    // verify the required parameter 'idempotencyKey' is set
+    if (idempotencyKey == null) {
+      throw new ApiException(400, "Missing the required parameter 'idempotencyKey' when calling removeSubscriptionDiscount");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/v1/subscriptions/{id}/discount"
+        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+    if (idempotencyKey != null) {
+      localVarRequestBuilder.header("Idempotency-Key", idempotencyKey.toString());
+    }
+    localVarRequestBuilder.header("Accept", "application/json, application/problem+json");
+
+    localVarRequestBuilder.method("DELETE", HttpRequest.BodyPublishers.noBody());
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }

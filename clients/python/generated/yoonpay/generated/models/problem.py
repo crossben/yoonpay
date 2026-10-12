@@ -32,7 +32,8 @@ class Problem(BaseModel):
     detail: Optional[StrictStr] = None
     instance: Optional[StrictStr] = None
     code: StrictStr = Field(description="Stable, machine-readable error code.")
-    __properties: ClassVar[List[str]] = ["type", "title", "status", "detail", "instance", "code"]
+    reason: Optional[StrictStr] = Field(default=None, description="For `coupon_not_applicable`: `unknown`, `archived`, `expired`, `exhausted`, `plan`, `currency` (open set).")
+    __properties: ClassVar[List[str]] = ["type", "title", "status", "detail", "instance", "code", "reason"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -90,7 +91,8 @@ class Problem(BaseModel):
             "status": obj.get("status"),
             "detail": obj.get("detail"),
             "instance": obj.get("instance"),
-            "code": obj.get("code")
+            "code": obj.get("code"),
+            "reason": obj.get("reason")
         })
         return _obj
 

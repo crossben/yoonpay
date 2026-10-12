@@ -10,6 +10,7 @@ public class ApiProblem extends RuntimeException {
 
     private final HttpStatus status;
     private final String code;
+    private final java.util.Map<String, Object> properties = new java.util.LinkedHashMap<>();
 
     public ApiProblem(HttpStatus status, String code, String message) {
         super(message);
@@ -23,6 +24,16 @@ public class ApiProblem extends RuntimeException {
 
     public String code() {
         return code;
+    }
+
+    /** Extra machine-readable members of the problem (e.g. {@code reason}). */
+    public ApiProblem with(String name, Object value) {
+        properties.put(name, value);
+        return this;
+    }
+
+    public java.util.Map<String, Object> properties() {
+        return java.util.Collections.unmodifiableMap(properties);
     }
 
     public static ApiProblem notFound(String what, String id) {

@@ -59,6 +59,9 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
       */
     protected static $openAPITypes = [
         'number' => 'string',
+        'subtotal' => 'int',
+        'discount_amount' => 'int',
+        'coupon_code' => 'string',
         'merchant' => 'string',
         'customer' => 'string',
         'plan' => 'string',
@@ -83,6 +86,9 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
       */
     protected static $openAPIFormats = [
         'number' => null,
+        'subtotal' => 'int64',
+        'discount_amount' => 'int64',
+        'coupon_code' => null,
         'merchant' => null,
         'customer' => null,
         'plan' => null,
@@ -105,6 +111,9 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
       */
     protected static array $openAPINullables = [
         'number' => false,
+        'subtotal' => false,
+        'discount_amount' => false,
+        'coupon_code' => true,
         'merchant' => false,
         'customer' => false,
         'plan' => false,
@@ -207,6 +216,9 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
      */
     protected static $attributeMap = [
         'number' => 'number',
+        'subtotal' => 'subtotal',
+        'discount_amount' => 'discount_amount',
+        'coupon_code' => 'coupon_code',
         'merchant' => 'merchant',
         'customer' => 'customer',
         'plan' => 'plan',
@@ -229,6 +241,9 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
      */
     protected static $setters = [
         'number' => 'setNumber',
+        'subtotal' => 'setSubtotal',
+        'discount_amount' => 'setDiscountAmount',
+        'coupon_code' => 'setCouponCode',
         'merchant' => 'setMerchant',
         'customer' => 'setCustomer',
         'plan' => 'setPlan',
@@ -251,6 +266,9 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
      */
     protected static $getters = [
         'number' => 'getNumber',
+        'subtotal' => 'getSubtotal',
+        'discount_amount' => 'getDiscountAmount',
+        'coupon_code' => 'getCouponCode',
         'merchant' => 'getMerchant',
         'customer' => 'getCustomer',
         'plan' => 'getPlan',
@@ -324,6 +342,9 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
     public function __construct(?array $data = null)
     {
         $this->setIfExists('number', $data ?? [], null);
+        $this->setIfExists('subtotal', $data ?? [], null);
+        $this->setIfExists('discount_amount', $data ?? [], null);
+        $this->setIfExists('coupon_code', $data ?? [], null);
         $this->setIfExists('merchant', $data ?? [], null);
         $this->setIfExists('customer', $data ?? [], null);
         $this->setIfExists('plan', $data ?? [], null);
@@ -446,6 +467,94 @@ class ReceiptView implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable number cannot be null');
         }
         $this->container['number'] = $number;
+
+        return $this;
+    }
+
+    /**
+     * Gets subtotal
+     *
+     * @return int|null
+     */
+    public function getSubtotal()
+    {
+        return $this->container['subtotal'];
+    }
+
+    /**
+     * Sets subtotal
+     *
+     * @param int|null $subtotal subtotal
+     *
+     * @return self
+     */
+    public function setSubtotal($subtotal)
+    {
+        if (is_null($subtotal)) {
+            throw new \InvalidArgumentException('non-nullable subtotal cannot be null');
+        }
+        $this->container['subtotal'] = $subtotal;
+
+        return $this;
+    }
+
+    /**
+     * Gets discount_amount
+     *
+     * @return int|null
+     */
+    public function getDiscountAmount()
+    {
+        return $this->container['discount_amount'];
+    }
+
+    /**
+     * Sets discount_amount
+     *
+     * @param int|null $discount_amount discount_amount
+     *
+     * @return self
+     */
+    public function setDiscountAmount($discount_amount)
+    {
+        if (is_null($discount_amount)) {
+            throw new \InvalidArgumentException('non-nullable discount_amount cannot be null');
+        }
+        $this->container['discount_amount'] = $discount_amount;
+
+        return $this;
+    }
+
+    /**
+     * Gets coupon_code
+     *
+     * @return string|null
+     */
+    public function getCouponCode()
+    {
+        return $this->container['coupon_code'];
+    }
+
+    /**
+     * Sets coupon_code
+     *
+     * @param string|null $coupon_code coupon_code
+     *
+     * @return self
+     */
+    public function setCouponCode($coupon_code)
+    {
+        if (is_null($coupon_code)) {
+            array_push($this->openAPINullablesSetToNull, 'coupon_code');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('coupon_code', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['coupon_code'] = $coupon_code;
 
         return $this;
     }

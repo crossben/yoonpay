@@ -34,9 +34,12 @@ public class ReceiptController {
     private final CustomerRepository customers;
     private final PaymentRepository payments;
     private final Applications applications;
+    private final dev.yoonpay.server.billing.CouponRepository coupons;
 
     public ReceiptController(InvoiceRepository invoices, CatalogRepository catalog, CustomerRepository customers,
-                             PaymentRepository payments, Applications applications) {
+                             PaymentRepository payments, Applications applications,
+                             dev.yoonpay.server.billing.CouponRepository coupons) {
+        this.coupons = coupons;
         this.invoices = invoices;
         this.catalog = catalog;
         this.customers = customers;
@@ -65,7 +68,8 @@ public class ReceiptController {
         var lines = invoices.lines(i.id()).stream().map(l -> new ReceiptView.Line(l.description(), l.amount())).toList();
         return new ReceiptView(i.number(), merchant, customer, plan.name(), price.interval().toLowerCase(Locale.ROOT),
                 price.intervalCount(), lines, i.amountDue(), i.currency(), i.periodStart(), i.periodEnd(), i.paidAt(),
-                method, i.paymentId());
+                method, i.paymentId(), i.subtotal(), i.discountAmount(),
+                i.couponId() == null ? null : coupons.find(app, i.couponId()).map(c -> c.code()).orElse(null));
     }
 
     private InvoiceRecord authorize(String id, String token) {

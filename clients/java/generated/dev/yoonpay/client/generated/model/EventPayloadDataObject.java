@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
+import dev.yoonpay.client.generated.model.Discount;
 import dev.yoonpay.client.generated.model.Failure;
 import dev.yoonpay.client.generated.model.Invoice;
 import dev.yoonpay.client.generated.model.InvoiceLine;

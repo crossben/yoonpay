@@ -40,7 +40,9 @@ import dev.yoonpay.client.generated.ApiClient;
   CheckoutViewBilling.JSON_PROPERTY_PLAN,
   CheckoutViewBilling.JSON_PROPERTY_INTERVAL,
   CheckoutViewBilling.JSON_PROPERTY_INTERVAL_COUNT,
-  CheckoutViewBilling.JSON_PROPERTY_RECEIPT_URL
+  CheckoutViewBilling.JSON_PROPERTY_RECEIPT_URL,
+  CheckoutViewBilling.JSON_PROPERTY_SUBTOTAL,
+  CheckoutViewBilling.JSON_PROPERTY_COUPON_CODE
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class CheckoutViewBilling {
@@ -67,6 +69,14 @@ public class CheckoutViewBilling {
   public static final String JSON_PROPERTY_RECEIPT_URL = "receipt_url";
   @jakarta.annotation.Nullable
   private String receiptUrl;
+
+  public static final String JSON_PROPERTY_SUBTOTAL = "subtotal";
+  @jakarta.annotation.Nullable
+  private Long subtotal;
+
+  public static final String JSON_PROPERTY_COUPON_CODE = "coupon_code";
+  @jakarta.annotation.Nullable
+  private String couponCode;
 
   public CheckoutViewBilling() { 
   }
@@ -215,6 +225,54 @@ public class CheckoutViewBilling {
   }
 
 
+  public CheckoutViewBilling subtotal(@jakarta.annotation.Nullable Long subtotal) {
+    this.subtotal = subtotal;
+    return this;
+  }
+
+  /**
+   * Before discount; the payment amount is what is due.
+   * @return subtotal
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_SUBTOTAL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Long getSubtotal() {
+    return subtotal;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_SUBTOTAL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setSubtotal(@jakarta.annotation.Nullable Long subtotal) {
+    this.subtotal = subtotal;
+  }
+
+
+  public CheckoutViewBilling couponCode(@jakarta.annotation.Nullable String couponCode) {
+    this.couponCode = couponCode;
+    return this;
+  }
+
+  /**
+   * Get couponCode
+   * @return couponCode
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_COUPON_CODE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getCouponCode() {
+    return couponCode;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_COUPON_CODE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setCouponCode(@jakarta.annotation.Nullable String couponCode) {
+    this.couponCode = couponCode;
+  }
+
+
   /**
    * Return true if this CheckoutView_billing object is equal to o.
    */
@@ -232,12 +290,14 @@ public class CheckoutViewBilling {
         Objects.equals(this.plan, checkoutViewBilling.plan) &&
         Objects.equals(this.interval, checkoutViewBilling.interval) &&
         Objects.equals(this.intervalCount, checkoutViewBilling.intervalCount) &&
-        Objects.equals(this.receiptUrl, checkoutViewBilling.receiptUrl);
+        Objects.equals(this.receiptUrl, checkoutViewBilling.receiptUrl) &&
+        Objects.equals(this.subtotal, checkoutViewBilling.subtotal) &&
+        Objects.equals(this.couponCode, checkoutViewBilling.couponCode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(invoiceNumber, kind, plan, interval, intervalCount, receiptUrl);
+    return Objects.hash(invoiceNumber, kind, plan, interval, intervalCount, receiptUrl, subtotal, couponCode);
   }
 
   @Override
@@ -250,6 +310,8 @@ public class CheckoutViewBilling {
     sb.append("    interval: ").append(toIndentedString(interval)).append("\n");
     sb.append("    intervalCount: ").append(toIndentedString(intervalCount)).append("\n");
     sb.append("    receiptUrl: ").append(toIndentedString(receiptUrl)).append("\n");
+    sb.append("    subtotal: ").append(toIndentedString(subtotal)).append("\n");
+    sb.append("    couponCode: ").append(toIndentedString(couponCode)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -325,6 +387,16 @@ public class CheckoutViewBilling {
     // add `receipt_url` to the URL query string
     if (getReceiptUrl() != null) {
       joiner.add(String.format(Locale.ROOT, "%sreceipt_url%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getReceiptUrl()))));
+    }
+
+    // add `subtotal` to the URL query string
+    if (getSubtotal() != null) {
+      joiner.add(String.format(Locale.ROOT, "%ssubtotal%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getSubtotal()))));
+    }
+
+    // add `coupon_code` to the URL query string
+    if (getCouponCode() != null) {
+      joiner.add(String.format(Locale.ROOT, "%scoupon_code%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCouponCode()))));
     }
 
     return joiner.toString();

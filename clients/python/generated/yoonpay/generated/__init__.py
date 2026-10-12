@@ -45,6 +45,7 @@ __all__ = [
     "AdminReplayDeadLetter202Response",
     "AdminResolvePayoutRequest",
     "AmountOff",
+    "ApplySubscriptionDiscountRequest",
     "CancelSubscriptionRequest",
     "ChangeSubscriptionRequest",
     "CheckoutAttemptRequest",
@@ -68,6 +69,7 @@ __all__ = [
     "Customer",
     "CustomerPage",
     "DeliveryStatus",
+    "Discount",
     "Event",
     "EventDelivery",
     "EventPage",
@@ -154,6 +156,7 @@ from yoonpay.generated.models.admin_list_applications200_response_data_inner imp
 from yoonpay.generated.models.admin_replay_dead_letter202_response import AdminReplayDeadLetter202Response as AdminReplayDeadLetter202Response
 from yoonpay.generated.models.admin_resolve_payout_request import AdminResolvePayoutRequest as AdminResolvePayoutRequest
 from yoonpay.generated.models.amount_off import AmountOff as AmountOff
+from yoonpay.generated.models.apply_subscription_discount_request import ApplySubscriptionDiscountRequest as ApplySubscriptionDiscountRequest
 from yoonpay.generated.models.cancel_subscription_request import CancelSubscriptionRequest as CancelSubscriptionRequest
 from yoonpay.generated.models.change_subscription_request import ChangeSubscriptionRequest as ChangeSubscriptionRequest
 from yoonpay.generated.models.checkout_attempt_request import CheckoutAttemptRequest as CheckoutAttemptRequest
@@ -177,6 +180,7 @@ from yoonpay.generated.models.create_subscription_request import CreateSubscript
 from yoonpay.generated.models.customer import Customer as Customer
 from yoonpay.generated.models.customer_page import CustomerPage as CustomerPage
 from yoonpay.generated.models.delivery_status import DeliveryStatus as DeliveryStatus
+from yoonpay.generated.models.discount import Discount as Discount
 from yoonpay.generated.models.event import Event as Event
 from yoonpay.generated.models.event_delivery import EventDelivery as EventDelivery
 from yoonpay.generated.models.event_page import EventPage as EventPage

@@ -30,6 +30,9 @@ class ReceiptView(BaseModel):
     A paid invoice as its public receipt shows it. Not a tax invoice; no contact details.
     """ # noqa: E501
     number: StrictStr
+    subtotal: Optional[StrictInt] = None
+    discount_amount: Optional[StrictInt] = None
+    coupon_code: Optional[StrictStr] = None
     merchant: StrictStr = Field(description="The application's name.")
     customer: StrictStr = Field(description="The customer's name")
     plan: StrictStr
@@ -44,7 +47,7 @@ class ReceiptView(BaseModel):
     method: Optional[StrictStr]
     payment: Optional[StrictStr]
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["number", "merchant", "customer", "plan", "interval", "interval_count", "lines", "amount", "currency", "period_start", "period_end", "paid_at", "method", "payment"]
+    __properties: ClassVar[List[str]] = ["number", "subtotal", "discount_amount", "coupon_code", "merchant", "customer", "plan", "interval", "interval_count", "lines", "amount", "currency", "period_start", "period_end", "paid_at", "method", "payment"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -99,6 +102,11 @@ class ReceiptView(BaseModel):
             for _key, _value in self.additional_properties.items():
                 _dict[_key] = _value
 
+        # set to None if coupon_code (nullable) is None
+        # and model_fields_set contains the field
+        if self.coupon_code is None and "coupon_code" in self.model_fields_set:
+            _dict['coupon_code'] = None
+
         # set to None if period_start (nullable) is None
         # and model_fields_set contains the field
         if self.period_start is None and "period_start" in self.model_fields_set:
@@ -137,6 +145,9 @@ class ReceiptView(BaseModel):
 
         _obj = cls.model_validate({
             "number": obj.get("number"),
+            "subtotal": obj.get("subtotal"),
+            "discount_amount": obj.get("discount_amount"),
+            "coupon_code": obj.get("coupon_code"),
             "merchant": obj.get("merchant"),
             "customer": obj.get("customer"),
             "plan": obj.get("plan"),

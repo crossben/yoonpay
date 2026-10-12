@@ -66,6 +66,9 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
         'kind' => 'string',
         'status' => '\Yoon\Generated\Model\InvoiceStatus',
         'amount_due' => 'int',
+        'subtotal' => 'int',
+        'discount_amount' => 'int',
+        'discount' => '\Yoon\Generated\Model\Discount',
         'currency' => 'string',
         'lines' => '\Yoon\Generated\Model\InvoiceLine[]',
         'period_start' => '\DateTime',
@@ -94,6 +97,9 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
         'kind' => null,
         'status' => null,
         'amount_due' => 'int64',
+        'subtotal' => 'int64',
+        'discount_amount' => 'int64',
+        'discount' => null,
         'currency' => null,
         'lines' => null,
         'period_start' => 'date-time',
@@ -120,6 +126,9 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
         'kind' => false,
         'status' => false,
         'amount_due' => false,
+        'subtotal' => false,
+        'discount_amount' => false,
+        'discount' => true,
         'currency' => false,
         'lines' => false,
         'period_start' => true,
@@ -226,6 +235,9 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
         'kind' => 'kind',
         'status' => 'status',
         'amount_due' => 'amount_due',
+        'subtotal' => 'subtotal',
+        'discount_amount' => 'discount_amount',
+        'discount' => 'discount',
         'currency' => 'currency',
         'lines' => 'lines',
         'period_start' => 'period_start',
@@ -252,6 +264,9 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
         'kind' => 'setKind',
         'status' => 'setStatus',
         'amount_due' => 'setAmountDue',
+        'subtotal' => 'setSubtotal',
+        'discount_amount' => 'setDiscountAmount',
+        'discount' => 'setDiscount',
         'currency' => 'setCurrency',
         'lines' => 'setLines',
         'period_start' => 'setPeriodStart',
@@ -278,6 +293,9 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
         'kind' => 'getKind',
         'status' => 'getStatus',
         'amount_due' => 'getAmountDue',
+        'subtotal' => 'getSubtotal',
+        'discount_amount' => 'getDiscountAmount',
+        'discount' => 'getDiscount',
         'currency' => 'getCurrency',
         'lines' => 'getLines',
         'period_start' => 'getPeriodStart',
@@ -385,6 +403,9 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('kind', $data ?? [], null);
         $this->setIfExists('status', $data ?? [], null);
         $this->setIfExists('amount_due', $data ?? [], null);
+        $this->setIfExists('subtotal', $data ?? [], null);
+        $this->setIfExists('discount_amount', $data ?? [], null);
+        $this->setIfExists('discount', $data ?? [], null);
         $this->setIfExists('currency', $data ?? [], null);
         $this->setIfExists('lines', $data ?? [], null);
         $this->setIfExists('period_start', $data ?? [], null);
@@ -692,7 +713,7 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Sets amount_due
      *
-     * @param int $amount_due amount_due
+     * @param int $amount_due `subtotal − discount_amount`. 0 with a 100% coupon: paid at creation, without a payment.
      *
      * @return self
      */
@@ -702,6 +723,94 @@ class Invoice implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable amount_due cannot be null');
         }
         $this->container['amount_due'] = $amount_due;
+
+        return $this;
+    }
+
+    /**
+     * Gets subtotal
+     *
+     * @return int|null
+     */
+    public function getSubtotal()
+    {
+        return $this->container['subtotal'];
+    }
+
+    /**
+     * Sets subtotal
+     *
+     * @param int|null $subtotal The price before discount.
+     *
+     * @return self
+     */
+    public function setSubtotal($subtotal)
+    {
+        if (is_null($subtotal)) {
+            throw new \InvalidArgumentException('non-nullable subtotal cannot be null');
+        }
+        $this->container['subtotal'] = $subtotal;
+
+        return $this;
+    }
+
+    /**
+     * Gets discount_amount
+     *
+     * @return int|null
+     */
+    public function getDiscountAmount()
+    {
+        return $this->container['discount_amount'];
+    }
+
+    /**
+     * Sets discount_amount
+     *
+     * @param int|null $discount_amount discount_amount
+     *
+     * @return self
+     */
+    public function setDiscountAmount($discount_amount)
+    {
+        if (is_null($discount_amount)) {
+            throw new \InvalidArgumentException('non-nullable discount_amount cannot be null');
+        }
+        $this->container['discount_amount'] = $discount_amount;
+
+        return $this;
+    }
+
+    /**
+     * Gets discount
+     *
+     * @return \Yoon\Generated\Model\Discount|null
+     */
+    public function getDiscount()
+    {
+        return $this->container['discount'];
+    }
+
+    /**
+     * Sets discount
+     *
+     * @param \Yoon\Generated\Model\Discount|null $discount discount
+     *
+     * @return self
+     */
+    public function setDiscount($discount)
+    {
+        if (is_null($discount)) {
+            array_push($this->openAPINullablesSetToNull, 'discount');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('discount', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['discount'] = $discount;
 
         return $this;
     }

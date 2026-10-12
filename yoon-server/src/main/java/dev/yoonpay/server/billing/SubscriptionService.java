@@ -36,7 +36,7 @@ import java.util.Map;
 public class SubscriptionService {
 
     public record CreateRequest(String customer, String price, Integer gracePeriodDays, JsonNode metadata,
-                                String returnUrl, Integer trialDays) {
+                                String returnUrl, Integer trialDays, String coupon) {
     }
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -53,12 +53,17 @@ public class SubscriptionService {
     private final TransactionTemplate tx;
     private final ObjectMapper json;
     private final Clock clock;
+    private final Discounting discounting;
+    private final BillingPayments billingPayments;
 
     public SubscriptionService(SubscriptionRepository subscriptions, InvoiceRepository invoices,
                                CustomerRepository customers, CatalogRepository catalog,
                                SubscriptionTransitions transitions, InvoiceTransitions invoiceTransitions,
                                PaymentService payments, PaymentRepository paymentRows, YoonProperties properties,
-                               TransactionTemplate tx, ObjectMapper json, Clock clock) {
+                               TransactionTemplate tx, ObjectMapper json, Clock clock, Discounting discounting,
+                               BillingPayments billingPayments) {
+        this.discounting = discounting;
+        this.billingPayments = billingPayments;
         this.subscriptions = subscriptions;
         this.invoices = invoices;
         this.customers = customers;
@@ -94,9 +99,10 @@ public class SubscriptionService {
             Instant trialEnd = now.plus(java.time.Duration.ofDays(trialDays));
             SubscriptionRecord s = new SubscriptionRecord(Ids.next("sub"), app.id(), customer.id(), price.id(),
                     SubscriptionStatus.TRIALING.name(), "PREPAID_MANUAL", null, now, trialEnd, grace, false, null, null,
-                    false, null, Metadata.metadata(req.metadata(), json), null, null, trialEnd);
+                    false, null, Metadata.metadata(req.metadata(), json), null, null, trialEnd, null, null);
             tx.executeWithoutResult(t -> {
                 subscriptions.insert(s);
+                redeemAtCreation(app, s.id(), req.coupon());
                 transitions.created(app, s.id());
             });
             return subscriptions.find(app.id(), s.id()).orElseThrow();
@@ -104,14 +110,23 @@ public class SubscriptionService {
         requirePublicUrl();
         SubscriptionRecord s = new SubscriptionRecord(Ids.next("sub"), app.id(), customer.id(), price.id(),
                 SubscriptionStatus.INCOMPLETE.name(), "PREPAID_MANUAL", null, null, null, grace, false, null, null,
-                false, null, Metadata.metadata(req.metadata(), json), null, null, null);
+                false, null, Metadata.metadata(req.metadata(), json), null, null, null, null, null);
         InvoiceRecord invoice = tx.execute(t -> {
             subscriptions.insert(s);
+            redeemAtCreation(app, s.id(), req.coupon());
             transitions.created(app, s.id());
             return newInvoice(app, s, price, "FIRST");
         });
         ensurePayment(app, invoice, customer, req.returnUrl());
         return subscriptions.find(app.id(), s.id()).orElseThrow();
+    }
+
+    private void redeemAtCreation(AppPrincipal app, String subscriptionId, String code) {
+        if (code == null) {
+            return;
+        }
+        SubscriptionRecord locked = subscriptions.lock(app.id(), subscriptionId).orElseThrow();
+        subscriptions.update(subscriptionId, discounting.redeem(app, locked, code));
     }
 
     /** The trial this subscription gets: the request's, else the plan's; none if the customer had one on this plan. */
@@ -137,8 +152,9 @@ public class SubscriptionService {
     public InvoiceRecord renew(AppPrincipal app, String id, String returnUrl) {
         requirePublicUrl();
         SubscriptionRecord s = subscriptions.find(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
-        InvoiceRecord invoice = openInvoice(app, s,
-                SubscriptionStatus.TRIALING.name().equals(s.status()) ? "FIRST" : "RENEWAL");
+        boolean neverPaid = SubscriptionStatus.TRIALING.name().equals(s.status())
+                || SubscriptionStatus.INCOMPLETE.name().equals(s.status());
+        InvoiceRecord invoice = openInvoice(app, s, neverPaid ? "FIRST" : "RENEWAL");
         CustomerRecord customer = customers.find(app.id(), s.customerId()).orElseThrow();
         ensurePayment(app, invoice, customer, returnUrl);
         return invoices.find(app.id(), invoice.id()).orElseThrow();
@@ -221,6 +237,45 @@ public class SubscriptionService {
         return subscriptions.find(app.id(), s.id()).orElseThrow();
     }
 
+    // ------------------------------------------------------------------ discount
+
+    /**
+     * Applies a coupon to the subscription's next invoices ({@code code}), or removes its discount
+     * ({@code null}). An open invoice without a payment in progress is voided so the next one is
+     * priced with the new discount; with a payment in progress it is refused (409).
+     */
+    public SubscriptionRecord setDiscount(AppPrincipal app, String id, String code) {
+        tx.executeWithoutResult(t -> {
+            SubscriptionRecord s = subscriptions.lock(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
+            SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
+            if (status == SubscriptionStatus.EXPIRED || status == SubscriptionStatus.CANCELED) {
+                throw ApiProblem.unprocessable("subscription_ended", "This subscription has ended");
+            }
+            if (code == null && s.couponId() == null) {
+                return;
+            }
+            invoices.lockOpen(id).ifPresent(open -> {
+                if (open.paymentId() != null && paymentRows.find(app.id(), open.paymentId())
+                        .map(p -> "PENDING".equals(p.status())).orElse(false)) {
+                    throw new ApiProblem(org.springframework.http.HttpStatus.CONFLICT, "payment_in_progress",
+                            "The open invoice is being paid; change the discount once it settles");
+                }
+                invoiceTransitions.apply(app, open.id(), InvoiceStatus.VOID, Cause.api, "replaced: discount changed",
+                        Map.of("voided_at", clock.instant()));
+            });
+            Map<String, Object> fields = new HashMap<>();
+            if (code == null) {
+                fields.put("coupon_id", null);
+                fields.put("discount_periods_remaining", null);
+            } else {
+                fields.putAll(discounting.redeem(app, s, code));
+            }
+            transitions.update(app, id, Cause.api, code == null ? "discount removed" : "coupon " + code + " applied",
+                    fields, "subscription.changed");
+        });
+        return subscriptions.find(app.id(), id).orElseThrow();
+    }
+
     // ------------------------------------------------------------------ cancel / resume
 
     public SubscriptionRecord cancel(AppPrincipal app, String id, boolean atPeriodEnd) {
@@ -255,16 +310,25 @@ public class SubscriptionService {
 
     // ------------------------------------------------------------------ helpers
 
-    private InvoiceRecord newInvoice(AppPrincipal app, SubscriptionRecord s, PriceRecord price, String kind) {
+    private InvoiceRecord newInvoice(AppPrincipal app, SubscriptionRecord unlocked, PriceRecord price, String kind) {
+        // Billing lock order: the subscription first (its discount is read and later consumed under it).
+        SubscriptionRecord s = subscriptions.lock(app.id(), unlocked.id()).orElseThrow();
         PlanRecord plan = catalog.findPlan(app.id(), price.planId()).orElseThrow();
         int year = clock.instant().atZone(settings(app).timezone()).getYear();
+        var discount = discounting.forInvoice(s, price);
+        long off = discount.map(Discounting.Applied::amountOff).orElse(0L);
         InvoiceRecord i = new InvoiceRecord(Ids.next("in"), app.id(),
                 invoices.nextNumber(app.id(), settings(app).invoicePrefix(), year), s.customerId(), s.id(),
-                price.id(), kind, InvoiceStatus.OPEN.name(), price.amount(), price.currency(), null, null, null,
-                token(), null, null, null, null);
+                price.id(), kind, InvoiceStatus.OPEN.name(), price.amount() - off, price.currency(), null, null, null,
+                token(), null, null, null, null, price.amount(), off, discount.map(Discounting.Applied::couponId).orElse(null));
         invoices.insert(i, List.of(new InvoiceRepository.Line(describe(plan, price), price.id(), price.amount())));
         InvoiceRecord stored = invoices.find(app.id(), i.id()).orElseThrow();
         invoiceTransitions.created(app, stored);
+        if (stored.amountDue() == 0) {
+            // Nothing to pay (100% off): paid now, without a payment (ADR-0029).
+            billingPayments.paidWithoutPayment(app, s.id(), stored.id(), Cause.api);
+            return invoices.find(app.id(), stored.id()).orElseThrow();
+        }
         return stored;
     }
 

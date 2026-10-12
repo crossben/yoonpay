@@ -1,6 +1,6 @@
 # ADR-0028 — Free trials
 
-- Status: proposed
+- Status: accepted (0.4.0)
 - Date: 2026-10-12
 - Builds on: ADR-0026 (subscriptions), ADR-0027 (invoices)
 

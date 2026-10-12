@@ -40,7 +40,11 @@ public class SubscriptionController {
     public record CreateSubscriptionRequest(@NotBlank String customer, @NotBlank String price,
                                             @Min(0) @Max(90) Integer gracePeriodDays, JsonNode metadata,
                                             @Size(max = 2048) String returnUrl,
-                                            @Min(0) @Max(90) Integer trialDays) {
+                                            @Min(0) @Max(90) Integer trialDays,
+                                            @Size(min = 3, max = 32) String coupon) {
+    }
+
+    public record DiscountRequest(@jakarta.validation.constraints.NotBlank @Size(max = 32) String coupon) {
     }
 
     public record RenewRequest(@Size(max = 2048) String returnUrl) {
@@ -75,7 +79,7 @@ public class SubscriptionController {
                                   @Valid @RequestBody CreateSubscriptionRequest body, HttpServletRequest request) {
         return idempotent.run(app, key, request, body, HttpStatus.CREATED, () -> views.subscription(service.create(app,
                 new SubscriptionService.CreateRequest(body.customer(), body.price(), body.gracePeriodDays(),
-                        body.metadata(), body.returnUrl(), body.trialDays()))));
+                        body.metadata(), body.returnUrl(), body.trialDays(), body.coupon()))));
     }
 
     @GetMapping("/{id}")
@@ -131,6 +135,22 @@ public class SubscriptionController {
                                   HttpServletRequest request) {
         return idempotent.run(app, key, request, java.util.Map.of("resume", id), HttpStatus.OK,
                 () -> views.subscription(service.resume(app, id)));
+    }
+
+    @PostMapping("/{id}/discount")
+    ResponseEntity<String> applyDiscount(AppPrincipal app, @PathVariable String id,
+                                         @RequestHeader(value = IdempotentCall.HEADER, required = false) String key,
+                                         @Valid @RequestBody DiscountRequest body, HttpServletRequest request) {
+        return idempotent.run(app, key, request, body, HttpStatus.OK,
+                () -> views.subscription(service.setDiscount(app, id, body.coupon())));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}/discount")
+    ResponseEntity<String> removeDiscount(AppPrincipal app, @PathVariable String id,
+                                          @RequestHeader(value = IdempotentCall.HEADER, required = false) String key,
+                                          HttpServletRequest request) {
+        return idempotent.run(app, key, request, java.util.Map.of("remove_discount", id), HttpStatus.OK,
+                () -> views.subscription(service.setDiscount(app, id, null)));
     }
 
     private SubscriptionRecord find(AppPrincipal app, String id) {

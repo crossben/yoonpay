@@ -62,7 +62,8 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
         'status' => 'int',
         'detail' => 'string',
         'instance' => 'string',
-        'code' => 'string'
+        'code' => 'string',
+        'reason' => 'string'
     ];
 
     /**
@@ -78,7 +79,8 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
         'status' => null,
         'detail' => null,
         'instance' => null,
-        'code' => null
+        'code' => null,
+        'reason' => null
     ];
 
     /**
@@ -92,7 +94,8 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
         'status' => false,
         'detail' => false,
         'instance' => false,
-        'code' => false
+        'code' => false,
+        'reason' => false
     ];
 
     /**
@@ -186,7 +189,8 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
         'status' => 'status',
         'detail' => 'detail',
         'instance' => 'instance',
-        'code' => 'code'
+        'code' => 'code',
+        'reason' => 'reason'
     ];
 
     /**
@@ -200,7 +204,8 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
         'status' => 'setStatus',
         'detail' => 'setDetail',
         'instance' => 'setInstance',
-        'code' => 'setCode'
+        'code' => 'setCode',
+        'reason' => 'setReason'
     ];
 
     /**
@@ -214,7 +219,8 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
         'status' => 'getStatus',
         'detail' => 'getDetail',
         'instance' => 'getInstance',
-        'code' => 'getCode'
+        'code' => 'getCode',
+        'reason' => 'getReason'
     ];
 
     /**
@@ -280,6 +286,7 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('detail', $data ?? [], null);
         $this->setIfExists('instance', $data ?? [], null);
         $this->setIfExists('code', $data ?? [], null);
+        $this->setIfExists('reason', $data ?? [], null);
     }
 
     /**
@@ -494,6 +501,33 @@ class Problem implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable code cannot be null');
         }
         $this->container['code'] = $code;
+
+        return $this;
+    }
+
+    /**
+     * Gets reason
+     *
+     * @return string|null
+     */
+    public function getReason()
+    {
+        return $this->container['reason'];
+    }
+
+    /**
+     * Sets reason
+     *
+     * @param string|null $reason For `coupon_not_applicable`: `unknown`, `archived`, `expired`, `exhausted`, `plan`, `currency` (open set).
+     *
+     * @return self
+     */
+    public function setReason($reason)
+    {
+        if (is_null($reason)) {
+            throw new \InvalidArgumentException('non-nullable reason cannot be null');
+        }
+        $this->container['reason'] = $reason;
 
         return $this;
     }

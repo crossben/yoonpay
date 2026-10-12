@@ -65,7 +65,7 @@ public class IdempotentCall {
             type = MediaType.APPLICATION_JSON;
         } catch (ApiProblem e) {
             // Expected errors are part of the response: an identical retry gets the same answer.
-            body = json.writeValueAsString(ProblemHandler.problem(e.status(), e.code(), e.getMessage()).getBody());
+            body = json.writeValueAsString(ProblemHandler.problem(e).getBody());
             status = e.status().value();
             type = MediaType.APPLICATION_PROBLEM_JSON;
         }

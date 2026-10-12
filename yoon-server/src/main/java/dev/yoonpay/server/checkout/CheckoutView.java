@@ -31,7 +31,7 @@ public record CheckoutView(
 
     /** Set when the payment pays an invoice: what the customer is buying, and its receipt once paid. */
     public record Billing(String invoiceNumber, String kind, String plan, String interval, int intervalCount,
-                          String receiptUrl) {
+                          String receiptUrl, long subtotal, String couponCode) {
     }
 
     /** {@code redirect} to the provider's page, or {@code instructions} to show (push / USSD). */

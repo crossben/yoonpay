@@ -786,7 +786,7 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
         '422':
-          description: '`customer_not_found`, `price_not_found`, `price_archived`, `public_url_required`, `no_provider_for_method`.'
+          description: '`customer_not_found`, `price_not_found`, `price_archived`, `public_url_required`, `no_provider_for_method`, `coupon_not_applicable` (with `reason`).'
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
@@ -956,6 +956,78 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/IdempotencyConflict' }
+
+  /v1/subscriptions/{id}/discount:
+    post:
+      tags: [Subscriptions]
+      operationId: applySubscriptionDiscount
+      summary: Apply a coupon to the next invoices
+      description: |
+        Replaces the subscription's current discount. A use of the coupon is counted now; each paid
+        invoice consumes one of its periods. An open invoice without a payment in progress is voided
+        so the next one (`/renew`) carries the discount; with a payment in progress: 409.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [coupon]
+              properties:
+                coupon: { type: string, maxLength: 32 }
+      responses:
+        '200':
+          description: The subscription with its discount.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`payment_in_progress` — the open invoice is being paid; or an idempotency conflict.'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`coupon_not_applicable` (with `reason`), `subscription_ended`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    delete:
+      tags: [Subscriptions]
+      operationId: removeSubscriptionDiscount
+      summary: Remove the discount from the next invoices
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: The subscription without a discount.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`payment_in_progress`, or an idempotency conflict.'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`subscription_ended`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
 
   /v1/invoices:
     get:
@@ -1961,6 +2033,9 @@ components:
         code:
           type: string
           description: Stable, machine-readable error code.
+        reason:
+          type: string
+          description: 'For `coupon_not_applicable`: `unknown`, `archived`, `expired`, `exhausted`, `plan`, `currency` (open set).'
 
     PaymentPage:
       type: object
@@ -2066,7 +2141,7 @@ components:
 
     Plan:
       type: object
-      required: [id, object, slug, name, active, features, metadata, prices, trial_days, created_at, updated_at]
+      required: [id, object, slug, name, active, features, metadata, prices, created_at, updated_at]
       properties:
         id: { type: string, example: plan_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
         object: { type: string, const: plan }
@@ -2222,7 +2297,13 @@ components:
         subscription: { type: string }
         kind: { type: string, enum: [first, renewal, upgrade] }
         status: { $ref: '#/components/schemas/InvoiceStatus' }
-        amount_due: { type: integer, format: int64 }
+        amount_due: { type: integer, format: int64, description: '`subtotal − discount_amount`. 0 with a 100% coupon: paid at creation, without a payment.' }
+        subtotal: { type: integer, format: int64, description: The price before discount. }
+        discount_amount: { type: integer, format: int64 }
+        discount:
+          oneOf:
+            - { $ref: '#/components/schemas/Discount' }
+            - { type: 'null' }
         currency: { type: string }
         lines: { type: array, items: { $ref: '#/components/schemas/InvoiceLine' } }
         period_start: { type: [string, 'null'], format: date-time, description: Set when paid. }
@@ -2239,8 +2320,13 @@ components:
     Subscription:
       type: object
       required: [id, object, customer, price, status, collection_method, grace_period_days, cancel_at_period_end,
-                 comp, entitled, features, metadata, trial_end, created_at, updated_at]
+                 comp, entitled, features, metadata, created_at, updated_at]
       properties:
+        discount:
+          description: 'The coupon on its next invoices; `periods_remaining` null means forever.'
+          oneOf:
+            - { $ref: '#/components/schemas/Discount' }
+            - { type: 'null' }
         id: { type: string, example: sub_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
         object: { type: string, const: subscription }
         customer:
@@ -2284,6 +2370,7 @@ components:
         grace_period_days: { type: integer, minimum: 0, maximum: 90, description: Default from the application's billing settings. }
         metadata: { $ref: '#/components/schemas/Metadata' }
         return_url: { type: string, format: uri, maxLength: 2048, description: 'Required unless the subscription starts with a trial.' }
+        coupon: { type: string, minLength: 3, maxLength: 32, description: 'A coupon code (case-insensitive) for its first invoices; `422 coupon_not_applicable` with a `reason` if it cannot be used.' }
         trial_days:
           type: integer
           minimum: 0
@@ -2585,6 +2672,8 @@ components:
             interval: { $ref: '#/components/schemas/Interval' }
             interval_count: { type: integer }
             receipt_url: { type: [string, 'null'], description: 'Relative; once this payment has paid the invoice.' }
+            subtotal: { type: integer, format: int64, description: 'Before discount; the payment amount is what is due.' }
+            coupon_code: { type: [string, 'null'] }
 
     CompRequest:
       type: object
@@ -2604,6 +2693,16 @@ components:
         open: { type: boolean, description: 'true: no end date (current_period_end null) until canceled.' }
         note: { type: string, minLength: 1, maxLength: 500, example: 'Partner school, approved by Awa' }
 
+    Discount:
+      type: object
+      required: [coupon, code, percent_off, amount_off, periods_remaining]
+      properties:
+        coupon: { type: string }
+        code: { type: string }
+        percent_off: { type: [integer, 'null'] }
+        amount_off: { type: [integer, 'null'], format: int64 }
+        periods_remaining: { type: [integer, 'null'], description: 'On a subscription: invoices it still discounts (null = forever). Null on an invoice.' }
+
     ReceiptView:
       type: object
       additionalProperties: false
@@ -2612,6 +2711,9 @@ components:
                  period_start, period_end, paid_at, method, payment]
       properties:
         number: { type: string }
+        subtotal: { type: integer, format: int64 }
+        discount_amount: { type: integer, format: int64 }
+        coupon_code: { type: [string, 'null'] }
         merchant: { type: [string, 'null'], description: The application's name. }
         customer: { type: [string, 'null'], description: The customer's name, if known. }
         plan: { type: string }

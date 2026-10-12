@@ -19,7 +19,7 @@ const TEXT = {
         busy: 'A payment attempt is already running. Please wait.', tooMany: 'Too many requests. Wait a moment and try again.',
         network: 'Connection problem. Check your connection and try again.', invalid: 'Check the details you entered.',
         noMethods: 'No payment method is available right now.', otherLang: 'Français',
-        receipt: 'View the receipt', invoice: 'Invoice', upgrade: 'plan change',
+        receipt: 'View the receipt', invoice: 'Invoice', coupon: 'Coupon', upgrade: 'plan change',
         day: ['day', 'days'], week: ['week', 'weeks'], month: ['month', 'months'], year: ['year', 'years'],
     },
     fr: {
@@ -38,7 +38,7 @@ const TEXT = {
         busy: 'Une tentative de paiement est déjà en cours. Patientez.', tooMany: 'Trop de requêtes. Patientez un instant puis réessayez.',
         network: 'Problème de connexion. Vérifiez votre connexion et réessayez.', invalid: 'Vérifiez les informations saisies.',
         noMethods: "Aucun moyen de paiement n'est disponible pour le moment.", otherLang: 'English',
-        receipt: 'Voir le reçu', invoice: 'Facture', upgrade: 'changement de formule',
+        receipt: 'Voir le reçu', invoice: 'Facture', coupon: 'Code promo', upgrade: 'changement de formule',
         day: ['jour', 'jours'], week: ['semaine', 'semaines'], month: ['mois', 'mois'], year: ['an', 'ans'],
     },
 };
@@ -78,6 +78,7 @@ function billingLine(b) {
         : `${b.interval_count} ${b.interval}`;
     const parts = [b.plan, every];
     if (b.kind === 'upgrade') parts.push(t('upgrade'));
+    if (b.coupon_code) parts.push(`${t('coupon')} ${b.coupon_code}`);
     parts.push(`${t('invoice')} ${b.invoice_number}`);
     return parts.join(' · ');
 }

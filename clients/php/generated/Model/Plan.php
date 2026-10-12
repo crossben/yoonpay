@@ -394,9 +394,6 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
         if ($this->container['prices'] === null) {
             $invalidProperties[] = "'prices' can't be null";
         }
-        if ($this->container['trial_days'] === null) {
-            $invalidProperties[] = "'trial_days' can't be null";
-        }
         if ($this->container['created_at'] === null) {
             $invalidProperties[] = "'created_at' can't be null";
         }
@@ -641,7 +638,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Gets trial_days
      *
-     * @return int
+     * @return int|null
      */
     public function getTrialDays()
     {
@@ -651,7 +648,7 @@ class Plan implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Sets trial_days
      *
-     * @param int $trial_days Default free trial for new subscriptions, 0 for none (ADR-0028).
+     * @param int|null $trial_days Default free trial for new subscriptions, 0 for none (ADR-0028).
      *
      * @return self
      */

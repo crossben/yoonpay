@@ -20,6 +20,7 @@ from yoonpay.generated.models.admin_list_applications200_response_data_inner imp
 from yoonpay.generated.models.admin_replay_dead_letter202_response import AdminReplayDeadLetter202Response
 from yoonpay.generated.models.admin_resolve_payout_request import AdminResolvePayoutRequest
 from yoonpay.generated.models.amount_off import AmountOff
+from yoonpay.generated.models.apply_subscription_discount_request import ApplySubscriptionDiscountRequest
 from yoonpay.generated.models.cancel_subscription_request import CancelSubscriptionRequest
 from yoonpay.generated.models.change_subscription_request import ChangeSubscriptionRequest
 from yoonpay.generated.models.checkout_attempt_request import CheckoutAttemptRequest
@@ -43,6 +44,7 @@ from yoonpay.generated.models.create_subscription_request import CreateSubscript
 from yoonpay.generated.models.customer import Customer
 from yoonpay.generated.models.customer_page import CustomerPage
 from yoonpay.generated.models.delivery_status import DeliveryStatus
+from yoonpay.generated.models.discount import Discount
 from yoonpay.generated.models.event import Event
 from yoonpay.generated.models.event_delivery import EventDelivery
 from yoonpay.generated.models.event_page import EventPage

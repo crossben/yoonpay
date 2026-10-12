@@ -83,6 +83,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'reason' => 'string',
         'recipient' => '\Yoon\Generated\Model\PayoutRecipient',
         'needs_review' => 'bool',
+        'discount' => '\Yoon\Generated\Model\Discount',
         'price' => '\Yoon\Generated\Model\SubscriptionPrice',
         'collection_method' => 'string',
         'current_period_start' => '\DateTime',
@@ -101,6 +102,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'subscription' => 'string',
         'kind' => 'string',
         'amount_due' => 'int',
+        'subtotal' => 'int',
+        'discount_amount' => 'int',
         'lines' => '\Yoon\Generated\Model\InvoiceLine[]',
         'period_start' => '\DateTime',
         'period_end' => '\DateTime',
@@ -143,6 +146,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'reason' => null,
         'recipient' => null,
         'needs_review' => null,
+        'discount' => null,
         'price' => null,
         'collection_method' => null,
         'current_period_start' => 'date-time',
@@ -161,6 +165,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'subscription' => null,
         'kind' => null,
         'amount_due' => 'int64',
+        'subtotal' => 'int64',
+        'discount_amount' => 'int64',
         'lines' => null,
         'period_start' => 'date-time',
         'period_end' => 'date-time',
@@ -201,6 +207,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'reason' => false,
         'recipient' => false,
         'needs_review' => false,
+        'discount' => false,
         'price' => false,
         'collection_method' => false,
         'current_period_start' => false,
@@ -219,6 +226,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'subscription' => false,
         'kind' => false,
         'amount_due' => false,
+        'subtotal' => false,
+        'discount_amount' => false,
         'lines' => false,
         'period_start' => false,
         'period_end' => false,
@@ -339,6 +348,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'reason' => 'reason',
         'recipient' => 'recipient',
         'needs_review' => 'needs_review',
+        'discount' => 'discount',
         'price' => 'price',
         'collection_method' => 'collection_method',
         'current_period_start' => 'current_period_start',
@@ -357,6 +367,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'subscription' => 'subscription',
         'kind' => 'kind',
         'amount_due' => 'amount_due',
+        'subtotal' => 'subtotal',
+        'discount_amount' => 'discount_amount',
         'lines' => 'lines',
         'period_start' => 'period_start',
         'period_end' => 'period_end',
@@ -397,6 +409,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'reason' => 'setReason',
         'recipient' => 'setRecipient',
         'needs_review' => 'setNeedsReview',
+        'discount' => 'setDiscount',
         'price' => 'setPrice',
         'collection_method' => 'setCollectionMethod',
         'current_period_start' => 'setCurrentPeriodStart',
@@ -415,6 +428,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'subscription' => 'setSubscription',
         'kind' => 'setKind',
         'amount_due' => 'setAmountDue',
+        'subtotal' => 'setSubtotal',
+        'discount_amount' => 'setDiscountAmount',
         'lines' => 'setLines',
         'period_start' => 'setPeriodStart',
         'period_end' => 'setPeriodEnd',
@@ -455,6 +470,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'reason' => 'getReason',
         'recipient' => 'getRecipient',
         'needs_review' => 'getNeedsReview',
+        'discount' => 'getDiscount',
         'price' => 'getPrice',
         'collection_method' => 'getCollectionMethod',
         'current_period_start' => 'getCurrentPeriodStart',
@@ -473,6 +489,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'subscription' => 'getSubscription',
         'kind' => 'getKind',
         'amount_due' => 'getAmountDue',
+        'subtotal' => 'getSubtotal',
+        'discount_amount' => 'getDiscountAmount',
         'lines' => 'getLines',
         'period_start' => 'getPeriodStart',
         'period_end' => 'getPeriodEnd',
@@ -622,6 +640,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('reason', $data ?? [], null);
         $this->setIfExists('recipient', $data ?? [], null);
         $this->setIfExists('needs_review', $data ?? [], null);
+        $this->setIfExists('discount', $data ?? [], null);
         $this->setIfExists('price', $data ?? [], null);
         $this->setIfExists('collection_method', $data ?? [], null);
         $this->setIfExists('current_period_start', $data ?? [], null);
@@ -640,6 +659,8 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('subscription', $data ?? [], null);
         $this->setIfExists('kind', $data ?? [], null);
         $this->setIfExists('amount_due', $data ?? [], null);
+        $this->setIfExists('subtotal', $data ?? [], null);
+        $this->setIfExists('discount_amount', $data ?? [], null);
         $this->setIfExists('lines', $data ?? [], null);
         $this->setIfExists('period_start', $data ?? [], null);
         $this->setIfExists('period_end', $data ?? [], null);
@@ -768,9 +789,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         }
         if ($this->container['entitled'] === null) {
             $invalidProperties[] = "'entitled' can't be null";
-        }
-        if ($this->container['trial_end'] === null) {
-            $invalidProperties[] = "'trial_end' can't be null";
         }
         if ($this->container['features'] === null) {
             $invalidProperties[] = "'features' can't be null";
@@ -1497,6 +1515,33 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     }
 
     /**
+     * Gets discount
+     *
+     * @return \Yoon\Generated\Model\Discount|null
+     */
+    public function getDiscount()
+    {
+        return $this->container['discount'];
+    }
+
+    /**
+     * Sets discount
+     *
+     * @param \Yoon\Generated\Model\Discount|null $discount discount
+     *
+     * @return self
+     */
+    public function setDiscount($discount)
+    {
+        if (is_null($discount)) {
+            throw new \InvalidArgumentException('non-nullable discount cannot be null');
+        }
+        $this->container['discount'] = $discount;
+
+        return $this;
+    }
+
+    /**
      * Gets price
      *
      * @return \Yoon\Generated\Model\SubscriptionPrice
@@ -1769,7 +1814,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Gets trial_end
      *
-     * @return \DateTime
+     * @return \DateTime|null
      */
     public function getTrialEnd()
     {
@@ -1779,7 +1824,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets trial_end
      *
-     * @param \DateTime $trial_end When its free trial ends (or ended); null without a trial.
+     * @param \DateTime|null $trial_end When its free trial ends (or ended); null without a trial.
      *
      * @return self
      */
@@ -1972,7 +2017,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     /**
      * Sets amount_due
      *
-     * @param int $amount_due amount_due
+     * @param int $amount_due `subtotal − discount_amount`. 0 with a 100% coupon: paid at creation, without a payment.
      *
      * @return self
      */
@@ -1982,6 +2027,60 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
             throw new \InvalidArgumentException('non-nullable amount_due cannot be null');
         }
         $this->container['amount_due'] = $amount_due;
+
+        return $this;
+    }
+
+    /**
+     * Gets subtotal
+     *
+     * @return int|null
+     */
+    public function getSubtotal()
+    {
+        return $this->container['subtotal'];
+    }
+
+    /**
+     * Sets subtotal
+     *
+     * @param int|null $subtotal The price before discount.
+     *
+     * @return self
+     */
+    public function setSubtotal($subtotal)
+    {
+        if (is_null($subtotal)) {
+            throw new \InvalidArgumentException('non-nullable subtotal cannot be null');
+        }
+        $this->container['subtotal'] = $subtotal;
+
+        return $this;
+    }
+
+    /**
+     * Gets discount_amount
+     *
+     * @return int|null
+     */
+    public function getDiscountAmount()
+    {
+        return $this->container['discount_amount'];
+    }
+
+    /**
+     * Sets discount_amount
+     *
+     * @param int|null $discount_amount discount_amount
+     *
+     * @return self
+     */
+    public function setDiscountAmount($discount_amount)
+    {
+        if (is_null($discount_amount)) {
+            throw new \InvalidArgumentException('non-nullable discount_amount cannot be null');
+        }
+        $this->container['discount_amount'] = $discount_amount;
 
         return $this;
     }

@@ -90,7 +90,8 @@ once, in Java, instead of in every project.
   - free trials (0.4.0 in progress): `trialing` is entitled with nothing to pay; unpaid at the
     end → grace → expired; one trial per customer and plan;
   - coupons (`/v1/coupons`, 0.4.0 in progress): percent or amount off, once, N periods or
-    forever, immutable terms. Redeeming them on subscriptions comes next.
+    forever, immutable terms, redeemed when subscribing or later; a 100% coupon pays the
+    invoice by itself (no payment, no ledger posting).
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount

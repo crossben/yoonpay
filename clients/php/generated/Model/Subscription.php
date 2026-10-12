@@ -57,6 +57,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
       * @var string[]
       */
     protected static $openAPITypes = [
+        'discount' => '\Yoon\Generated\Model\Discount',
         'id' => 'string',
         'object' => 'string',
         'customer' => '\Yoon\Generated\Model\SubscriptionCustomer',
@@ -87,6 +88,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
       * @psalm-var array<string, string|null>
       */
     protected static $openAPIFormats = [
+        'discount' => null,
         'id' => null,
         'object' => null,
         'customer' => null,
@@ -115,6 +117,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
       * @var boolean[]
       */
     protected static array $openAPINullables = [
+        'discount' => true,
         'id' => false,
         'object' => false,
         'customer' => false,
@@ -223,6 +226,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
      * @var string[]
      */
     protected static $attributeMap = [
+        'discount' => 'discount',
         'id' => 'id',
         'object' => 'object',
         'customer' => 'customer',
@@ -251,6 +255,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
      * @var string[]
      */
     protected static $setters = [
+        'discount' => 'setDiscount',
         'id' => 'setId',
         'object' => 'setObject',
         'customer' => 'setCustomer',
@@ -279,6 +284,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
      * @var string[]
      */
     protected static $getters = [
+        'discount' => 'getDiscount',
         'id' => 'getId',
         'object' => 'getObject',
         'customer' => 'getCustomer',
@@ -384,6 +390,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
      */
     public function __construct(?array $data = null)
     {
+        $this->setIfExists('discount', $data ?? [], null);
         $this->setIfExists('id', $data ?? [], null);
         $this->setIfExists('object', $data ?? [], null);
         $this->setIfExists('customer', $data ?? [], null);
@@ -481,9 +488,6 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         if ($this->container['entitled'] === null) {
             $invalidProperties[] = "'entitled' can't be null";
         }
-        if ($this->container['trial_end'] === null) {
-            $invalidProperties[] = "'trial_end' can't be null";
-        }
         if ($this->container['features'] === null) {
             $invalidProperties[] = "'features' can't be null";
         }
@@ -514,6 +518,40 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
         return count($this->listInvalidProperties()) === 0;
     }
 
+
+    /**
+     * Gets discount
+     *
+     * @return \Yoon\Generated\Model\Discount|null
+     */
+    public function getDiscount()
+    {
+        return $this->container['discount'];
+    }
+
+    /**
+     * Sets discount
+     *
+     * @param \Yoon\Generated\Model\Discount|null $discount discount
+     *
+     * @return self
+     */
+    public function setDiscount($discount)
+    {
+        if (is_null($discount)) {
+            array_push($this->openAPINullablesSetToNull, 'discount');
+        } else {
+            $nullablesSetToNull = $this->getOpenAPINullablesSetToNull();
+            $index = array_search('discount', $nullablesSetToNull);
+            if ($index !== FALSE) {
+                unset($nullablesSetToNull[$index]);
+                $this->setOpenAPINullablesSetToNull($nullablesSetToNull);
+            }
+        }
+        $this->container['discount'] = $discount;
+
+        return $this;
+    }
 
     /**
      * Gets id
@@ -917,7 +955,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Gets trial_end
      *
-     * @return \DateTime
+     * @return \DateTime|null
      */
     public function getTrialEnd()
     {
@@ -927,7 +965,7 @@ class Subscription implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Sets trial_end
      *
-     * @param \DateTime $trial_end When its free trial ends (or ended); null without a trial.
+     * @param \DateTime|null $trial_end When its free trial ends (or ended); null without a trial.
      *
      * @return self
      */

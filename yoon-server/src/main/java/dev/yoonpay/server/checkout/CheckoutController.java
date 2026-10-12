@@ -43,10 +43,13 @@ public class CheckoutController {
     private final Applications applications;
     private final InvoiceRepository invoices;
     private final CatalogRepository catalog;
+    private final dev.yoonpay.server.billing.CouponRepository coupons;
     private final Clock clock;
 
     public CheckoutController(PaymentRepository payments, PaymentService service, Applications applications,
-                              InvoiceRepository invoices, CatalogRepository catalog, Clock clock) {
+                              InvoiceRepository invoices, CatalogRepository catalog,
+                              dev.yoonpay.server.billing.CouponRepository coupons, Clock clock) {
+        this.coupons = coupons;
         this.invoices = invoices;
         this.catalog = catalog;
         this.payments = payments;
@@ -101,7 +104,8 @@ public class CheckoutController {
             // The receipt belongs to the payment that paid the invoice, not to an earlier, abandoned one.
             String receipt = "PAID".equals(i.status()) && p.id().equals(i.paymentId()) ? BillingViews.receiptPath(i) : null;
             return new CheckoutView.Billing(i.number(), i.kind().toLowerCase(Locale.ROOT), plan.name(),
-                    price.interval().toLowerCase(Locale.ROOT), price.intervalCount(), receipt);
+                    price.interval().toLowerCase(Locale.ROOT), price.intervalCount(), receipt, i.subtotal(),
+                    i.couponId() == null ? null : coupons.find(app.id(), i.couponId()).map(c -> c.code()).orElse(null));
         }).orElse(null);
     }
 

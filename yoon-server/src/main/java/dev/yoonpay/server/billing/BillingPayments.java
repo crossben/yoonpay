@@ -33,11 +33,13 @@ public class BillingPayments {
     private final InvoiceTransitions invoiceTransitions;
     private final SubscriptionTransitions transitions;
     private final Alerts alerts;
+    private final Discounting discounting;
     private final Clock clock;
 
     public BillingPayments(InvoiceRepository invoices, SubscriptionRepository subscriptions, CatalogRepository catalog,
                            InvoiceTransitions invoiceTransitions, SubscriptionTransitions transitions, Alerts alerts,
-                           Clock clock) {
+                           Discounting discounting, Clock clock) {
+        this.discounting = discounting;
         this.invoices = invoices;
         this.subscriptions = subscriptions;
         this.catalog = catalog;
@@ -63,6 +65,25 @@ public class BillingPayments {
         if (InvoiceStatus.VOID.name().equals(invoice.status())) {
             alerts.raise(Alerts.Type.late_invoice_payment, invoice.id(), "payment " + payment.id() + " for a voided invoice; applied");
         }
+        settle(app, s, invoice, Cause.webhook, "paid by " + payment.id());
+    }
+
+    /**
+     * An invoice with nothing to pay (a 100% coupon, ADR-0029): paid at creation, without a
+     * payment, in the creating transaction. No ledger posting: no money moved.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void paidWithoutPayment(AppPrincipal app, String subscriptionId, String invoiceId, Cause cause) {
+        SubscriptionRecord s = subscriptions.lock(app.id(), subscriptionId).orElseThrow();
+        InvoiceRecord invoice = invoices.lock(app.id(), invoiceId).orElseThrow();
+        if (invoice.amountDue() != 0 || !InvoiceStatus.OPEN.name().equals(invoice.status())) {
+            throw new IllegalStateException("only an open invoice with nothing to pay is paid without a payment");
+        }
+        settle(app, s, invoice, cause, "nothing to pay (coupon)");
+    }
+
+    /** Marks the locked invoice paid and adds its period to the locked subscription. */
+    private void settle(AppPrincipal app, SubscriptionRecord s, InvoiceRecord invoice, Cause cause, String paidBy) {
         Instant paidAt = clock.instant();
         SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
         PriceRecord price = catalog.findPrice(app.id(), invoice.priceId()).orElseThrow();
@@ -95,7 +116,7 @@ public class BillingPayments {
         invoiceFields.put("paid_at", paidAt);
         invoiceFields.put("period_start", start);
         invoiceFields.put("period_end", end);
-        invoiceTransitions.apply(app, invoice.id(), InvoiceStatus.PAID, Cause.webhook, "paid by " + payment.id(), invoiceFields);
+        invoiceTransitions.apply(app, invoice.id(), InvoiceStatus.PAID, cause, paidBy, invoiceFields);
 
         Map<String, Object> fields = new HashMap<>();
         fields.put("current_period_start", start);
@@ -104,6 +125,7 @@ public class BillingPayments {
         fields.put("cancel_at_period_end", false); // paying again means the customer wants to continue
         fields.put("canceled_at", null);
         fields.put("comp", false); // a paid period: no longer operator-granted
+        fields.putAll(discounting.consume(s, invoice));
         boolean priceChanged = !invoice.priceId().equals(s.priceId());
         if (priceChanged || invoice.priceId().equals(s.pendingPriceId())) {
             fields.put("price_id", invoice.priceId());
@@ -111,10 +133,10 @@ public class BillingPayments {
         }
         String detail = invoice.kind().toLowerCase(java.util.Locale.ROOT) + " invoice " + invoice.number() + " paid";
         if (status == SubscriptionStatus.ACTIVE) {
-            transitions.update(app, s.id(), Cause.webhook, detail, fields,
+            transitions.update(app, s.id(), cause, detail, fields,
                     priceChanged ? "subscription.changed" : "subscription.renewed");
         } else {
-            transitions.apply(app, s.id(), SubscriptionStatus.ACTIVE, Cause.webhook, detail, fields);
+            transitions.apply(app, s.id(), SubscriptionStatus.ACTIVE, cause, detail, fields);
         }
     }
 }

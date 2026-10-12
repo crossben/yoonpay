@@ -33,7 +33,9 @@ class CheckoutViewBilling(BaseModel):
     interval: Interval
     interval_count: StrictInt
     receipt_url: Optional[StrictStr] = Field(description="Relative; once this payment has paid the invoice.")
-    __properties: ClassVar[List[str]] = ["invoice_number", "kind", "plan", "interval", "interval_count", "receipt_url"]
+    subtotal: Optional[StrictInt] = Field(default=None, description="Before discount; the payment amount is what is due.")
+    coupon_code: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["invoice_number", "kind", "plan", "interval", "interval_count", "receipt_url", "subtotal", "coupon_code"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -79,6 +81,11 @@ class CheckoutViewBilling(BaseModel):
         if self.receipt_url is None and "receipt_url" in self.model_fields_set:
             _dict['receipt_url'] = None
 
+        # set to None if coupon_code (nullable) is None
+        # and model_fields_set contains the field
+        if self.coupon_code is None and "coupon_code" in self.model_fields_set:
+            _dict['coupon_code'] = None
+
         return _dict
 
     @classmethod
@@ -96,7 +103,9 @@ class CheckoutViewBilling(BaseModel):
             "plan": obj.get("plan"),
             "interval": obj.get("interval"),
             "interval_count": obj.get("interval_count"),
-            "receipt_url": obj.get("receipt_url")
+            "receipt_url": obj.get("receipt_url"),
+            "subtotal": obj.get("subtotal"),
+            "coupon_code": obj.get("coupon_code")
         })
         return _obj
 

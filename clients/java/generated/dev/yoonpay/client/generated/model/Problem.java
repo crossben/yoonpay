@@ -40,7 +40,8 @@ import dev.yoonpay.client.generated.ApiClient;
   Problem.JSON_PROPERTY_STATUS,
   Problem.JSON_PROPERTY_DETAIL,
   Problem.JSON_PROPERTY_INSTANCE,
-  Problem.JSON_PROPERTY_CODE
+  Problem.JSON_PROPERTY_CODE,
+  Problem.JSON_PROPERTY_REASON
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class Problem {
@@ -67,6 +68,10 @@ public class Problem {
   public static final String JSON_PROPERTY_CODE = "code";
   @jakarta.annotation.Nonnull
   private String code;
+
+  public static final String JSON_PROPERTY_REASON = "reason";
+  @jakarta.annotation.Nullable
+  private String reason;
 
   public Problem() { 
   }
@@ -215,6 +220,30 @@ public class Problem {
   }
 
 
+  public Problem reason(@jakarta.annotation.Nullable String reason) {
+    this.reason = reason;
+    return this;
+  }
+
+  /**
+   * For &#x60;coupon_not_applicable&#x60;: &#x60;unknown&#x60;, &#x60;archived&#x60;, &#x60;expired&#x60;, &#x60;exhausted&#x60;, &#x60;plan&#x60;, &#x60;currency&#x60; (open set).
+   * @return reason
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_REASON, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getReason() {
+    return reason;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_REASON, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setReason(@jakarta.annotation.Nullable String reason) {
+    this.reason = reason;
+  }
+
+
   /**
    * Return true if this Problem object is equal to o.
    */
@@ -232,12 +261,13 @@ public class Problem {
         Objects.equals(this.status, problem.status) &&
         Objects.equals(this.detail, problem.detail) &&
         Objects.equals(this.instance, problem.instance) &&
-        Objects.equals(this.code, problem.code);
+        Objects.equals(this.code, problem.code) &&
+        Objects.equals(this.reason, problem.reason);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(type, title, status, detail, instance, code);
+    return Objects.hash(type, title, status, detail, instance, code, reason);
   }
 
   @Override
@@ -250,6 +280,7 @@ public class Problem {
     sb.append("    detail: ").append(toIndentedString(detail)).append("\n");
     sb.append("    instance: ").append(toIndentedString(instance)).append("\n");
     sb.append("    code: ").append(toIndentedString(code)).append("\n");
+    sb.append("    reason: ").append(toIndentedString(reason)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -325,6 +356,11 @@ public class Problem {
     // add `code` to the URL query string
     if (getCode() != null) {
       joiner.add(String.format(Locale.ROOT, "%scode%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCode()))));
+    }
+
+    // add `reason` to the URL query string
+    if (getReason() != null) {
+      joiner.add(String.format(Locale.ROOT, "%sreason%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getReason()))));
     }
 
     return joiner.toString();

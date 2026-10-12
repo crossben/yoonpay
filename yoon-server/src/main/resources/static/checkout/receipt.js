@@ -6,14 +6,14 @@ const TEXT = {
     en: {
         title: 'Payment receipt', notTax: 'Payment receipt — not a tax invoice.', paidOn: 'Paid on',
         customer: 'Customer', plan: 'Plan', period: 'Period', method: 'Paid with', reference: 'Reference',
-        total: 'Total paid', print: 'Print or save as PDF', footer: 'Payment processed by Yoon',
+        total: 'Total paid', discount: 'Discount', coupon: 'coupon', withCoupon: 'Coupon', print: 'Print or save as PDF', footer: 'Payment processed by Yoon',
         loading: 'Loading…', notFound: 'This receipt link is invalid.', tooMany: 'Too many requests. Wait a moment and try again.',
         network: 'Connection problem. Check your connection and try again.', otherLang: 'Français',
     },
     fr: {
         title: 'Reçu de paiement', notTax: 'Reçu de paiement — ceci n’est pas une facture fiscale.', paidOn: 'Payé le',
         customer: 'Client', plan: 'Formule', period: 'Période', method: 'Payé avec', reference: 'Référence',
-        total: 'Total payé', print: 'Imprimer ou enregistrer en PDF', footer: 'Paiement traité par Yoon',
+        total: 'Total payé', discount: 'Remise', coupon: 'code', withCoupon: 'Code promo', print: 'Imprimer ou enregistrer en PDF', footer: 'Paiement traité par Yoon',
         loading: 'Chargement…', notFound: 'Ce lien de reçu est invalide.', tooMany: 'Trop de requêtes. Patientez un instant puis réessayez.',
         network: 'Problème de connexion. Vérifiez votre connexion et réessayez.', otherLang: 'English',
     },
@@ -94,11 +94,16 @@ function render() {
     show('customer', view.customer);
     $('plan').textContent = view.plan;
     show('period', view.period_start && view.period_end ? `${date(view.period_start)} – ${date(view.period_end)}` : null);
-    show('method', view.method ? methodName(view.method) : null);
+    show('method', view.method ? methodName(view.method)
+        : view.coupon_code && view.amount === 0 ? `${t('withCoupon')} ${view.coupon_code}` : null);
     $('payment').textContent = view.payment || '';
     const body = $('lines');
     while (body.firstChild) body.removeChild(body.firstChild);
     view.lines.forEach((l) => body.appendChild(row(l.description, formatAmount(l.amount, view.currency))));
+    if (view.discount_amount > 0) {
+        const label = view.coupon_code ? `${t('discount')} (${t('coupon')} ${view.coupon_code})` : t('discount');
+        body.appendChild(row(label, '−' + formatAmount(view.discount_amount, view.currency)));
+    }
     body.appendChild(row(t('total'), formatAmount(view.amount, view.currency), 'total'));
     $('receipt').hidden = false;
     $('actions').hidden = false;

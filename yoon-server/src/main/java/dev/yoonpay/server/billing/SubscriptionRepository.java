@@ -15,7 +15,7 @@ public class SubscriptionRepository {
             SELECT id, application_id, customer_id, price_id, status, collection_method, billing_anchor,
                    current_period_start, current_period_end, grace_period_days, cancel_at_period_end,
                    pending_price_id, canceled_at, comp, reminded_period_end, metadata::text AS metadata,
-                   created_at, updated_at, trial_end
+                   created_at, updated_at, trial_end, coupon_id, discount_periods_remaining
             FROM subscriptions""";
 
     private final JdbcClient jdbc;

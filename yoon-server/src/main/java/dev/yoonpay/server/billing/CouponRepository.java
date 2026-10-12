@@ -75,4 +75,15 @@ public class CouponRepository {
                 .param("limit", limit + 1)
                 .query(CouponRecord.class).list();
     }
+
+    /** One more use, counted on the locked coupon row (the cap check constraint backs it up). */
+    public void recordRedemption(CouponRecord c, String subscriptionId, String customerId) {
+        jdbc.sql("UPDATE coupons SET times_redeemed = times_redeemed + 1, updated_at = now() WHERE id = :id")
+                .param("id", c.id()).update();
+        jdbc.sql("""
+                        INSERT INTO coupon_redemptions (application_id, coupon_id, subscription_id, customer_id)
+                        VALUES (:app, :coupon, :subscription, :customer)""")
+                .param("app", c.applicationId()).param("coupon", c.id()).param("subscription", subscriptionId)
+                .param("customer", customerId).update();
+    }
 }

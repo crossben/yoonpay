@@ -22,5 +22,8 @@ public record InvoiceRecord(
         Instant paidAt,
         Instant voidedAt,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        long subtotal,
+        long discountAmount,
+        String couponId) {
 }

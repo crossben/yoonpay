@@ -21,6 +21,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
+from yoonpay.generated.models.discount import Discount
 from yoonpay.generated.models.invoice import Invoice
 from yoonpay.generated.models.subscription_customer import SubscriptionCustomer
 from yoonpay.generated.models.subscription_pending_change import SubscriptionPendingChange
@@ -33,6 +34,7 @@ class Subscription(BaseModel):
     """
     Subscription
     """ # noqa: E501
+    discount: Optional[Discount] = None
     id: StrictStr
     object: StrictStr
     customer: SubscriptionCustomer
@@ -47,13 +49,13 @@ class Subscription(BaseModel):
     canceled_at: Optional[datetime] = None
     comp: StrictBool = Field(description="Periods granted by an operator")
     entitled: StrictBool = Field(description="Whether the customer should have access now (`active`, `past_due` or `trialing`).")
-    trial_end: Optional[datetime] = Field(description="When its free trial ends (or ended); null without a trial.")
+    trial_end: Optional[datetime] = Field(default=None, description="When its free trial ends (or ended); null without a trial.")
     features: Dict[str, Any] = Field(description="The plan's features")
     latest_invoice: Optional[Invoice] = None
     metadata: Dict[str, Annotated[str, Field(strict=True, max_length=500)]] = Field(description="Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.")
     created_at: datetime
     updated_at: datetime
-    __properties: ClassVar[List[str]] = ["id", "object", "customer", "price", "status", "collection_method", "current_period_start", "current_period_end", "grace_period_days", "cancel_at_period_end", "pending_change", "canceled_at", "comp", "entitled", "trial_end", "features", "latest_invoice", "metadata", "created_at", "updated_at"]
+    __properties: ClassVar[List[str]] = ["discount", "id", "object", "customer", "price", "status", "collection_method", "current_period_start", "current_period_end", "grace_period_days", "cancel_at_period_end", "pending_change", "canceled_at", "comp", "entitled", "trial_end", "features", "latest_invoice", "metadata", "created_at", "updated_at"]
 
     @field_validator('object')
     def object_validate_enum(cls, value):
@@ -108,6 +110,9 @@ class Subscription(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of discount
+        if self.discount:
+            _dict['discount'] = self.discount.to_dict()
         # override the default output from pydantic by calling `to_dict()` of customer
         if self.customer:
             _dict['customer'] = self.customer.to_dict()
@@ -120,6 +125,11 @@ class Subscription(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of latest_invoice
         if self.latest_invoice:
             _dict['latest_invoice'] = self.latest_invoice.to_dict()
+        # set to None if discount (nullable) is None
+        # and model_fields_set contains the field
+        if self.discount is None and "discount" in self.model_fields_set:
+            _dict['discount'] = None
+
         # set to None if current_period_start (nullable) is None
         # and model_fields_set contains the field
         if self.current_period_start is None and "current_period_start" in self.model_fields_set:
@@ -157,6 +167,7 @@ class Subscription(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "discount": Discount.from_dict(obj["discount"]) if obj.get("discount") is not None else None,
             "id": obj.get("id"),
             "object": obj.get("object"),
             "customer": SubscriptionCustomer.from_dict(obj["customer"]) if obj.get("customer") is not None else None,

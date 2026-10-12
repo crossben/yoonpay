@@ -9,8 +9,15 @@ never changes incompatibly.
 - Coupons: `POST/GET /v1/coupons`, `GET/PATCH /v1/coupons/{id}` (ADR-0029): percent or fixed
   amount off, for one invoice, N invoices or forever; optional cap, deadline and plan list. Codes
   are unique per application whatever the case. Terms never change (a database trigger refuses
-  it); archive with `active: false`; the cap can only be raised or removed. Redeeming a coupon
-  on a subscription comes next.
+  it); archive with `active: false`; the cap can only be raised or removed.
+- Discounts: `coupon` on `POST /v1/subscriptions`, `POST/DELETE /v1/subscriptions/{id}/discount`.
+  Invoices gain `subtotal`, `discount_amount`, `discount`; subscriptions `discount` (with
+  `periods_remaining`). A use is consumed when an invoice is paid, so a voided invoice never
+  costs one. Refusals are `422 coupon_not_applicable` with a `reason` (`unknown`, `archived`,
+  `expired`, `exhausted`, `plan`, `currency`). The cap holds under concurrent redemptions.
+- **100% off**: an invoice with nothing to pay is paid at creation, without a payment or ledger
+  posting; the subscription is activated or renewed as usual and the receipt says which coupon
+  paid it. The checkout and the receipt show the coupon and the discount.
 - Free trials (ADR-0028): `Plan.trial_days` (default trial) and `trial_days` on
   `POST /v1/subscriptions`. A trial starts `trialing` (entitled), with nothing to pay and no
   invoice; one trial per customer and plan (`409 trial_already_used` when asked again). Paying

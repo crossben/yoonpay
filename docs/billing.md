@@ -139,7 +139,23 @@ first invoice open, then `expired`.
 **Upgrade your Yoon client to 0.4 before using trials**: the 0.3 helpers treat `trialing` as not
 entitled and `subscription.created` as informational, so trial users would be denied access.
 
-## 7. Periods, upgrades, cancellation
+## 7. Coupons (0.4)
+
+```http
+POST /v1/coupons
+{"code": "WELCOME20", "percent_off": 20, "duration": "repeating", "duration_in_periods": 3}
+```
+
+`percent_off` or `amount_off` (`{"currency": "XOF", "amount": 2000}`); `once`, `repeating` or
+`forever`; optional `max_redemptions`, `redeem_by` and `plans`. Terms never change: archive a
+coupon (`active: false`) and create another. Customers type the code in any case. Redeem it with
+`"coupon": "WELCOME20"` on `POST /v1/subscriptions`, or later with
+`POST /v1/subscriptions/{id}/discount`. Invoices show `subtotal`, `discount_amount` and the
+coupon; each **paid** invoice uses one period of the coupon. A 100% coupon pays the invoice by
+itself: `invoice.paid` arrives with no payment. A refusal is `422 coupon_not_applicable` with a
+`reason` you can show the customer.
+
+## 8. Periods, upgrades, cancellation
 
 - **Paying early** stacks after the current period. **Paying in grace** starts from the old
   period end (grace days are not free). **Paying after expiry** starts at the payment.
@@ -152,14 +168,14 @@ entitled and `subscription.created` as informational, so trial users would be de
 - `POST /v1/subscriptions/{id}/cancel`: at the period end by default (reversible with
   `/resume`), or `{"at_period_end": false}` to end now. No automatic refund.
 
-## 8. Invoices and receipts
+## 9. Invoices and receipts
 
 Each period is an invoice numbered without gaps. Once paid, `receipt_url` opens a printable
 payment receipt (French/English). It is **a payment receipt, not a tax invoice**: if you must
 issue tax invoices, produce them from `invoice.paid` in your own system. Exports:
 `GET /v1/exports/subscriptions.csv`, `GET /v1/exports/invoices.csv`.
 
-## 9. Operators: periods without payment (comp)
+## 10. Operators: periods without payment (comp)
 
 For partners, support gestures or "contact us" plans, without payment or ledger posting:
 
@@ -171,7 +187,7 @@ or `POST /admin/v1/applications/{app}/subscriptions/{id}/comp` (see the
 [runbook](runbook.md#grant-periods-without-payment-comp)). The subscription shows `comp: true`
 until the customer pays a period.
 
-## 10. Migrating from your own billing
+## 11. Migrating from your own billing
 
 If you built subscriptions on top of one-off payments:
 

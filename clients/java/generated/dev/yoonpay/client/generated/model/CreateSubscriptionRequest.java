@@ -42,6 +42,7 @@ import dev.yoonpay.client.generated.ApiClient;
   CreateSubscriptionRequest.JSON_PROPERTY_GRACE_PERIOD_DAYS,
   CreateSubscriptionRequest.JSON_PROPERTY_METADATA,
   CreateSubscriptionRequest.JSON_PROPERTY_RETURN_URL,
+  CreateSubscriptionRequest.JSON_PROPERTY_COUPON,
   CreateSubscriptionRequest.JSON_PROPERTY_TRIAL_DAYS
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
@@ -65,6 +66,10 @@ public class CreateSubscriptionRequest {
   public static final String JSON_PROPERTY_RETURN_URL = "return_url";
   @jakarta.annotation.Nullable
   private URI returnUrl;
+
+  public static final String JSON_PROPERTY_COUPON = "coupon";
+  @jakarta.annotation.Nullable
+  private String coupon;
 
   public static final String JSON_PROPERTY_TRIAL_DAYS = "trial_days";
   @jakarta.annotation.Nullable
@@ -203,6 +208,30 @@ public class CreateSubscriptionRequest {
   }
 
 
+  public CreateSubscriptionRequest coupon(@jakarta.annotation.Nullable String coupon) {
+    this.coupon = coupon;
+    return this;
+  }
+
+  /**
+   * A coupon code (case-insensitive) for its first invoices; &#x60;422 coupon_not_applicable&#x60; with a &#x60;reason&#x60; if it cannot be used.
+   * @return coupon
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_COUPON, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getCoupon() {
+    return coupon;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_COUPON, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setCoupon(@jakarta.annotation.Nullable String coupon) {
+    this.coupon = coupon;
+  }
+
+
   public CreateSubscriptionRequest trialDays(@jakarta.annotation.Nullable Integer trialDays) {
     this.trialDays = trialDays;
     return this;
@@ -246,12 +275,13 @@ public class CreateSubscriptionRequest {
         Objects.equals(this.gracePeriodDays, createSubscriptionRequest.gracePeriodDays) &&
         Objects.equals(this.metadata, createSubscriptionRequest.metadata) &&
         Objects.equals(this.returnUrl, createSubscriptionRequest.returnUrl) &&
+        Objects.equals(this.coupon, createSubscriptionRequest.coupon) &&
         Objects.equals(this.trialDays, createSubscriptionRequest.trialDays);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(customer, price, gracePeriodDays, metadata, returnUrl, trialDays);
+    return Objects.hash(customer, price, gracePeriodDays, metadata, returnUrl, coupon, trialDays);
   }
 
   @Override
@@ -263,6 +293,7 @@ public class CreateSubscriptionRequest {
     sb.append("    gracePeriodDays: ").append(toIndentedString(gracePeriodDays)).append("\n");
     sb.append("    metadata: ").append(toIndentedString(metadata)).append("\n");
     sb.append("    returnUrl: ").append(toIndentedString(returnUrl)).append("\n");
+    sb.append("    coupon: ").append(toIndentedString(coupon)).append("\n");
     sb.append("    trialDays: ").append(toIndentedString(trialDays)).append("\n");
     sb.append("}");
     return sb.toString();
@@ -338,6 +369,11 @@ public class CreateSubscriptionRequest {
     // add `return_url` to the URL query string
     if (getReturnUrl() != null) {
       joiner.add(String.format(Locale.ROOT, "%sreturn_url%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getReturnUrl()))));
+    }
+
+    // add `coupon` to the URL query string
+    if (getCoupon() != null) {
+      joiner.add(String.format(Locale.ROOT, "%scoupon%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCoupon()))));
     }
 
     // add `trial_days` to the URL query string

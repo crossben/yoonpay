@@ -62,6 +62,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'grace_period_days' => 'int',
         'metadata' => 'array<string,string>',
         'return_url' => 'string',
+        'coupon' => 'string',
         'trial_days' => 'int'
     ];
 
@@ -78,6 +79,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'grace_period_days' => null,
         'metadata' => null,
         'return_url' => 'uri',
+        'coupon' => null,
         'trial_days' => null
     ];
 
@@ -92,6 +94,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'grace_period_days' => false,
         'metadata' => false,
         'return_url' => false,
+        'coupon' => false,
         'trial_days' => false
     ];
 
@@ -186,6 +189,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'grace_period_days' => 'grace_period_days',
         'metadata' => 'metadata',
         'return_url' => 'return_url',
+        'coupon' => 'coupon',
         'trial_days' => 'trial_days'
     ];
 
@@ -200,6 +204,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'grace_period_days' => 'setGracePeriodDays',
         'metadata' => 'setMetadata',
         'return_url' => 'setReturnUrl',
+        'coupon' => 'setCoupon',
         'trial_days' => 'setTrialDays'
     ];
 
@@ -214,6 +219,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         'grace_period_days' => 'getGracePeriodDays',
         'metadata' => 'getMetadata',
         'return_url' => 'getReturnUrl',
+        'coupon' => 'getCoupon',
         'trial_days' => 'getTrialDays'
     ];
 
@@ -279,6 +285,7 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         $this->setIfExists('grace_period_days', $data ?? [], null);
         $this->setIfExists('metadata', $data ?? [], null);
         $this->setIfExists('return_url', $data ?? [], null);
+        $this->setIfExists('coupon', $data ?? [], null);
         $this->setIfExists('trial_days', $data ?? [], null);
     }
 
@@ -329,6 +336,14 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
 
         if (!is_null($this->container['return_url']) && (mb_strlen($this->container['return_url']) > 2048)) {
             $invalidProperties[] = "invalid value for 'return_url', the character length must be smaller than or equal to 2048.";
+        }
+
+        if (!is_null($this->container['coupon']) && (mb_strlen($this->container['coupon']) > 32)) {
+            $invalidProperties[] = "invalid value for 'coupon', the character length must be smaller than or equal to 32.";
+        }
+
+        if (!is_null($this->container['coupon']) && (mb_strlen($this->container['coupon']) < 3)) {
+            $invalidProperties[] = "invalid value for 'coupon', the character length must be bigger than or equal to 3.";
         }
 
         if (!is_null($this->container['trial_days']) && ($this->container['trial_days'] > 90)) {
@@ -501,6 +516,40 @@ class CreateSubscriptionRequest implements ModelInterface, ArrayAccess, \JsonSer
         }
 
         $this->container['return_url'] = $return_url;
+
+        return $this;
+    }
+
+    /**
+     * Gets coupon
+     *
+     * @return string|null
+     */
+    public function getCoupon()
+    {
+        return $this->container['coupon'];
+    }
+
+    /**
+     * Sets coupon
+     *
+     * @param string|null $coupon A coupon code (case-insensitive) for its first invoices; `422 coupon_not_applicable` with a `reason` if it cannot be used.
+     *
+     * @return self
+     */
+    public function setCoupon($coupon)
+    {
+        if (is_null($coupon)) {
+            throw new \InvalidArgumentException('non-nullable coupon cannot be null');
+        }
+        if ((mb_strlen($coupon) > 32)) {
+            throw new \InvalidArgumentException('invalid length for $coupon when calling CreateSubscriptionRequest., must be smaller than or equal to 32.');
+        }
+        if ((mb_strlen($coupon) < 3)) {
+            throw new \InvalidArgumentException('invalid length for $coupon when calling CreateSubscriptionRequest., must be bigger than or equal to 3.');
+        }
+
+        $this->container['coupon'] = $coupon;
 
         return $this;
     }

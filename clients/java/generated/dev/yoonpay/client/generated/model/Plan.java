@@ -122,7 +122,7 @@ public class Plan {
   private List<Price> prices = new ArrayList<>();
 
   public static final String JSON_PROPERTY_TRIAL_DAYS = "trial_days";
-  @jakarta.annotation.Nonnull
+  @jakarta.annotation.Nullable
   private Integer trialDays;
 
   public static final String JSON_PROPERTY_CREATED_AT = "created_at";
@@ -352,7 +352,7 @@ public class Plan {
   }
 
 
-  public Plan trialDays(@jakarta.annotation.Nonnull Integer trialDays) {
+  public Plan trialDays(@jakarta.annotation.Nullable Integer trialDays) {
     this.trialDays = trialDays;
     return this;
   }
@@ -361,17 +361,17 @@ public class Plan {
    * Default free trial for new subscriptions, 0 for none (ADR-0028).
    * @return trialDays
    */
-  @jakarta.annotation.Nonnull
-  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = true)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public Integer getTrialDays() {
     return trialDays;
   }
 
 
-  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = true)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setTrialDays(@jakarta.annotation.Nonnull Integer trialDays) {
+  @JsonProperty(value = JSON_PROPERTY_TRIAL_DAYS, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setTrialDays(@jakarta.annotation.Nullable Integer trialDays) {
     this.trialDays = trialDays;
   }
 

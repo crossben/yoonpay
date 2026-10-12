@@ -32,10 +32,15 @@ public class BillingViews {
     public record LineView(String description, String price, long amount) {
     }
 
+    /** The coupon behind a discount: on an invoice, what came off; on a subscription, what will. */
+    public record DiscountView(String coupon, String code, Integer percentOff, Long amountOff, Integer periodsRemaining) {
+    }
+
     public record InvoiceView(String id, String object, String number, String customer, String subscription,
                               String kind, String status, long amountDue, String currency, List<LineView> lines,
                               Instant periodStart, Instant periodEnd, String payment, String checkoutUrl,
-                              String receiptUrl, Instant paidAt, Instant voidedAt, Instant createdAt) {
+                              String receiptUrl, Instant paidAt, Instant voidedAt, Instant createdAt, long subtotal,
+                              long discountAmount, DiscountView discount) {
     }
 
     public record SubscriptionView(String id, String object, CustomerRef customer, PriceView price, String status,
@@ -43,7 +48,7 @@ public class BillingViews {
                                    int gracePeriodDays, boolean cancelAtPeriodEnd, PendingChange pendingChange,
                                    Instant canceledAt, boolean comp, boolean entitled, JsonNode features,
                                    InvoiceView latestInvoice, JsonNode metadata, Instant trialEnd, Instant createdAt,
-                                   Instant updatedAt) {
+                                   Instant updatedAt, DiscountView discount) {
     }
 
     private final CustomerRepository customers;
@@ -52,9 +57,11 @@ public class BillingViews {
     private final PaymentRepository payments;
     private final ObjectMapper json;
     private final YoonProperties properties;
+    private final CouponRepository coupons;
 
     public BillingViews(CustomerRepository customers, CatalogRepository catalog, InvoiceRepository invoices,
-                        PaymentRepository payments, ObjectMapper json, YoonProperties properties) {
+                        PaymentRepository payments, ObjectMapper json, YoonProperties properties, CouponRepository coupons) {
+        this.coupons = coupons;
         this.properties = properties;
         this.customers = customers;
         this.catalog = catalog;
@@ -75,7 +82,8 @@ public class BillingViews {
                 lower(s.status()), lower(s.collectionMethod()), s.currentPeriodStart(), s.currentPeriodEnd(),
                 s.gracePeriodDays(), s.cancelAtPeriodEnd(), pending, s.canceledAt(), s.comp(), status.isEntitled(),
                 Metadata.read(plan.features(), json), invoices.latest(s.id()).map(this::invoice).orElse(null),
-                Metadata.read(s.metadata(), json), s.trialEnd(), s.createdAt(), s.updatedAt());
+                Metadata.read(s.metadata(), json), s.trialEnd(), s.createdAt(), s.updatedAt(),
+                s.couponId() == null ? null : discount(app, s.couponId(), s.discountPeriodsRemaining()));
     }
 
     public InvoiceView invoice(InvoiceRecord i) {
@@ -90,7 +98,13 @@ public class BillingViews {
                 .map(l -> new LineView(l.description(), l.priceId(), l.amount())).toList();
         return new InvoiceView(i.id(), "invoice", i.number(), i.customerId(), i.subscriptionId(), lower(i.kind()),
                 lower(i.status()), i.amountDue(), i.currency(), lines, i.periodStart(), i.periodEnd(), i.paymentId(),
-                checkoutUrl, receiptUrl(i), i.paidAt(), i.voidedAt(), i.createdAt());
+                checkoutUrl, receiptUrl(i), i.paidAt(), i.voidedAt(), i.createdAt(), i.subtotal(), i.discountAmount(),
+                i.couponId() == null ? null : discount(i.applicationId(), i.couponId(), null));
+    }
+
+    private DiscountView discount(UUID app, String couponId, Integer periodsRemaining) {
+        CouponRecord c = coupons.find(app, couponId).orElseThrow();
+        return new DiscountView(c.id(), c.code(), c.percentOff(), c.amountOff(), periodsRemaining);
     }
 
     /** The public receipt page (ADR-0027), once paid; relative when no public URL is configured. */

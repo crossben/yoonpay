@@ -20,6 +20,7 @@ import json
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
+from yoonpay.generated.models.discount import Discount
 from yoonpay.generated.models.invoice_line import InvoiceLine
 from yoonpay.generated.models.invoice_status import InvoiceStatus
 from typing import Optional, Set
@@ -36,7 +37,10 @@ class Invoice(BaseModel):
     subscription: StrictStr
     kind: StrictStr
     status: InvoiceStatus
-    amount_due: StrictInt
+    amount_due: StrictInt = Field(description="`subtotal − discount_amount`. 0 with a 100% coupon: paid at creation, without a payment.")
+    subtotal: Optional[StrictInt] = Field(default=None, description="The price before discount.")
+    discount_amount: Optional[StrictInt] = None
+    discount: Optional[Discount] = None
     currency: StrictStr
     lines: List[InvoiceLine]
     period_start: Optional[datetime] = Field(default=None, description="Set when paid.")
@@ -47,7 +51,7 @@ class Invoice(BaseModel):
     paid_at: Optional[datetime] = None
     voided_at: Optional[datetime] = None
     created_at: datetime
-    __properties: ClassVar[List[str]] = ["id", "object", "number", "customer", "subscription", "kind", "status", "amount_due", "currency", "lines", "period_start", "period_end", "payment", "checkout_url", "receipt_url", "paid_at", "voided_at", "created_at"]
+    __properties: ClassVar[List[str]] = ["id", "object", "number", "customer", "subscription", "kind", "status", "amount_due", "subtotal", "discount_amount", "discount", "currency", "lines", "period_start", "period_end", "payment", "checkout_url", "receipt_url", "paid_at", "voided_at", "created_at"]
 
     @field_validator('object')
     def object_validate_enum(cls, value):
@@ -102,6 +106,9 @@ class Invoice(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of discount
+        if self.discount:
+            _dict['discount'] = self.discount.to_dict()
         # override the default output from pydantic by calling `to_dict()` of each item in lines (list)
         _items = []
         if self.lines:
@@ -109,6 +116,11 @@ class Invoice(BaseModel):
                 if _item_lines:
                     _items.append(_item_lines.to_dict())
             _dict['lines'] = _items
+        # set to None if discount (nullable) is None
+        # and model_fields_set contains the field
+        if self.discount is None and "discount" in self.model_fields_set:
+            _dict['discount'] = None
+
         # set to None if period_start (nullable) is None
         # and model_fields_set contains the field
         if self.period_start is None and "period_start" in self.model_fields_set:
@@ -164,6 +176,9 @@ class Invoice(BaseModel):
             "kind": obj.get("kind"),
             "status": obj.get("status"),
             "amount_due": obj.get("amount_due"),
+            "subtotal": obj.get("subtotal"),
+            "discount_amount": obj.get("discount_amount"),
+            "discount": Discount.from_dict(obj["discount"]) if obj.get("discount") is not None else None,
             "currency": obj.get("currency"),
             "lines": [InvoiceLine.from_dict(_item) for _item in obj["lines"]] if obj.get("lines") is not None else None,
             "period_start": obj.get("period_start"),

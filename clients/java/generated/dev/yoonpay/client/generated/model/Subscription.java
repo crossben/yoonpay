@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
+import dev.yoonpay.client.generated.model.Discount;
 import dev.yoonpay.client.generated.model.Invoice;
 import dev.yoonpay.client.generated.model.SubscriptionCustomer;
 import dev.yoonpay.client.generated.model.SubscriptionPendingChange;
@@ -42,6 +43,7 @@ import dev.yoonpay.client.generated.ApiClient;
  * Subscription
  */
 @JsonPropertyOrder({
+  Subscription.JSON_PROPERTY_DISCOUNT,
   Subscription.JSON_PROPERTY_ID,
   Subscription.JSON_PROPERTY_OBJECT,
   Subscription.JSON_PROPERTY_CUSTOMER,
@@ -65,6 +67,10 @@ import dev.yoonpay.client.generated.ApiClient;
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class Subscription {
+  public static final String JSON_PROPERTY_DISCOUNT = "discount";
+  @jakarta.annotation.Nullable
+  private Discount discount;
+
   public static final String JSON_PROPERTY_ID = "id";
   @jakarta.annotation.Nonnull
   private String id;
@@ -217,6 +223,30 @@ public class Subscription {
 
   public Subscription() { 
   }
+
+  public Subscription discount(@jakarta.annotation.Nullable Discount discount) {
+    this.discount = discount;
+    return this;
+  }
+
+  /**
+   * Get discount
+   * @return discount
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Discount getDiscount() {
+    return discount;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setDiscount(@jakarta.annotation.Nullable Discount discount) {
+    this.discount = discount;
+  }
+
 
   public Subscription id(@jakarta.annotation.Nonnull String id) {
     this.id = id;
@@ -565,14 +595,14 @@ public class Subscription {
    */
   @jakarta.annotation.Nullable
   @JsonProperty(value = JSON_PROPERTY_TRIAL_END, required = false)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public OffsetDateTime getTrialEnd() {
     return trialEnd;
   }
 
 
   @JsonProperty(value = JSON_PROPERTY_TRIAL_END, required = false)
-  @JsonInclude(value = JsonInclude.Include.ALWAYS)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setTrialEnd(@jakarta.annotation.Nullable OffsetDateTime trialEnd) {
     this.trialEnd = trialEnd;
   }
@@ -726,7 +756,8 @@ public class Subscription {
       return false;
     }
     Subscription subscription = (Subscription) o;
-    return Objects.equals(this.id, subscription.id) &&
+    return Objects.equals(this.discount, subscription.discount) &&
+        Objects.equals(this.id, subscription.id) &&
         Objects.equals(this._object, subscription._object) &&
         Objects.equals(this.customer, subscription.customer) &&
         Objects.equals(this.price, subscription.price) &&
@@ -750,13 +781,14 @@ public class Subscription {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, customer, price, status, collectionMethod, currentPeriodStart, currentPeriodEnd, gracePeriodDays, cancelAtPeriodEnd, pendingChange, canceledAt, comp, entitled, trialEnd, features, latestInvoice, metadata, createdAt, updatedAt);
+    return Objects.hash(discount, id, _object, customer, price, status, collectionMethod, currentPeriodStart, currentPeriodEnd, gracePeriodDays, cancelAtPeriodEnd, pendingChange, canceledAt, comp, entitled, trialEnd, features, latestInvoice, metadata, createdAt, updatedAt);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class Subscription {\n");
+    sb.append("    discount: ").append(toIndentedString(discount)).append("\n");
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    _object: ").append(toIndentedString(_object)).append("\n");
     sb.append("    customer: ").append(toIndentedString(customer)).append("\n");
@@ -823,6 +855,11 @@ public class Subscription {
     }
 
     StringJoiner joiner = new StringJoiner("&");
+
+    // add `discount` to the URL query string
+    if (getDiscount() != null) {
+      joiner.add(getDiscount().toUrlQueryString(prefix + "discount" + suffix));
+    }
 
     // add `id` to the URL query string
     if (getId() != null) {

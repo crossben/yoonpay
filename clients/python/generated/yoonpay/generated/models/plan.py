@@ -19,7 +19,7 @@ import json
 
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, field_validator
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
 from yoonpay.generated.models.price import Price
 from typing import Optional, Set
@@ -37,7 +37,7 @@ class Plan(BaseModel):
     features: Dict[str, Any] = Field(description="Free-form JSON (limits, flags) returned on subscriptions, so you can enforce limits from it.")
     metadata: Dict[str, Annotated[str, Field(strict=True, max_length=500)]] = Field(description="Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.")
     prices: List[Price] = Field(description="Oldest first")
-    trial_days: StrictInt = Field(description="Default free trial for new subscriptions, 0 for none (ADR-0028).")
+    trial_days: Optional[StrictInt] = Field(default=None, description="Default free trial for new subscriptions, 0 for none (ADR-0028).")
     created_at: datetime
     updated_at: datetime
     __properties: ClassVar[List[str]] = ["id", "object", "slug", "name", "active", "features", "metadata", "prices", "trial_days", "created_at", "updated_at"]

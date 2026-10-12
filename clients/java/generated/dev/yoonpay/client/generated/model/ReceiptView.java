@@ -44,6 +44,9 @@ import dev.yoonpay.client.generated.ApiClient;
  */
 @JsonPropertyOrder({
   ReceiptView.JSON_PROPERTY_NUMBER,
+  ReceiptView.JSON_PROPERTY_SUBTOTAL,
+  ReceiptView.JSON_PROPERTY_DISCOUNT_AMOUNT,
+  ReceiptView.JSON_PROPERTY_COUPON_CODE,
   ReceiptView.JSON_PROPERTY_MERCHANT,
   ReceiptView.JSON_PROPERTY_CUSTOMER,
   ReceiptView.JSON_PROPERTY_PLAN,
@@ -63,6 +66,18 @@ public class ReceiptView {
   public static final String JSON_PROPERTY_NUMBER = "number";
   @jakarta.annotation.Nonnull
   private String number;
+
+  public static final String JSON_PROPERTY_SUBTOTAL = "subtotal";
+  @jakarta.annotation.Nullable
+  private Long subtotal;
+
+  public static final String JSON_PROPERTY_DISCOUNT_AMOUNT = "discount_amount";
+  @jakarta.annotation.Nullable
+  private Long discountAmount;
+
+  public static final String JSON_PROPERTY_COUPON_CODE = "coupon_code";
+  @jakarta.annotation.Nullable
+  private String couponCode;
 
   public static final String JSON_PROPERTY_MERCHANT = "merchant";
   @jakarta.annotation.Nonnull
@@ -140,6 +155,78 @@ public class ReceiptView {
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
   public void setNumber(@jakarta.annotation.Nonnull String number) {
     this.number = number;
+  }
+
+
+  public ReceiptView subtotal(@jakarta.annotation.Nullable Long subtotal) {
+    this.subtotal = subtotal;
+    return this;
+  }
+
+  /**
+   * Get subtotal
+   * @return subtotal
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_SUBTOTAL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Long getSubtotal() {
+    return subtotal;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_SUBTOTAL, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setSubtotal(@jakarta.annotation.Nullable Long subtotal) {
+    this.subtotal = subtotal;
+  }
+
+
+  public ReceiptView discountAmount(@jakarta.annotation.Nullable Long discountAmount) {
+    this.discountAmount = discountAmount;
+    return this;
+  }
+
+  /**
+   * Get discountAmount
+   * @return discountAmount
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT_AMOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Long getDiscountAmount() {
+    return discountAmount;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_DISCOUNT_AMOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setDiscountAmount(@jakarta.annotation.Nullable Long discountAmount) {
+    this.discountAmount = discountAmount;
+  }
+
+
+  public ReceiptView couponCode(@jakarta.annotation.Nullable String couponCode) {
+    this.couponCode = couponCode;
+    return this;
+  }
+
+  /**
+   * Get couponCode
+   * @return couponCode
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_COUPON_CODE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getCouponCode() {
+    return couponCode;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_COUPON_CODE, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setCouponCode(@jakarta.annotation.Nullable String couponCode) {
+    this.couponCode = couponCode;
   }
 
 
@@ -519,6 +606,9 @@ public class ReceiptView {
     }
     ReceiptView receiptView = (ReceiptView) o;
     return Objects.equals(this.number, receiptView.number) &&
+        Objects.equals(this.subtotal, receiptView.subtotal) &&
+        Objects.equals(this.discountAmount, receiptView.discountAmount) &&
+        Objects.equals(this.couponCode, receiptView.couponCode) &&
         Objects.equals(this.merchant, receiptView.merchant) &&
         Objects.equals(this.customer, receiptView.customer) &&
         Objects.equals(this.plan, receiptView.plan) &&
@@ -537,7 +627,7 @@ public class ReceiptView {
 
   @Override
   public int hashCode() {
-    return Objects.hash(number, merchant, customer, plan, interval, intervalCount, lines, amount, currency, periodStart, periodEnd, paidAt, method, payment, additionalProperties);
+    return Objects.hash(number, subtotal, discountAmount, couponCode, merchant, customer, plan, interval, intervalCount, lines, amount, currency, periodStart, periodEnd, paidAt, method, payment, additionalProperties);
   }
 
   @Override
@@ -545,6 +635,9 @@ public class ReceiptView {
     StringBuilder sb = new StringBuilder();
     sb.append("class ReceiptView {\n");
     sb.append("    number: ").append(toIndentedString(number)).append("\n");
+    sb.append("    subtotal: ").append(toIndentedString(subtotal)).append("\n");
+    sb.append("    discountAmount: ").append(toIndentedString(discountAmount)).append("\n");
+    sb.append("    couponCode: ").append(toIndentedString(couponCode)).append("\n");
     sb.append("    merchant: ").append(toIndentedString(merchant)).append("\n");
     sb.append("    customer: ").append(toIndentedString(customer)).append("\n");
     sb.append("    plan: ").append(toIndentedString(plan)).append("\n");
@@ -609,6 +702,21 @@ public class ReceiptView {
     // add `number` to the URL query string
     if (getNumber() != null) {
       joiner.add(String.format(Locale.ROOT, "%snumber%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getNumber()))));
+    }
+
+    // add `subtotal` to the URL query string
+    if (getSubtotal() != null) {
+      joiner.add(String.format(Locale.ROOT, "%ssubtotal%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getSubtotal()))));
+    }
+
+    // add `discount_amount` to the URL query string
+    if (getDiscountAmount() != null) {
+      joiner.add(String.format(Locale.ROOT, "%sdiscount_amount%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getDiscountAmount()))));
+    }
+
+    // add `coupon_code` to the URL query string
+    if (getCouponCode() != null) {
+      joiner.add(String.format(Locale.ROOT, "%scoupon_code%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getCouponCode()))));
     }
 
     // add `merchant` to the URL query string

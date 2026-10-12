@@ -74,6 +74,9 @@ class SubscriptionsApi
 
     /** @var string[] $contentTypes **/
     public const contentTypes = [
+        'applySubscriptionDiscount' => [
+            'application/json',
+        ],
         'cancelSubscription' => [
             'application/json',
         ],
@@ -96,6 +99,9 @@ class SubscriptionsApi
             'application/json',
         ],
         'listSubscriptions' => [
+            'application/json',
+        ],
+        'removeSubscriptionDiscount' => [
             'application/json',
         ],
         'renewSubscription' => [
@@ -150,6 +156,389 @@ class SubscriptionsApi
     public function getConfig()
     {
         return $this->config;
+    }
+
+    /**
+     * Operation applySubscriptionDiscount
+     *
+     * Apply a coupon to the next invoices
+     *
+     * @param  string $id id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\ApplySubscriptionDiscountRequest $apply_subscription_discount_request apply_subscription_discount_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['applySubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return \Yoon\Generated\Model\Subscription|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem
+     */
+    public function applySubscriptionDiscount($id, $idempotency_key, $apply_subscription_discount_request, string $contentType = self::contentTypes['applySubscriptionDiscount'][0])
+    {
+        list($response) = $this->applySubscriptionDiscountWithHttpInfo($id, $idempotency_key, $apply_subscription_discount_request, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation applySubscriptionDiscountWithHttpInfo
+     *
+     * Apply a coupon to the next invoices
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\ApplySubscriptionDiscountRequest $apply_subscription_discount_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['applySubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return array of \Yoon\Generated\Model\Subscription|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function applySubscriptionDiscountWithHttpInfo($id, $idempotency_key, $apply_subscription_discount_request, string $contentType = self::contentTypes['applySubscriptionDiscount'][0])
+    {
+        $request = $this->applySubscriptionDiscountRequest($id, $idempotency_key, $apply_subscription_discount_request, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Subscription',
+                        $request,
+                        $response,
+                    );
+                case 400:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 404:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 409:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 422:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+            }
+
+            
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                '\Yoon\Generated\Model\Subscription',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Subscription',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 400:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 404:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 409:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 422:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation applySubscriptionDiscountAsync
+     *
+     * Apply a coupon to the next invoices
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\ApplySubscriptionDiscountRequest $apply_subscription_discount_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['applySubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function applySubscriptionDiscountAsync($id, $idempotency_key, $apply_subscription_discount_request, string $contentType = self::contentTypes['applySubscriptionDiscount'][0])
+    {
+        return $this->applySubscriptionDiscountAsyncWithHttpInfo($id, $idempotency_key, $apply_subscription_discount_request, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation applySubscriptionDiscountAsyncWithHttpInfo
+     *
+     * Apply a coupon to the next invoices
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\ApplySubscriptionDiscountRequest $apply_subscription_discount_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['applySubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function applySubscriptionDiscountAsyncWithHttpInfo($id, $idempotency_key, $apply_subscription_discount_request, string $contentType = self::contentTypes['applySubscriptionDiscount'][0])
+    {
+        $returnType = '\Yoon\Generated\Model\Subscription';
+        $request = $this->applySubscriptionDiscountRequest($id, $idempotency_key, $apply_subscription_discount_request, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if ($returnType === '\SplFileObject') {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'applySubscriptionDiscount'
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\ApplySubscriptionDiscountRequest $apply_subscription_discount_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['applySubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function applySubscriptionDiscountRequest($id, $idempotency_key, $apply_subscription_discount_request, string $contentType = self::contentTypes['applySubscriptionDiscount'][0])
+    {
+
+        // verify the required parameter 'id' is set
+        if ($id === null || (is_array($id) && count($id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $id when calling applySubscriptionDiscount'
+            );
+        }
+
+        // verify the required parameter 'idempotency_key' is set
+        if ($idempotency_key === null || (is_array($idempotency_key) && count($idempotency_key) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $idempotency_key when calling applySubscriptionDiscount'
+            );
+        }
+        if (strlen($idempotency_key) > 255) {
+            throw new \InvalidArgumentException('invalid length for "$idempotency_key" when calling SubscriptionsApi.applySubscriptionDiscount, must be smaller than or equal to 255.');
+        }
+        if (strlen($idempotency_key) < 1) {
+            throw new \InvalidArgumentException('invalid length for "$idempotency_key" when calling SubscriptionsApi.applySubscriptionDiscount, must be bigger than or equal to 1.');
+        }
+        
+        // verify the required parameter 'apply_subscription_discount_request' is set
+        if ($apply_subscription_discount_request === null || (is_array($apply_subscription_discount_request) && count($apply_subscription_discount_request) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $apply_subscription_discount_request when calling applySubscriptionDiscount'
+            );
+        }
+
+
+        $resourcePath = '/v1/subscriptions/{id}/discount';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+
+        // header params
+        if ($idempotency_key !== null) {
+            $headerParams['Idempotency-Key'] = ObjectSerializer::toHeaderValue($idempotency_key);
+        }
+
+        // path params
+        if ($id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'id' . '}',
+                ObjectSerializer::toPathValue($id),
+                $resourcePath
+            );
+        }
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['application/json', 'application/problem+json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (isset($apply_subscription_discount_request)) {
+            if (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the body
+                $httpBody = \Yoon\Internal\Json::encode(ObjectSerializer::sanitizeForSerialization($apply_subscription_discount_request));
+            } else {
+                $httpBody = $apply_subscription_discount_request;
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                $httpBody = \Yoon\Internal\Json::encode($formParams);
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'POST',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
     }
 
     /**
@@ -2848,6 +3237,356 @@ class SubscriptionsApi
         $query = ObjectSerializer::buildQuery($queryParams);
         return new Request(
             'GET',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    /**
+     * Operation removeSubscriptionDiscount
+     *
+     * Remove the discount from the next invoices
+     *
+     * @param  string $id id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['removeSubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return \Yoon\Generated\Model\Subscription|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem
+     */
+    public function removeSubscriptionDiscount($id, $idempotency_key, string $contentType = self::contentTypes['removeSubscriptionDiscount'][0])
+    {
+        list($response) = $this->removeSubscriptionDiscountWithHttpInfo($id, $idempotency_key, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation removeSubscriptionDiscountWithHttpInfo
+     *
+     * Remove the discount from the next invoices
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['removeSubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return array of \Yoon\Generated\Model\Subscription|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function removeSubscriptionDiscountWithHttpInfo($id, $idempotency_key, string $contentType = self::contentTypes['removeSubscriptionDiscount'][0])
+    {
+        $request = $this->removeSubscriptionDiscountRequest($id, $idempotency_key, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+
+            switch($statusCode) {
+                case 200:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Subscription',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 404:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 409:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 422:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+            }
+
+            
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                '\Yoon\Generated\Model\Subscription',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Subscription',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 404:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 409:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 422:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation removeSubscriptionDiscountAsync
+     *
+     * Remove the discount from the next invoices
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['removeSubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function removeSubscriptionDiscountAsync($id, $idempotency_key, string $contentType = self::contentTypes['removeSubscriptionDiscount'][0])
+    {
+        return $this->removeSubscriptionDiscountAsyncWithHttpInfo($id, $idempotency_key, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation removeSubscriptionDiscountAsyncWithHttpInfo
+     *
+     * Remove the discount from the next invoices
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['removeSubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function removeSubscriptionDiscountAsyncWithHttpInfo($id, $idempotency_key, string $contentType = self::contentTypes['removeSubscriptionDiscount'][0])
+    {
+        $returnType = '\Yoon\Generated\Model\Subscription';
+        $request = $this->removeSubscriptionDiscountRequest($id, $idempotency_key, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if ($returnType === '\SplFileObject') {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'removeSubscriptionDiscount'
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['removeSubscriptionDiscount'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function removeSubscriptionDiscountRequest($id, $idempotency_key, string $contentType = self::contentTypes['removeSubscriptionDiscount'][0])
+    {
+
+        // verify the required parameter 'id' is set
+        if ($id === null || (is_array($id) && count($id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $id when calling removeSubscriptionDiscount'
+            );
+        }
+
+        // verify the required parameter 'idempotency_key' is set
+        if ($idempotency_key === null || (is_array($idempotency_key) && count($idempotency_key) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $idempotency_key when calling removeSubscriptionDiscount'
+            );
+        }
+        if (strlen($idempotency_key) > 255) {
+            throw new \InvalidArgumentException('invalid length for "$idempotency_key" when calling SubscriptionsApi.removeSubscriptionDiscount, must be smaller than or equal to 255.');
+        }
+        if (strlen($idempotency_key) < 1) {
+            throw new \InvalidArgumentException('invalid length for "$idempotency_key" when calling SubscriptionsApi.removeSubscriptionDiscount, must be bigger than or equal to 1.');
+        }
+        
+
+        $resourcePath = '/v1/subscriptions/{id}/discount';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+
+        // header params
+        if ($idempotency_key !== null) {
+            $headerParams['Idempotency-Key'] = ObjectSerializer::toHeaderValue($idempotency_key);
+        }
+
+        // path params
+        if ($id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'id' . '}',
+                ObjectSerializer::toPathValue($id),
+                $resourcePath
+            );
+        }
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['application/json', 'application/problem+json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                $httpBody = \Yoon\Internal\Json::encode($formParams);
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'DELETE',
             $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody

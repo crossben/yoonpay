@@ -21,7 +21,10 @@ public record ReceiptView(
         Instant periodEnd,
         Instant paidAt,
         String method,
-        String payment) {
+        String payment,
+        long subtotal,
+        long discountAmount,
+        String couponCode) {
 
     public record Line(String description, long amount) {
     }
