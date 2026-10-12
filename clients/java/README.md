@@ -3,14 +3,11 @@
 Java client for [Yoon](https://github.com/crossben/yoonpay), a self-hosted payment gateway for
 African payment providers. Apache-2.0. Java 17+, Jackson 2, no other dependency.
 
-> **0.4.0 reaches Maven Central on 2026-11-10** (publishing quota). Until then use 0.3.0: it works
-> with a 0.4 server (unknown statuses and event types are tolerated) but has no 0.4 fields.
-
 ```xml
 <dependency>
     <groupId>io.github.crossben</groupId>
     <artifactId>yoon-java</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
@@ -43,7 +40,7 @@ Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to a
 
 ```text
 Integrate Yoon payments (io.github.crossben:yoon-java 0.4.x) into this Java app.
-Install: Maven/Gradle dependency io.github.crossben:yoon-java:0.3.0 (Java 17+)
+Install: Maven/Gradle dependency io.github.crossben:yoon-java:0.4.0 (Java 17+)
 Do:
 1. One shared client: new Yoon(System.getenv("YOON_URL"), System.getenv("YOON_API_KEY")).
 2. Create a payment keyed on the order:
