@@ -6,11 +6,14 @@ Spring Boot auto-configuration for the [Yoon](https://github.com/crossben/yoonpa
 Requires Java 17+ and Spring Boot 3.x or 4.x (CI tests 3.5 and 4.1). Spring Boot itself is not
 pulled in: the application brings its own.
 
+> **0.4.0 reaches Maven Central on 2026-11-10** (publishing quota). Until then use 0.3.0: it works
+> with a 0.4 server (unknown statuses and event types are tolerated) but has no 0.4 fields.
+
 ```xml
 <dependency>
     <groupId>io.github.crossben</groupId>
     <artifactId>yoon-spring-boot-starter</artifactId>
-    <version>0.4.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -108,7 +111,7 @@ Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to a
 
 ```text
 Integrate Yoon payments (io.github.crossben:yoon-spring-boot-starter 0.4.x) into this Spring Boot app.
-Install: dependency io.github.crossben:yoon-spring-boot-starter:0.4.0 (Spring Boot 3.x or 4.x)
+Install: dependency io.github.crossben:yoon-spring-boot-starter:0.3.0 (Spring Boot 3.x or 4.x)
 Do:
 1. application.properties: set yoon.url, yoon.api-key and yoon.webhook-secret from the
    YOON_URL, YOON_API_KEY and YOON_WEBHOOK_SECRET environment variables, and
