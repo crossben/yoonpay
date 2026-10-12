@@ -157,6 +157,13 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
           export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror_key -o IdentitiesOnly=yes"
           git subtree split --prefix clients/php -b php-split
+          split=$(git rev-parse php-split)
+          # A server-only patch release leaves clients/php unchanged: the split is a commit the
+          # mirror already tagged, and publishing it again as a new version would be noise.
+          if git ls-remote --tags "$MIRROR" | grep -q "^$split"; then
+            echo "clients/php unchanged since $(git ls-remote --tags "$MIRROR" | grep "^$split" | head -1 | sed 's|.*refs/tags/||'): nothing to publish."
+            exit 0
+          fi
           # The mirror is read-only: its history is always the split of this repository.
           git push --force "$MIRROR" php-split:main
           git push "$MIRROR" "php-split:refs/tags/$TAG"
