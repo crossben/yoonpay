@@ -16,6 +16,7 @@ Module: `yoon-providers/yoon-provider-naboopay` · id: `naboopay`
 YOON_APPS_SHOP_PROVIDERS_NABOOPAY_PRIORITY=3
 YOON_APPS_SHOP_PROVIDERS_NABOOPAY_CREDENTIALS_API_KEY=…
 YOON_APPS_SHOP_PROVIDERS_NABOOPAY_CREDENTIALS_WEBHOOK_SECRET=…
+YOON_APPS_SHOP_PROVIDERS_NABOOPAY_CREDENTIALS_FEES_CUSTOMER_SIDE=true   # false: you absorb NabooPay's fee
 ```
 
 There is no sandbox host: test or live is decided by the key. NabooPay's callback URL is set in
@@ -66,9 +67,9 @@ checkout created, customer paid, the real callback (header `X-Signature`, HMAC-S
 body with the dashboard's webhook secret) verified, `get-one-transaction` returned `paid` with the
 amount, and the payment became `succeeded`. The callback's shape is in
 `NabooPayProviderTest.RECORDED` (values replaced). Observed:
-- `fees_customer_side: true` (what Yoon sends) adds NabooPay's fee to the customer's charge: 100 XOF
+- `fees_customer_side: true` (Yoon's default) adds NabooPay's fee to the customer's charge: 100 XOF
   cost the customer 103 XOF; the callback's `amount` stays 100 and `fees` is separate. Yoon checks
-  `amount`.
+  `amount`. Set `FEES_CUSTOMER_SIDE=false` to absorb the fee yourself (next release).
 - The webhook secret is shown when the URL is saved in the dashboard; changing the URL issues a
   new secret.
 - The dashboard may open the URL with GET when saving it; Yoon answers 405 (since 0.3.1).

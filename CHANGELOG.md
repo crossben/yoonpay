@@ -5,6 +5,11 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Providers
+- NabooPay: `…_CREDENTIALS_FEES_CUSTOMER_SIDE` (default `true`, the behaviour so far) — set it to
+  `false` for the merchant to absorb NabooPay's fee instead of the customer. Any other value stops
+  Yoon at startup.
+
 ## [0.4.0] - 2026-10-12
 
 Free trials and coupons. Upgrading from 0.3.x: migration `V8` runs on start-up. `/v1` stays

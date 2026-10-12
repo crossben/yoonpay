@@ -43,6 +43,28 @@ class NabooPayProviderTest {
                 "API_KEY", "nk_test", "WEBHOOK_SECRET", SECRET, "base-url", "http://localhost:" + wm.getPort() + "/api/v1"));
     }
 
+    @Test
+    void the_merchant_can_absorb_the_fee_instead_of_the_customer() {
+        wm.stubFor(post("/api/v1/transaction/create-transaction").willReturn(okJson("""
+                {"order_id":"ord_1","checkout_url":"https://checkout.naboopay.com/ord_1","transaction_status":"pending"}""")));
+        PaymentProvider merchantPays = new NabooPayFactory(ProviderHttp.withDefaults()).create(Map.of(
+                "API_KEY", "nk_test", "WEBHOOK_SECRET", SECRET, "FEES_CUSTOMER_SIDE", "false",
+                "base-url", "http://localhost:" + wm.getPort() + "/api/v1"));
+
+        merchantPays.collect(collect("wave"));
+
+        wm.verify(postRequestedFor(urlEqualTo("/api/v1/transaction/create-transaction"))
+                .withRequestBody(matchingJsonPath("$.fees_customer_side", equalTo("false"))));
+    }
+
+    @Test
+    void a_fee_setting_that_is_not_a_boolean_is_refused_at_startup() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> new NabooPayFactory(ProviderHttp.withDefaults()).create(Map.of(
+                        "API_KEY", "nk_test", "WEBHOOK_SECRET", SECRET, "fees-customer-side", "yes")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("fees-customer-side");
+    }
+
     private static CollectRequest collect(String method) {
         return new CollectRequest("att_3", Money.of(5000, "XOF"), "SN", method, null, "Order 3",
                 URI.create("https://shop.example/return"), null);

@@ -64,12 +64,14 @@ public final class NabooPayProvider implements PaymentProvider {
     private final ProviderHttp http;
     private final Map<String, String> headers;
     private final String webhookSecret;
+    private final boolean feesCustomerSide;
     private final URI base;
 
     NabooPayProvider(Credentials credentials, ProviderHttp http) {
         this.http = http;
         this.headers = Map.of("Authorization", "Bearer " + credentials.require("api-key"));
         this.webhookSecret = credentials.require("webhook-secret");
+        this.feesCustomerSide = booleanSetting(credentials.optional("fees-customer-side", "true"));
         this.base = URI.create(credentials.optional("base-url", "https://api.naboopay.com/api/v1"));
     }
 
@@ -115,7 +117,9 @@ public final class NabooPayProvider implements PaymentProvider {
             body.put("success_url", request.returnUrl().toString());
             body.put("error_url", request.returnUrl().toString());
         }
-        body.put("fees_customer_side", true);
+        // true: NabooPay adds its fee to what the customer pays (100 XOF costs 103); false: the
+        // merchant absorbs it. Either way the amount Yoon confirms is the order amount.
+        body.put("fees_customer_side", feesCustomerSide);
 
         return switch (http.postJson(path("/transaction/create-transaction"), headers, Json.write(body))) {
             case Result.NotSent n -> new CallOutcome.Rejected("PROVIDER_UNAVAILABLE", n.cause());
@@ -187,5 +191,13 @@ public final class NabooPayProvider implements PaymentProvider {
             return Json.text(detail.get(0), "msg").orElse("Refused by NabooPay");
         }
         return Json.text(json, "detail").or(() -> Json.text(json, "message")).orElse("Refused by NabooPay");
+    }
+
+    private static boolean booleanSetting(String value) {
+        return switch (value.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "true" -> true;
+            case "false" -> false;
+            default -> throw new IllegalArgumentException("naboopay: fees-customer-side must be true or false");
+        };
     }
 }
