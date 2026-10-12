@@ -130,6 +130,20 @@ class NabooPayProviderTest {
         assertThat(none.signatureValid()).isFalse();
     }
 
+    /** The shape of a real callback (live, 2026-10-12; header X-Signature). Values replaced. */
+    private static final String RECORDED = """
+            {"order_id":"ord_1","method_of_payment":["wave"],"selected_payment_method":"wave","amount":5000,"fees":100,"currency":"XOF","customer":{"first_name":"Test","last_name":"Customer","phone":"+221770000000","created_at":"2026-10-12T12:00:00Z"},"transaction_status":"paid","products":[{"name":"Order 1042","price":5000,"quantity":1,"description":"Order 1042"}],"is_escrow":false,"is_merchant":false,"fees_customer_side":true,"success_url":"https://shop.example/thanks","error_url":"https://shop.example/thanks","created_at":"2026-10-12T12:00:00Z","updated_at":"2026-10-12T12:00:00Z","paid_at":"2026-10-12T12:00:00Z"}""";
+
+    @Test
+    void a_recorded_callback_verifies_and_names_the_order() {
+        String sig = Signatures.hmacSha256Hex(SECRET, RECORDED.getBytes(StandardCharsets.UTF_8));
+
+        var v = provider().verify(new InboundWebhook(Map.of("X-Signature", List.of(sig)), RECORDED.getBytes(StandardCharsets.UTF_8)));
+
+        assertThat(v.signatureValid()).isTrue();
+        assertThat(v.reference()).isEqualTo(new ProviderReference("ord_1"));
+    }
+
     @Test
     void only_collections_are_offered() {
         var caps = provider().capabilities();

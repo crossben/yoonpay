@@ -50,6 +50,33 @@ public class ProviderRegistry {
                 .failureRateThreshold(50)
                 .waitDurationInOpenState(Duration.ofSeconds(30))
                 .build());
+        validate();
+    }
+
+    /**
+     * Builds every configured provider once at startup, so a missing credential or an unknown
+     * provider name stops Yoon with one clear message instead of failing the first request that
+     * routes to it (found by the first sandbox run). Credential values are never printed.
+     */
+    private void validate() {
+        List<String> problems = new java.util.ArrayList<>();
+        properties.apps().forEach((appName, app) -> app.providers().forEach((providerId, provider) -> {
+            PaymentProviderFactory factory = factories.get(providerId);
+            if (factory == null) {
+                problems.add("application '" + appName + "': unknown provider '" + providerId + "' (known: "
+                        + new java.util.TreeSet<>(factories.keySet()) + ")");
+                return;
+            }
+            try {
+                factory.create(provider.credentials());
+            } catch (RuntimeException e) {
+                problems.add("application '" + appName + "': " + e.getMessage());
+            }
+        }));
+        if (!problems.isEmpty()) {
+            throw new IllegalStateException("Provider configuration is invalid:\n  - " + String.join("\n  - ", problems)
+                    + "\nSee docs/providers/<provider>.md for the YOON_APPS_<APP>_PROVIDERS_<PROVIDER>_* variables.");
+        }
     }
 
     /** Configured providers with a known factory, for routing. */

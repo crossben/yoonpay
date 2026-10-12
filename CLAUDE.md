@@ -17,6 +17,12 @@ checked out next to this one as `../website/`; its rules are in `../website/PLAN
   (`+22177***45`).
 - English for code and docs.
 - Docs make no claim the code does not back up (no invented numbers or users).
+- Versions: the API spec and the clients follow the API; the server modules follow the server.
+  A server-only patch (0.3.1) bumps the root, core, server, testkit and provider poms only; the
+  release workflow skips client versions already published.
+- Provider credentials reach Yoon as environment variables (`…_CREDENTIALS_API_KEY` arrives as
+  `api.key`): test configuration through real environment binding (`CredentialsBindingTest`),
+  not only YAML-style keys.
 
 ## Build and run
 

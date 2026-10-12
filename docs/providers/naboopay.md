@@ -60,4 +60,17 @@ Tested in `NabooPayStatusTest`.
 ## Evidence
 
 Built from NabooPay integrations running in production and the published `naboopay` SDK models.
-WireMock fixtures are **not recorded sandbox responses**.
+
+**Run against the live API on 2026-10-12** (NabooPay has no sandbox; two 100 XOF Wave payments):
+checkout created, customer paid, the real callback (header `X-Signature`, HMAC-SHA256 of the raw
+body with the dashboard's webhook secret) verified, `get-one-transaction` returned `paid` with the
+amount, and the payment became `succeeded`. The callback's shape is in
+`NabooPayProviderTest.RECORDED` (values replaced). Observed:
+- `fees_customer_side: true` (what Yoon sends) adds NabooPay's fee to the customer's charge: 100 XOF
+  cost the customer 103 XOF; the callback's `amount` stays 100 and `fees` is separate. Yoon checks
+  `amount`.
+- The webhook secret is shown when the URL is saved in the dashboard; changing the URL issues a
+  new secret.
+- The dashboard may open the URL with GET when saving it; Yoon answers 405 (since 0.3.1).
+
+Status and error fixtures other than the callback are still built from the SDK, not recorded.

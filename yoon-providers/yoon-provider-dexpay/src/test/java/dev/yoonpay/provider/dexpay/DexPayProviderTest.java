@@ -182,6 +182,25 @@ class DexPayProviderTest {
         assertThat(v.reference()).isEqualTo(new ProviderReference("att_7"));
     }
 
+    /**
+     * The shape of a real sandbox callback (2026-10-12): flat, not under "data", with headers
+     * x-webhook-signature, x-webhook-event and x-webhook-timestamp. Values replaced.
+     */
+    private static final String RECORDED = """
+            {"event":"checkout.completed","reference":"att_7","checkout_session_id":"cs_7","transaction_id":"tx_7","status":"completed","amount":5000,"currency":"XOF","timestamp":"2026-10-12T12:00:00Z","payment_attempt_id":"pa_7","operator":"sandbox","payment_method":"mobile_money","customer":{"name":"Test Customer","phone":"+221770000000","email":"customer@example.com"},"metadata":{"merchant_id":"mer_1"}}""";
+
+    @Test
+    void a_recorded_sandbox_callback_verifies_and_names_the_payment() {
+        String sig = Signatures.hmacSha256Hex(WEBHOOK_SECRET, RECORDED.getBytes(StandardCharsets.UTF_8));
+        var hook = new InboundWebhook(Map.of("x-webhook-signature", List.of(sig), "x-webhook-event", List.of("checkout.completed"),
+                "x-webhook-timestamp", List.of("1791763200")), RECORDED.getBytes(StandardCharsets.UTF_8));
+
+        var v = provider().verify(hook);
+
+        assertThat(v.signatureValid()).isTrue();
+        assertThat(v.reference()).isEqualTo(new ProviderReference("att_7"));
+    }
+
     @Test
     void the_legacy_header_and_a_sha256_prefix_are_accepted() {
         String sig = Signatures.hmacSha256Hex(WEBHOOK_SECRET, BODY.getBytes(StandardCharsets.UTF_8));

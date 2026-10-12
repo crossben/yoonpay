@@ -101,7 +101,15 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run build
-      - run: npm publish --provenance --access public
+      # A server-only patch release leaves the client version unchanged: publish only a new version.
+      - name: Publish unless this version is already on npm
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "@yoonpay/yoon@$version" version >/dev/null 2>&1; then
+            echo "@yoonpay/yoon $version is already published: nothing to do."
+          else
+            npm publish --provenance --access public
+          fi
 
   pypi-client:
     # Publishes yoonpay from clients/python through PyPI trusted publishing — no token. The
@@ -126,6 +134,8 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: clients/python/dist
+          # A server-only patch release leaves the client version unchanged.
+          skip-existing: true
 
   php-mirror:
     # Packagist needs composer.json at a repository root: mirror clients/php into

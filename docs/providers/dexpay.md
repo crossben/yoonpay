@@ -68,4 +68,18 @@ Tested in `DexPayStatusTest`.
 ## Evidence
 
 Built from DexPay integrations running in production (collections in two applications, payouts
-in one). WireMock fixtures reproduce those shapes; they are **not recorded sandbox responses**.
+in one).
+
+**Run against the sandbox on 2026-10-12**: checkout sessions created for Wave, Orange Money and
+Free Money (including 1 XOF); a session paid on the sandbox checkout; the real callback verified
+(`x-webhook-signature` = hex HMAC-SHA256 of the raw body with the dashboard's webhook secret) and
+the status API returned `completed`; the payment became `succeeded` two seconds after paying. An
+idempotent replay returned the same payment. The callback's shape is in
+`DexPayProviderTest.RECORDED` (values replaced). Observed:
+- The callback is **flat** (`reference`, `status`, `amount` at the top level), not under `data`.
+- It also sends `x-webhook-event` and `x-webhook-timestamp`, and a `timestamp` inside the signed
+  body. Yoon does not reject old callbacks by time: it never applies a callback without asking
+  the status API, so a replayed one cannot change anything.
+
+Payouts were **not** run against the sandbox. Status and error fixtures other than the callback
+are still built from production integrations, not recorded.

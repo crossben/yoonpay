@@ -5,6 +5,29 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-12
+
+Found by the first runs against real provider APIs (DexPay sandbox, NabooPay live). Upgrade if
+you set provider credentials with environment variables.
+
+### Fixed
+- **Provider credentials with a multi-word name set by environment variable were not found**
+  (`…_CREDENTIALS_API_KEY`, as every provider page documents): Spring passes them as `api.key`,
+  which did not match `api-key`. The provider failed on its first use. Every version since 0.1.0
+  was affected for these variables; YAML or `api-key`-style names worked. Credential names now
+  ignore `.`, `-`, `_` and case.
+- A misconfigured provider (missing credential, unknown provider name) now stops Yoon at startup
+  with one message listing every problem (no credential value printed), instead of failing the
+  first request that routes to it with a 500. An unknown provider name was silently ignored.
+- Opening an API or webhook URL with the wrong method answers **405** with `Allow` (was 500), e.g.
+  a provider dashboard checking a webhook URL with GET. A wrong content type answers 415, a
+  missing query parameter 400.
+
+### Providers
+- DexPay run end to end against its sandbox, NabooPay against its live API (small payments):
+  payment, real signed callback, status confirmation. What was observed is in each provider page;
+  the recorded callback shapes are now unit tests.
+
 ## [0.3.0] - 2026-10-11
 
 Prepaid subscriptions for mobile money. Upgrading from 0.2.0: migration `V7` runs on start-up.
