@@ -218,8 +218,8 @@ export const POST = yoonWebhookRoute({
 Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
 
 ```text
-Integrate Yoon payments (@yoonpay/yoon 0.4.x) into this Node.js / TypeScript app.
-Install: npm install "@yoonpay/yoon@^0.4" (Node 20+; also Bun, Deno, edge)
+Integrate Yoon payments (@yoonpay/yoon 0.5.x) into this Node.js / TypeScript app.
+Install: npm install "@yoonpay/yoon@^0.5" (Node 20+; also Bun, Deno, edge)
 Do:
 1. One shared client: new Yoon(process.env.YOON_URL, process.env.YOON_API_KEY). Server side only:
    never ship the API key to a browser.

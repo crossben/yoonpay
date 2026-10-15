@@ -184,7 +184,7 @@ def yoon_events(event: Event = Depends(yoon_event)) -> None:
 Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
 
 ```text
-Integrate Yoon payments (yoonpay 0.4.x) into this Python app.
+Integrate Yoon payments (yoonpay 0.5.x) into this Python app.
 Install: pip install "yoonpay[django]" (or [fastapi], [flask]; Python 3.10+)
 Do:
 1. One shared client: Yoon(os.environ["YOON_URL"], os.environ["YOON_API_KEY"]).

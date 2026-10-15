@@ -5,6 +5,12 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-15
+
+Payment links: a shareable link and QR code that opens Yoon's hosted checkout, created from the
+dashboard, the command line or the API — no code needed. Upgrading from 0.4.x: migration `V9`
+runs on start-up; `/v1` stays compatible (new routes and an optional `Payment.payment_link`).
+
 ### Payment links
 - `POST/GET /v1/payment_links`, `GET/PATCH /v1/payment_links/{id}` (ADR-0030): a fixed amount, or
   one the customer types within optional bounds; optional single use / cap, expiry, one method,

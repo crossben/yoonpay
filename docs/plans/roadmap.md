@@ -6,7 +6,7 @@ Update the status column as items move.
 
 | # | Item | Status |
 | --- | --- | --- |
-| 1 | Payment links | **in progress** — [ADR-0030](../adr/0030-payment-links.md) accepted, [plan](payment-links.md); M1–M3 done, M4 (docs, website, LinkedIn) next |
+| 1 | Payment links | **shipped in 0.5.0** — [ADR-0030](../adr/0030-payment-links.md), [plan](payment-links.md) |
 | 2 | Customer portal | planned |
 | 3 | MCP server for AI agents | planned |
 | 4 | Small items (below) | planned, one at a time |

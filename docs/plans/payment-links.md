@@ -1,6 +1,6 @@
 # Plan — payment links
 
-Design: [ADR-0030](../adr/0030-payment-links.md). Status: **accepted 2026-11-10** (dashboard may create/archive links; concurrent single-use successes are kept).
+Design: [ADR-0030](../adr/0030-payment-links.md). Status: **shipped in 0.5.0** (accepted 2026-11-10: the dashboard may create/archive links; concurrent single-use successes are kept).
 
 ## Milestones (each: tests + docs + CHANGELOG, then stop for review/commit)
 1. **Schema + API:** migration, `/v1/payment_links` (create, list, get, patch), `Payment.payment_link`,
