@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="color-scheme" content="light dark">
+    <title>My subscription</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/checkout/checkout.css">
+    <script type="module" src="/checkout/portal.js"></script>
+</head>
+<body>
+<header class="top">
+    <span class="brand" id="merchant" data-i18n="title">My subscription</span>
+    <button type="button" id="lang" class="secondary small" aria-label="Français">FR</button>
+</header>
+
+<main id="main">
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <p id="hello" class="muted" hidden></p>
+    <div id="subscriptions"></div>
+    <section id="invoices-card" class="card" hidden aria-labelledby="invoices-title">
+        <h2 id="invoices-title" class="section-title" data-i18n="invoices">Invoices</h2>
+        <table class="lines"><tbody id="invoices"></tbody></table>
+    </section>
+    <p id="back-wrap" class="return" hidden>
+        <a id="back" class="button secondary" data-i18n="back">Back</a>
+    </p>
+</main>
+
+<footer class="muted">
+    <span data-i18n="footer">Payments processed by Yoon</span>
+</footer>
+</body>
+</html>

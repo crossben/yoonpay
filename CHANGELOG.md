@@ -10,8 +10,13 @@ never changes incompatibly.
   valid for `YOON_APPS_<APP>_BILLING_PORTAL_TTL` (1 hour by default, at most 24 hours). Only the
   token's SHA-256 is stored. `allow` adds actions beyond viewing and paying (cancel and resume,
   change to listed prices, coupons); without it the customer may view and pay only. Status
-  history gains the cause `portal`. Migration `V10`. The portal pages come next: until then the
-  URL does not open anything.
+  history gains the cause `portal`. Migration `V10`.
+- The portal page `/checkout/portal/<id>?t=…` (French/English, phone-sized): the customer's
+  subscriptions (plan, status, paid until, trial end, pending change, coupon), a **Pay** button
+  for an open invoice, the invoices with their receipts, and a Back link. Nothing of the
+  merchant's own data (metadata, external ids) or of another customer. Same rules as the checkout
+  (strict CSP, no cache, rate limit, identical 404s). Actions (renew, cancel, change plan,
+  coupons) come next.
 
 ## [0.5.0] - 2026-10-15
 

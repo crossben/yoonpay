@@ -111,6 +111,12 @@ __all__ = [
     "PlanPage",
     "PlanRef",
     "PortalSession",
+    "PortalView",
+    "PortalViewAllow",
+    "PortalViewAllowPricesInner",
+    "PortalViewInvoicesInner",
+    "PortalViewSubscriptionsInner",
+    "PortalViewSubscriptionsInnerOpenInvoice",
     "Price",
     "PriceInput",
     "Problem",
@@ -233,6 +239,12 @@ from yoonpay.generated.models.plan import Plan as Plan
 from yoonpay.generated.models.plan_page import PlanPage as PlanPage
 from yoonpay.generated.models.plan_ref import PlanRef as PlanRef
 from yoonpay.generated.models.portal_session import PortalSession as PortalSession
+from yoonpay.generated.models.portal_view import PortalView as PortalView
+from yoonpay.generated.models.portal_view_allow import PortalViewAllow as PortalViewAllow
+from yoonpay.generated.models.portal_view_allow_prices_inner import PortalViewAllowPricesInner as PortalViewAllowPricesInner
+from yoonpay.generated.models.portal_view_invoices_inner import PortalViewInvoicesInner as PortalViewInvoicesInner
+from yoonpay.generated.models.portal_view_subscriptions_inner import PortalViewSubscriptionsInner as PortalViewSubscriptionsInner
+from yoonpay.generated.models.portal_view_subscriptions_inner_open_invoice import PortalViewSubscriptionsInnerOpenInvoice as PortalViewSubscriptionsInnerOpenInvoice
 from yoonpay.generated.models.price import Price as Price
 from yoonpay.generated.models.price_input import PriceInput as PriceInput
 from yoonpay.generated.models.problem import Problem as Problem

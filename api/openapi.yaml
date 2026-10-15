@@ -1581,6 +1581,28 @@ paths:
               schema: { $ref: '#/components/schemas/Problem' }
         '429': { $ref: '#/components/responses/CheckoutRateLimited' }
 
+  /checkout/api/portal/{id}:
+    get:
+      tags: [Hosted checkout]
+      operationId: getPortal
+      summary: The customer portal's view (public, token-scoped)
+      description: |
+        Backs `/checkout/portal/{id}?t=…` (ADR-0031): one customer's subscriptions, invoices and
+        receipts, and the actions the merchant allowed. The token is the one in the session's
+        `url`. Unknown, wrong-token and expired sessions are the same 404.
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/CheckoutToken'
+      responses:
+        '200':
+          description: The portal.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PortalView' }
+        '404': { $ref: '#/components/responses/CheckoutNotFound' }
+        '429': { $ref: '#/components/responses/CheckoutRateLimited' }
+
   /checkout/api/receipts/{id}:
     get:
       tags: [Hosted checkout]
@@ -3094,6 +3116,76 @@ components:
         percent_off: { type: [integer, 'null'] }
         amount_off: { type: [integer, 'null'], format: int64 }
         periods_remaining: { type: [integer, 'null'], description: 'On a subscription: invoices it still discounts (null = forever). Null on an invoice.' }
+
+    PortalView:
+      type: object
+      required: [merchant, customer, return_url, expires_at, allow, subscriptions, invoices]
+      properties:
+        merchant: { type: [string, 'null'] }
+        customer: { type: [string, 'null'], description: "The customer's name, if known." }
+        return_url: { type: [string, 'null'] }
+        expires_at: { type: string, format: date-time }
+        allow:
+          type: object
+          required: [cancel, coupons, prices]
+          properties:
+            cancel: { type: boolean }
+            coupons: { type: boolean }
+            prices:
+              type: array
+              items:
+                type: object
+                required: [id, plan, amount, currency, interval, interval_count]
+                properties:
+                  id: { type: string }
+                  plan: { type: string }
+                  amount: { type: integer, format: int64 }
+                  currency: { type: string }
+                  interval: { type: string }
+                  interval_count: { type: integer }
+        subscriptions:
+          type: array
+          items:
+            type: object
+            required: [id, plan, amount, currency, interval, interval_count, status, entitled, paid_until, trial_end,
+                       cancel_at_period_end, pending_plan, discount_code, discount_periods_remaining, open_invoice]
+            properties:
+              id: { type: string }
+              plan: { type: string }
+              amount: { type: integer, format: int64 }
+              currency: { type: string }
+              interval: { type: string }
+              interval_count: { type: integer }
+              status: { type: string }
+              entitled: { type: boolean }
+              paid_until: { type: [string, 'null'], format: date-time }
+              trial_end: { type: [string, 'null'], format: date-time }
+              cancel_at_period_end: { type: boolean }
+              pending_plan: { type: [string, 'null'] }
+              discount_code: { type: [string, 'null'] }
+              discount_periods_remaining: { type: [integer, 'null'] }
+              open_invoice:
+                type: [object, 'null']
+                required: [number, amount_due, currency, checkout_url]
+                properties:
+                  number: { type: string }
+                  amount_due: { type: integer, format: int64 }
+                  currency: { type: string }
+                  checkout_url: { type: [string, 'null'] }
+        invoices:
+          type: array
+          items:
+            type: object
+            required: [number, status, amount_due, currency, paid_at, period_start, period_end, receipt_url]
+            properties:
+              number: { type: string }
+              status: { type: string }
+              amount_due: { type: integer, format: int64 }
+              currency: { type: string }
+              paid_at: { type: [string, 'null'], format: date-time }
+              period_start: { type: [string, 'null'], format: date-time }
+              period_end: { type: [string, 'null'], format: date-time }
+              receipt_url: { type: [string, 'null'] }
 
     PaymentLinkView:
       type: object

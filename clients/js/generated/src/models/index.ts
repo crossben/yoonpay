@@ -2915,6 +2915,306 @@ export type PortalSessionObjectEnum = typeof PortalSessionObjectEnum[keyof typeo
 /**
  * 
  * @export
+ * @interface PortalView
+ */
+export interface PortalView {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalView
+     */
+    merchant: string | null;
+    /**
+     * The customer's name, if known.
+     * @type {string}
+     * @memberof PortalView
+     */
+    customer: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalView
+     */
+    return_url: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalView
+     */
+    expires_at: string;
+    /**
+     * 
+     * @type {PortalViewAllow}
+     * @memberof PortalView
+     */
+    allow: PortalViewAllow;
+    /**
+     * 
+     * @type {Array<PortalViewSubscriptionsInner>}
+     * @memberof PortalView
+     */
+    subscriptions: Array<PortalViewSubscriptionsInner>;
+    /**
+     * 
+     * @type {Array<PortalViewInvoicesInner>}
+     * @memberof PortalView
+     */
+    invoices: Array<PortalViewInvoicesInner>;
+}
+/**
+ * 
+ * @export
+ * @interface PortalViewAllow
+ */
+export interface PortalViewAllow {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PortalViewAllow
+     */
+    cancel: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PortalViewAllow
+     */
+    coupons: boolean;
+    /**
+     * 
+     * @type {Array<PortalViewAllowPricesInner>}
+     * @memberof PortalViewAllow
+     */
+    prices: Array<PortalViewAllowPricesInner>;
+}
+/**
+ * 
+ * @export
+ * @interface PortalViewAllowPricesInner
+ */
+export interface PortalViewAllowPricesInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewAllowPricesInner
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewAllowPricesInner
+     */
+    plan: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof PortalViewAllowPricesInner
+     */
+    amount: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewAllowPricesInner
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewAllowPricesInner
+     */
+    interval: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof PortalViewAllowPricesInner
+     */
+    interval_count: number;
+}
+/**
+ * 
+ * @export
+ * @interface PortalViewInvoicesInner
+ */
+export interface PortalViewInvoicesInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewInvoicesInner
+     */
+    number: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewInvoicesInner
+     */
+    status: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof PortalViewInvoicesInner
+     */
+    amount_due: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewInvoicesInner
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewInvoicesInner
+     */
+    paid_at: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewInvoicesInner
+     */
+    period_start: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewInvoicesInner
+     */
+    period_end: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewInvoicesInner
+     */
+    receipt_url: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface PortalViewSubscriptionsInner
+ */
+export interface PortalViewSubscriptionsInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    plan: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    amount: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    interval: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    interval_count: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    status: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    entitled: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    paid_until: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    trial_end: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    cancel_at_period_end: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    pending_plan: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    discount_code: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    discount_periods_remaining: number | null;
+    /**
+     * 
+     * @type {PortalViewSubscriptionsInnerOpenInvoice}
+     * @memberof PortalViewSubscriptionsInner
+     */
+    open_invoice: PortalViewSubscriptionsInnerOpenInvoice;
+}
+/**
+ * 
+ * @export
+ * @interface PortalViewSubscriptionsInnerOpenInvoice
+ */
+export interface PortalViewSubscriptionsInnerOpenInvoice {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInnerOpenInvoice
+     */
+    number: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof PortalViewSubscriptionsInnerOpenInvoice
+     */
+    amount_due: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInnerOpenInvoice
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalViewSubscriptionsInnerOpenInvoice
+     */
+    checkout_url: string | null;
+}
+/**
+ * 
+ * @export
  * @interface Price
  */
 export interface Price {

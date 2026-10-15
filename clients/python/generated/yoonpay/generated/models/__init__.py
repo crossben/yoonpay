@@ -85,6 +85,12 @@ from yoonpay.generated.models.plan import Plan
 from yoonpay.generated.models.plan_page import PlanPage
 from yoonpay.generated.models.plan_ref import PlanRef
 from yoonpay.generated.models.portal_session import PortalSession
+from yoonpay.generated.models.portal_view import PortalView
+from yoonpay.generated.models.portal_view_allow import PortalViewAllow
+from yoonpay.generated.models.portal_view_allow_prices_inner import PortalViewAllowPricesInner
+from yoonpay.generated.models.portal_view_invoices_inner import PortalViewInvoicesInner
+from yoonpay.generated.models.portal_view_subscriptions_inner import PortalViewSubscriptionsInner
+from yoonpay.generated.models.portal_view_subscriptions_inner_open_invoice import PortalViewSubscriptionsInnerOpenInvoice
 from yoonpay.generated.models.price import Price
 from yoonpay.generated.models.price_input import PriceInput
 from yoonpay.generated.models.problem import Problem
