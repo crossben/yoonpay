@@ -1109,6 +1109,50 @@ export interface CreatePlanRequest {
 /**
  * 
  * @export
+ * @interface CreatePortalSessionRequest
+ */
+export interface CreatePortalSessionRequest {
+    /**
+     * The "Back" link of the portal.
+     * @type {string}
+     * @memberof CreatePortalSessionRequest
+     */
+    return_url?: string;
+    /**
+     * 
+     * @type {CreatePortalSessionRequestAllow}
+     * @memberof CreatePortalSessionRequest
+     */
+    allow?: CreatePortalSessionRequestAllow;
+}
+/**
+ * What the customer may do beyond viewing and paying. Omit for view and pay only.
+ * @export
+ * @interface CreatePortalSessionRequestAllow
+ */
+export interface CreatePortalSessionRequestAllow {
+    /**
+     * Cancel at period end
+     * @type {boolean}
+     * @memberof CreatePortalSessionRequestAllow
+     */
+    cancel?: boolean;
+    /**
+     * Prices the customer may change to.
+     * @type {Array<string>}
+     * @memberof CreatePortalSessionRequestAllow
+     */
+    change_prices?: Array<string>;
+    /**
+     * Redeem a coupon code.
+     * @type {boolean}
+     * @memberof CreatePortalSessionRequestAllow
+     */
+    coupons?: boolean;
+}
+/**
+ * 
+ * @export
  * @interface CreateRefundRequest
  */
 export interface CreateRefundRequest {
@@ -2824,6 +2868,53 @@ export interface PlanRef {
 /**
  * 
  * @export
+ * @interface PortalSession
+ */
+export interface PortalSession {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalSession
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalSession
+     */
+    object: PortalSessionObjectEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalSession
+     */
+    customer: string;
+    /**
+     * Where to send the customer. Contains a secret token: do not log or store it.
+     * @type {string}
+     * @memberof PortalSession
+     */
+    url: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalSession
+     */
+    expires_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const PortalSessionObjectEnum = {
+    PortalSession: 'portal_session'
+} as const;
+export type PortalSessionObjectEnum = typeof PortalSessionObjectEnum[keyof typeof PortalSessionObjectEnum];
+
+/**
+ * 
+ * @export
  * @interface Price
  */
 export interface Price {
@@ -3285,7 +3376,7 @@ export interface StatusEvent {
      */
     decision: StatusEventDecisionEnum;
     /**
-     * 
+     * `portal`: done by the customer from the customer portal (open set).
      * @type {string}
      * @memberof StatusEvent
      */
@@ -3328,7 +3419,8 @@ export const StatusEventCauseEnum = {
     ProviderCall: 'provider_call',
     Webhook: 'webhook',
     Sweep: 'sweep',
-    Admin: 'admin'
+    Admin: 'admin',
+    Portal: 'portal'
 } as const;
 export type StatusEventCauseEnum = typeof StatusEventCauseEnum[keyof typeof StatusEventCauseEnum];
 

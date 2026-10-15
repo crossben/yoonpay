@@ -47,8 +47,8 @@ public record YoonProperties(Map<String, App> apps, URI sourceUrl, URI publicUrl
      * @param invoiceTtl    how long an unpaid first invoice keeps an incomplete subscription alive
      */
     public record Billing(Integer graceDays, Integer reminderDays, ZoneId timezone, String invoicePrefix,
-                          Duration invoiceTtl) {
-        public static final Billing DEFAULTS = new Billing(null, null, null, null, null);
+                          Duration invoiceTtl, Duration portalTtl) {
+        public static final Billing DEFAULTS = new Billing(null, null, null, null, null, null);
 
         public Billing {
             graceDays = graceDays == null ? 3 : graceDays;
@@ -56,6 +56,11 @@ public record YoonProperties(Map<String, App> apps, URI sourceUrl, URI publicUrl
             timezone = timezone == null ? ZoneId.of("Africa/Dakar") : timezone;
             invoicePrefix = invoicePrefix == null || invoicePrefix.isBlank() ? "INV" : invoicePrefix;
             invoiceTtl = invoiceTtl == null ? Duration.ofDays(7) : invoiceTtl;
+            // Customer portal sessions (ADR-0031): short-lived; a leaked link must not stay valid.
+            portalTtl = portalTtl == null ? Duration.ofHours(1) : portalTtl;
+            if (portalTtl.isNegative() || portalTtl.isZero() || portalTtl.compareTo(Duration.ofHours(24)) > 0) {
+                throw new IllegalArgumentException("billing portal TTL must be positive and at most 24h");
+            }
             if (graceDays < 0 || graceDays > 90) {
                 throw new IllegalArgumentException("billing grace days must be 0–90");
             }

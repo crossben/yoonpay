@@ -19,8 +19,10 @@ import dev.yoonpay.client.generated.Configuration;
 import dev.yoonpay.client.generated.Pair;
 
 import dev.yoonpay.client.generated.model.CreateCustomerRequest;
+import dev.yoonpay.client.generated.model.CreatePortalSessionRequest;
 import dev.yoonpay.client.generated.model.Customer;
 import dev.yoonpay.client.generated.model.CustomerPage;
+import dev.yoonpay.client.generated.model.PortalSession;
 import dev.yoonpay.client.generated.model.Problem;
 import dev.yoonpay.client.generated.model.UpdateCustomerRequest;
 
@@ -271,6 +273,145 @@ public class CustomersApi {
 
     try {
       byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(createCustomerRequest);
+      localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    if (memberVarReadTimeout != null) {
+      localVarRequestBuilder.timeout(memberVarReadTimeout);
+    }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
+    if (memberVarInterceptor != null) {
+      memberVarInterceptor.accept(localVarRequestBuilder);
+    }
+    return localVarRequestBuilder;
+  }
+
+  /**
+   * Open the customer portal for a customer
+   * Returns a URL to send the customer to (ADR-0031): their subscriptions, invoices and receipts, and a way to pay. It opens only this customer&#39;s portal and expires after the application&#39;s portal TTL (1 hour by default); create a new session each time. &#x60;allow&#x60; adds actions: cancel at period end and resume, change to one of &#x60;change_prices&#x60;, redeem a coupon. Without it the customer may view and pay only. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param createPortalSessionRequest  (required)
+   * @return PortalSession
+   * @throws ApiException if fails to make API call
+   */
+  public PortalSession createPortalSession(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull CreatePortalSessionRequest createPortalSessionRequest) throws ApiException {
+    return createPortalSession(id, idempotencyKey, createPortalSessionRequest, null);
+  }
+
+  /**
+   * Open the customer portal for a customer
+   * Returns a URL to send the customer to (ADR-0031): their subscriptions, invoices and receipts, and a way to pay. It opens only this customer&#39;s portal and expires after the application&#39;s portal TTL (1 hour by default); create a new session each time. &#x60;allow&#x60; adds actions: cancel at period end and resume, change to one of &#x60;change_prices&#x60;, redeem a coupon. Without it the customer may view and pay only. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param createPortalSessionRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return PortalSession
+   * @throws ApiException if fails to make API call
+   */
+  public PortalSession createPortalSession(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull CreatePortalSessionRequest createPortalSessionRequest, Map<String, String> headers) throws ApiException {
+    ApiResponse<PortalSession> localVarResponse = createPortalSessionWithHttpInfo(id, idempotencyKey, createPortalSessionRequest, headers);
+    return localVarResponse.getData();
+  }
+
+  /**
+   * Open the customer portal for a customer
+   * Returns a URL to send the customer to (ADR-0031): their subscriptions, invoices and receipts, and a way to pay. It opens only this customer&#39;s portal and expires after the application&#39;s portal TTL (1 hour by default); create a new session each time. &#x60;allow&#x60; adds actions: cancel at period end and resume, change to one of &#x60;change_prices&#x60;, redeem a coupon. Without it the customer may view and pay only. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param createPortalSessionRequest  (required)
+   * @return ApiResponse&lt;PortalSession&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<PortalSession> createPortalSessionWithHttpInfo(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull CreatePortalSessionRequest createPortalSessionRequest) throws ApiException {
+    return createPortalSessionWithHttpInfo(id, idempotencyKey, createPortalSessionRequest, null);
+  }
+
+  /**
+   * Open the customer portal for a customer
+   * Returns a URL to send the customer to (ADR-0031): their subscriptions, invoices and receipts, and a way to pay. It opens only this customer&#39;s portal and expires after the application&#39;s portal TTL (1 hour by default); create a new session each time. &#x60;allow&#x60; adds actions: cancel at period end and resume, change to one of &#x60;change_prices&#x60;, redeem a coupon. Without it the customer may view and pay only. 
+   * @param id  (required)
+   * @param idempotencyKey Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+   * @param createPortalSessionRequest  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;PortalSession&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<PortalSession> createPortalSessionWithHttpInfo(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull CreatePortalSessionRequest createPortalSessionRequest, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = createPortalSessionRequestBuilder(id, idempotencyKey, createPortalSessionRequest, headers);
+    try {
+      HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
+          localVarRequestBuilder.build(),
+          HttpResponse.BodyHandlers.ofInputStream());
+      if (memberVarResponseInterceptor != null) {
+        memberVarResponseInterceptor.accept(localVarResponse);
+      }
+      try {
+        if (localVarResponse.statusCode()/ 100 != 2) {
+          throw getApiException("createPortalSession", localVarResponse);
+        }
+        if (localVarResponse.body() == null) {
+          return new ApiResponse<PortalSession>(
+              localVarResponse.statusCode(),
+              localVarResponse.headers().map(),
+              null
+          );
+        }
+
+        
+        
+        String responseBody = new String(localVarResponse.body().readAllBytes());
+        PortalSession responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<PortalSession>() {});
+        
+        localVarResponse.body().close();
+
+        return new ApiResponse<PortalSession>(
+            localVarResponse.statusCode(),
+            localVarResponse.headers().map(),
+            responseValue
+        );
+      } finally {
+      }
+    } catch (IOException e) {
+      throw new ApiException(e);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ApiException(e);
+    }
+  }
+
+  private HttpRequest.Builder createPortalSessionRequestBuilder(@jakarta.annotation.Nonnull String id, @jakarta.annotation.Nonnull String idempotencyKey, @jakarta.annotation.Nonnull CreatePortalSessionRequest createPortalSessionRequest, Map<String, String> headers) throws ApiException {
+    // verify the required parameter 'id' is set
+    if (id == null) {
+      throw new ApiException(400, "Missing the required parameter 'id' when calling createPortalSession");
+    }
+    // verify the required parameter 'idempotencyKey' is set
+    if (idempotencyKey == null) {
+      throw new ApiException(400, "Missing the required parameter 'idempotencyKey' when calling createPortalSession");
+    }
+    // verify the required parameter 'createPortalSessionRequest' is set
+    if (createPortalSessionRequest == null) {
+      throw new ApiException(400, "Missing the required parameter 'createPortalSessionRequest' when calling createPortalSession");
+    }
+
+    HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+    String localVarPath = "/v1/customers/{id}/portal_sessions"
+        .replace("{id}", ApiClient.urlEncode(id.toString()));
+
+    localVarRequestBuilder.uri(URI.create(memberVarBaseUri + localVarPath));
+
+    if (idempotencyKey != null) {
+      localVarRequestBuilder.header("Idempotency-Key", idempotencyKey.toString());
+    }
+    localVarRequestBuilder.header("Content-Type", "application/json");
+    localVarRequestBuilder.header("Accept", "application/json, application/problem+json");
+
+    try {
+      byte[] localVarPostBody = memberVarObjectMapper.writeValueAsBytes(createPortalSessionRequest);
       localVarRequestBuilder.method("POST", HttpRequest.BodyPublishers.ofByteArray(localVarPostBody));
     } catch (IOException e) {
       throw new ApiException(e);

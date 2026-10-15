@@ -77,6 +77,9 @@ class CustomersApi
         'createCustomer' => [
             'application/json',
         ],
+        'createPortalSession' => [
+            'application/json',
+        ],
         'getCustomer' => [
             'application/json',
         ],
@@ -418,6 +421,389 @@ class CustomersApi
                 $httpBody = \Yoon\Internal\Json::encode(ObjectSerializer::sanitizeForSerialization($create_customer_request));
             } else {
                 $httpBody = $create_customer_request;
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $formParamValueItems = is_array($formParamValue) ? $formParamValue : [$formParamValue];
+                    foreach ($formParamValueItems as $formParamValueItem) {
+                        $multipartContents[] = [
+                            'name' => $formParamName,
+                            'contents' => $formParamValueItem
+                        ];
+                    }
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the form parameters
+                $httpBody = \Yoon\Internal\Json::encode($formParams);
+            } else {
+                // for HTTP post (form)
+                $httpBody = ObjectSerializer::buildQuery($formParams);
+            }
+        }
+
+        // this endpoint requires Bearer authentication (access token)
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $operationHost = $this->config->getHost();
+        $query = ObjectSerializer::buildQuery($queryParams);
+        return new Request(
+            'POST',
+            $operationHost . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    /**
+     * Operation createPortalSession
+     *
+     * Open the customer portal for a customer
+     *
+     * @param  string $id id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\CreatePortalSessionRequest $create_portal_session_request create_portal_session_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['createPortalSession'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return \Yoon\Generated\Model\PortalSession|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem
+     */
+    public function createPortalSession($id, $idempotency_key, $create_portal_session_request, string $contentType = self::contentTypes['createPortalSession'][0])
+    {
+        list($response) = $this->createPortalSessionWithHttpInfo($id, $idempotency_key, $create_portal_session_request, $contentType);
+        return $response;
+    }
+
+    /**
+     * Operation createPortalSessionWithHttpInfo
+     *
+     * Open the customer portal for a customer
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\CreatePortalSessionRequest $create_portal_session_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['createPortalSession'] to see the possible values for this operation
+     *
+     * @throws \Yoon\Generated\ApiException on non-2xx response or if the response body is not in the expected format
+     * @throws \InvalidArgumentException
+     * @return array of \Yoon\Generated\Model\PortalSession|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem|\Yoon\Generated\Model\Problem, HTTP status code, HTTP response headers (array of strings)
+     */
+    public function createPortalSessionWithHttpInfo($id, $idempotency_key, $create_portal_session_request, string $contentType = self::contentTypes['createPortalSession'][0])
+    {
+        $request = $this->createPortalSessionRequest($id, $idempotency_key, $create_portal_session_request, $contentType);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? (string) $e->getResponse()->getBody() : null
+                );
+            } catch (ConnectException $e) {
+                throw new ApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    (int) $e->getCode(),
+                    null,
+                    null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+
+            switch($statusCode) {
+                case 201:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\PortalSession',
+                        $request,
+                        $response,
+                    );
+                case 400:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 401:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 404:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 409:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+                case 422:
+                    return $this->handleResponseWithDataType(
+                        '\Yoon\Generated\Model\Problem',
+                        $request,
+                        $response,
+                    );
+            }
+
+            
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        (string) $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    (string) $response->getBody()
+                );
+            }
+
+            return $this->handleResponseWithDataType(
+                '\Yoon\Generated\Model\PortalSession',
+                $request,
+                $response,
+            );
+        } catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 201:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\PortalSession',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 400:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 401:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 404:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 409:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+                case 422:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Yoon\Generated\Model\Problem',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    throw $e;
+            }
+        
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation createPortalSessionAsync
+     *
+     * Open the customer portal for a customer
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\CreatePortalSessionRequest $create_portal_session_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['createPortalSession'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function createPortalSessionAsync($id, $idempotency_key, $create_portal_session_request, string $contentType = self::contentTypes['createPortalSession'][0])
+    {
+        return $this->createPortalSessionAsyncWithHttpInfo($id, $idempotency_key, $create_portal_session_request, $contentType)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation createPortalSessionAsyncWithHttpInfo
+     *
+     * Open the customer portal for a customer
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\CreatePortalSessionRequest $create_portal_session_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['createPortalSession'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Promise\PromiseInterface
+     */
+    public function createPortalSessionAsyncWithHttpInfo($id, $idempotency_key, $create_portal_session_request, string $contentType = self::contentTypes['createPortalSession'][0])
+    {
+        $returnType = '\Yoon\Generated\Model\PortalSession';
+        $request = $this->createPortalSessionRequest($id, $idempotency_key, $create_portal_session_request, $contentType);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    if ($returnType === '\SplFileObject') {
+                        $content = $response->getBody(); //stream goes to serializer
+                    } else {
+                        $content = (string) $response->getBody();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        (string) $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'createPortalSession'
+     *
+     * @param  string $id (required)
+     * @param  string $idempotency_key Unique per operation you intend, e.g. a UUID. Reuse it only to retry the same request. (required)
+     * @param  \Yoon\Generated\Model\CreatePortalSessionRequest $create_portal_session_request (required)
+     * @param  string $contentType The value for the Content-Type header. Check self::contentTypes['createPortalSession'] to see the possible values for this operation
+     *
+     * @throws \InvalidArgumentException
+     * @return \GuzzleHttp\Psr7\Request
+     */
+    public function createPortalSessionRequest($id, $idempotency_key, $create_portal_session_request, string $contentType = self::contentTypes['createPortalSession'][0])
+    {
+
+        // verify the required parameter 'id' is set
+        if ($id === null || (is_array($id) && count($id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $id when calling createPortalSession'
+            );
+        }
+
+        // verify the required parameter 'idempotency_key' is set
+        if ($idempotency_key === null || (is_array($idempotency_key) && count($idempotency_key) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $idempotency_key when calling createPortalSession'
+            );
+        }
+        if (strlen($idempotency_key) > 255) {
+            throw new \InvalidArgumentException('invalid length for "$idempotency_key" when calling CustomersApi.createPortalSession, must be smaller than or equal to 255.');
+        }
+        if (strlen($idempotency_key) < 1) {
+            throw new \InvalidArgumentException('invalid length for "$idempotency_key" when calling CustomersApi.createPortalSession, must be bigger than or equal to 1.');
+        }
+        
+        // verify the required parameter 'create_portal_session_request' is set
+        if ($create_portal_session_request === null || (is_array($create_portal_session_request) && count($create_portal_session_request) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $create_portal_session_request when calling createPortalSession'
+            );
+        }
+
+
+        $resourcePath = '/v1/customers/{id}/portal_sessions';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+
+        // header params
+        if ($idempotency_key !== null) {
+            $headerParams['Idempotency-Key'] = ObjectSerializer::toHeaderValue($idempotency_key);
+        }
+
+        // path params
+        if ($id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'id' . '}',
+                ObjectSerializer::toPathValue($id),
+                $resourcePath
+            );
+        }
+
+
+        $headers = $this->headerSelector->selectHeaders(
+            ['application/json', 'application/problem+json', ],
+            $contentType,
+            $multipart
+        );
+
+        // for model (json/xml)
+        if (isset($create_portal_session_request)) {
+            if (stripos($headers['Content-Type'], 'application/json') !== false) {
+                # if Content-Type contains "application/json", json_encode the body
+                $httpBody = \Yoon\Internal\Json::encode(ObjectSerializer::sanitizeForSerialization($create_portal_session_request));
+            } else {
+                $httpBody = $create_portal_session_request;
             }
         } elseif (count($formParams) > 0) {
             if ($multipart) {

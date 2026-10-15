@@ -5,6 +5,14 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Customer portal (in progress)
+- `POST /v1/customers/{id}/portal_sessions` (ADR-0031): a URL that opens one customer's portal,
+  valid for `YOON_APPS_<APP>_BILLING_PORTAL_TTL` (1 hour by default, at most 24 hours). Only the
+  token's SHA-256 is stored. `allow` adds actions beyond viewing and paying (cancel and resume,
+  change to listed prices, coupons); without it the customer may view and pay only. Status
+  history gains the cause `portal`. Migration `V10`. The portal pages come next: until then the
+  URL does not open anything.
+
 ## [0.5.0] - 2026-10-15
 
 Payment links: a shareable link and QR code that opens Yoon's hosted checkout, created from the

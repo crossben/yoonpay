@@ -16,8 +16,10 @@
 import * as runtime from '../runtime';
 import type {
   CreateCustomerRequest,
+  CreatePortalSessionRequest,
   Customer,
   CustomerPage,
+  PortalSession,
   Problem,
   UpdateCustomerRequest,
 } from '../models/index';
@@ -25,6 +27,12 @@ import type {
 export interface CreateCustomerOperationRequest {
     Idempotency_Key: string;
     CreateCustomerRequest: CreateCustomerRequest;
+}
+
+export interface CreatePortalSessionOperationRequest {
+    id: string;
+    Idempotency_Key: string;
+    CreatePortalSessionRequest: CreatePortalSessionRequest;
 }
 
 export interface GetCustomerRequest {
@@ -105,6 +113,74 @@ export class CustomersApi extends runtime.BaseAPI {
      */
     async createCustomer(requestParameters: CreateCustomerOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Customer> {
         const response = await this.createCustomerRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Returns a URL to send the customer to (ADR-0031): their subscriptions, invoices and receipts, and a way to pay. It opens only this customer\'s portal and expires after the application\'s portal TTL (1 hour by default); create a new session each time. `allow` adds actions: cancel at period end and resume, change to one of `change_prices`, redeem a coupon. Without it the customer may view and pay only. 
+     * Open the customer portal for a customer
+     */
+    async createPortalSessionRaw(requestParameters: CreatePortalSessionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PortalSession>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling createPortalSession().'
+            );
+        }
+
+        if (requestParameters['Idempotency_Key'] == null) {
+            throw new runtime.RequiredError(
+                'Idempotency_Key',
+                'Required parameter "Idempotency_Key" was null or undefined when calling createPortalSession().'
+            );
+        }
+
+        if (requestParameters['CreatePortalSessionRequest'] == null) {
+            throw new runtime.RequiredError(
+                'CreatePortalSessionRequest',
+                'Required parameter "CreatePortalSessionRequest" was null or undefined when calling createPortalSession().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['Idempotency_Key'] != null) {
+            headerParameters['Idempotency-Key'] = String(requestParameters['Idempotency_Key']);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("apiKey", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/v1/customers/{id}/portal_sessions`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['CreatePortalSessionRequest'],
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response);
+    }
+
+    /**
+     * Returns a URL to send the customer to (ADR-0031): their subscriptions, invoices and receipts, and a way to pay. It opens only this customer\'s portal and expires after the application\'s portal TTL (1 hour by default); create a new session each time. `allow` adds actions: cancel at period end and resume, change to one of `change_prices`, redeem a coupon. Without it the customer may view and pay only. 
+     * Open the customer portal for a customer
+     */
+    async createPortalSession(requestParameters: CreatePortalSessionOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PortalSession> {
+        const response = await this.createPortalSessionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

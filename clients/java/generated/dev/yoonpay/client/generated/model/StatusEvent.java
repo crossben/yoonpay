@@ -95,7 +95,7 @@ public class StatusEvent {
   private DecisionEnum decision;
 
   /**
-   * Gets or Sets cause
+   * &#x60;portal&#x60;: done by the customer from the customer portal (open set).
    */
   public enum CauseEnum {
     API(String.valueOf("api")),
@@ -107,6 +107,8 @@ public class StatusEvent {
     SWEEP(String.valueOf("sweep")),
     
     ADMIN(String.valueOf("admin")),
+    
+    PORTAL(String.valueOf("portal")),
     
     UNKNOWN_DEFAULT_OPEN_API(String.valueOf("unknown_default_open_api"));
 
@@ -234,7 +236,7 @@ public class StatusEvent {
   }
 
   /**
-   * Get cause
+   * &#x60;portal&#x60;: done by the customer from the customer portal (open set).
    * @return cause
    */
   @jakarta.annotation.Nonnull

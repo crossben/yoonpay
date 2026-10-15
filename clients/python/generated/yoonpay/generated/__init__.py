@@ -66,6 +66,8 @@ __all__ = [
     "CreatePayoutRequest",
     "CreatePayoutRequestRecipient",
     "CreatePlanRequest",
+    "CreatePortalSessionRequest",
+    "CreatePortalSessionRequestAllow",
     "CreateRefundRequest",
     "CreateSubscriptionRequest",
     "Customer",
@@ -108,6 +110,7 @@ __all__ = [
     "Plan",
     "PlanPage",
     "PlanRef",
+    "PortalSession",
     "Price",
     "PriceInput",
     "Problem",
@@ -185,6 +188,8 @@ from yoonpay.generated.models.create_payment_request_customer import CreatePayme
 from yoonpay.generated.models.create_payout_request import CreatePayoutRequest as CreatePayoutRequest
 from yoonpay.generated.models.create_payout_request_recipient import CreatePayoutRequestRecipient as CreatePayoutRequestRecipient
 from yoonpay.generated.models.create_plan_request import CreatePlanRequest as CreatePlanRequest
+from yoonpay.generated.models.create_portal_session_request import CreatePortalSessionRequest as CreatePortalSessionRequest
+from yoonpay.generated.models.create_portal_session_request_allow import CreatePortalSessionRequestAllow as CreatePortalSessionRequestAllow
 from yoonpay.generated.models.create_refund_request import CreateRefundRequest as CreateRefundRequest
 from yoonpay.generated.models.create_subscription_request import CreateSubscriptionRequest as CreateSubscriptionRequest
 from yoonpay.generated.models.customer import Customer as Customer
@@ -227,6 +232,7 @@ from yoonpay.generated.models.payout_status import PayoutStatus as PayoutStatus
 from yoonpay.generated.models.plan import Plan as Plan
 from yoonpay.generated.models.plan_page import PlanPage as PlanPage
 from yoonpay.generated.models.plan_ref import PlanRef as PlanRef
+from yoonpay.generated.models.portal_session import PortalSession as PortalSession
 from yoonpay.generated.models.price import Price as Price
 from yoonpay.generated.models.price_input import PriceInput as PriceInput
 from yoonpay.generated.models.problem import Problem as Problem

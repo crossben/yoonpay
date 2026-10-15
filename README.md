@@ -253,6 +253,7 @@ Build and test (needs a running Docker daemon — integration tests start a real
 | `YOON_APPS_<APP>_BILLING_TIMEZONE` | no | The application's time zone for billing dates (default `Africa/Dakar`) |
 | `YOON_APPS_<APP>_BILLING_INVOICE_PREFIX` | no | Invoice numbers are `<prefix>-<year>-<000001>` (default `INV`) |
 | `YOON_APPS_<APP>_BILLING_INVOICE_TTL` | no | How long an unpaid first invoice keeps a new subscription alive (default `7d`) |
+| `YOON_APPS_<APP>_BILLING_PORTAL_TTL` | no | How long a customer portal link stays valid (default `1h`, at most `24h`) |
 | `YOON_DASHBOARD_ENABLED` | no | Operator dashboard at `/dashboard` (default `true`). It exists only when `YOON_ADMIN_TOKEN` is set; `false` removes it (404) |
 | `YOON_DB_POOL_SIZE` | no | Database connections per instance (default `20`); keep instances × pool below Postgres' `max_connections` |
 | `YOON_SOURCE_URL` | if modified | Where users get this instance's source code (AGPL-3.0). Defaults to the upstream repository; set it if you run a modified version |

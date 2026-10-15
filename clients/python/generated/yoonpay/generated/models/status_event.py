@@ -30,7 +30,7 @@ class StatusEvent(BaseModel):
     from_status: Optional[StrictStr] = None
     to_status: StrictStr
     decision: StrictStr = Field(description="`ignore` — recorded but not applied (a duplicate, or late news such as a failure after success).")
-    cause: StrictStr
+    cause: StrictStr = Field(description="`portal`: done by the customer from the customer portal (open set).")
     raw_status: Optional[StrictStr] = Field(default=None, description="The provider's own status value.")
     detail: Optional[StrictStr] = None
     created_at: datetime
@@ -46,8 +46,8 @@ class StatusEvent(BaseModel):
     @field_validator('cause')
     def cause_validate_enum(cls, value):
         """Validates the enum"""
-        if value not in set(['api', 'provider_call', 'webhook', 'sweep', 'admin']):
-            raise ValueError("must be one of enum values ('api', 'provider_call', 'webhook', 'sweep', 'admin')")
+        if value not in set(['api', 'provider_call', 'webhook', 'sweep', 'admin', 'portal']):
+            raise ValueError("must be one of enum values ('api', 'provider_call', 'webhook', 'sweep', 'admin', 'portal')")
         return value
 
     model_config = ConfigDict(

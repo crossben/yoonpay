@@ -18,7 +18,7 @@ public class StatusEvents {
         this.jdbc = jdbc;
     }
 
-    public enum Cause { api, provider_call, webhook, sweep, admin }
+    public enum Cause { api, provider_call, webhook, sweep, admin, portal }
 
     public record Event(String fromStatus, String toStatus, String decision, String cause,
                         String rawStatus, String detail, Instant createdAt) {

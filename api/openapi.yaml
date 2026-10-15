@@ -456,6 +456,42 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /v1/customers/{id}/portal_sessions:
+    post:
+      tags: [Customers]
+      operationId: createPortalSession
+      summary: Open the customer portal for a customer
+      description: |
+        Returns a URL to send the customer to (ADR-0031): their subscriptions, invoices and
+        receipts, and a way to pay. It opens only this customer's portal and expires after the
+        application's portal TTL (1 hour by default); create a new session each time. `allow`
+        adds actions: cancel at period end and resume, change to one of `change_prices`, redeem a
+        coupon. Without it the customer may view and pay only.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePortalSessionRequest' }
+            example: { return_url: 'https://app.example/account', allow: { cancel: true } }
+      responses:
+        '201':
+          description: The session. Send the customer to `url` right away.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PortalSession' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`public_url_required`, `price_not_found`, `price_archived`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
   /v1/customers/{id}:
     get:
       tags: [Customers]
@@ -2434,6 +2470,28 @@ components:
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
+    CreatePortalSessionRequest:
+      type: object
+      properties:
+        return_url: { type: string, format: uri, maxLength: 2048, description: 'The "Back" link of the portal.' }
+        allow:
+          type: object
+          description: What the customer may do beyond viewing and paying. Omit for view and pay only.
+          properties:
+            cancel: { type: boolean, description: Cancel at period end, and resume. }
+            change_prices: { type: array, maxItems: 20, items: { type: string }, description: Prices the customer may change to. }
+            coupons: { type: boolean, description: Redeem a coupon code. }
+
+    PortalSession:
+      type: object
+      required: [id, object, customer, url, expires_at]
+      properties:
+        id: { type: string, example: ps_01a1… }
+        object: { type: string, const: portal_session }
+        customer: { type: string }
+        url: { type: string, description: 'Where to send the customer. Contains a secret token: do not log or store it.' }
+        expires_at: { type: string, format: date-time }
+
     CreatePaymentLinkRequest:
       type: object
       required: [currency, country, description]
@@ -3166,7 +3224,7 @@ components:
           type: string
           enum: [apply, ignore]
           description: '`ignore` — recorded but not applied (a duplicate, or late news such as a failure after success).'
-        cause: { type: string, enum: [api, provider_call, webhook, sweep, admin] }
+        cause: { type: string, enum: [api, provider_call, webhook, sweep, admin, portal], description: '`portal`: done by the customer from the customer portal (open set).' }
         raw_status: { type: [string, 'null'], description: The provider's own status value. }
         detail: { type: [string, 'null'] }
         created_at: { type: string, format: date-time }

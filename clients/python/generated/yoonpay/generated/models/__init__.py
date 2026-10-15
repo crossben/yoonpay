@@ -40,6 +40,8 @@ from yoonpay.generated.models.create_payment_request_customer import CreatePayme
 from yoonpay.generated.models.create_payout_request import CreatePayoutRequest
 from yoonpay.generated.models.create_payout_request_recipient import CreatePayoutRequestRecipient
 from yoonpay.generated.models.create_plan_request import CreatePlanRequest
+from yoonpay.generated.models.create_portal_session_request import CreatePortalSessionRequest
+from yoonpay.generated.models.create_portal_session_request_allow import CreatePortalSessionRequestAllow
 from yoonpay.generated.models.create_refund_request import CreateRefundRequest
 from yoonpay.generated.models.create_subscription_request import CreateSubscriptionRequest
 from yoonpay.generated.models.customer import Customer
@@ -82,6 +84,7 @@ from yoonpay.generated.models.payout_status import PayoutStatus
 from yoonpay.generated.models.plan import Plan
 from yoonpay.generated.models.plan_page import PlanPage
 from yoonpay.generated.models.plan_ref import PlanRef
+from yoonpay.generated.models.portal_session import PortalSession
 from yoonpay.generated.models.price import Price
 from yoonpay.generated.models.price_input import PriceInput
 from yoonpay.generated.models.problem import Problem

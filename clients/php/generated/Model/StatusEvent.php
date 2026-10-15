@@ -271,6 +271,7 @@ class StatusEvent implements ModelInterface, ArrayAccess, \JsonSerializable
     public const CAUSE_WEBHOOK = 'webhook';
     public const CAUSE_SWEEP = 'sweep';
     public const CAUSE_ADMIN = 'admin';
+    public const CAUSE_PORTAL = 'portal';
 
     /**
      * Gets allowable values of the enum
@@ -298,6 +299,7 @@ class StatusEvent implements ModelInterface, ArrayAccess, \JsonSerializable
             self::CAUSE_WEBHOOK,
             self::CAUSE_SWEEP,
             self::CAUSE_ADMIN,
+            self::CAUSE_PORTAL,
         ];
     }
 
@@ -498,7 +500,7 @@ class StatusEvent implements ModelInterface, ArrayAccess, \JsonSerializable
     /**
      * Sets cause
      *
-     * @param string $cause cause
+     * @param string $cause `portal`: done by the customer from the customer portal (open set).
      *
      * @return self
      */
