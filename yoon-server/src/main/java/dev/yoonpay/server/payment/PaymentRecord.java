@@ -41,7 +41,8 @@ public record PaymentRecord(
         String hostedCheckoutUrl,
         Instant checkoutExpiresAt,
         String checkoutMethod,
-        boolean checkoutBusy) {
+        boolean checkoutBusy,
+        String paymentLinkId) {
 
     public static final String DIRECT = "direct";
     public static final String HOSTED = "hosted";

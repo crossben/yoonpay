@@ -42,6 +42,8 @@ tags:
     description: Your users, for billing (found by your own id).
   - name: Plans
     description: What customers subscribe to, and its prices. Archived, never deleted.
+  - name: PaymentLinks
+    description: Shareable links (and QR codes) that open a hosted checkout. No integration needed.
   - name: Coupons
     description: Discount codes for subscriptions. Terms never change; archived, never deleted.
   - name: Subscriptions
@@ -546,6 +548,96 @@ paths:
               schema: { $ref: '#/components/schemas/PlanPage' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/payment_links:
+    post:
+      tags: [PaymentLinks]
+      operationId: createPaymentLink
+      summary: Create a payment link
+      description: |
+        A link to share anywhere (ADR-0030). Opening it and pressing "Pay" creates an ordinary
+        hosted payment. Give a fixed `amount`, or none (optionally `min_amount` / `max_amount`) for
+        the customer to type it. The amount, currency and country never change: archive the link
+        (`active: false`) and create another.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePaymentLinkRequest' }
+            example: { amount: 5000, currency: XOF, country: SN, description: 'Tote bag', max_payments: 1 }
+      responses:
+        '201':
+          description: Payment link created.
+          headers:
+            Idempotent-Replayed: { $ref: '#/components/headers/IdempotentReplayed' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLink' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`public_url_required` — `YOON_PUBLIC_URL` is not set.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [PaymentLinks]
+      operationId: listPaymentLinks
+      summary: List payment links
+      parameters:
+        - { name: active, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of payment links, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLinkPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/payment_links/{id}:
+    get:
+      tags: [PaymentLinks]
+      operationId: getPaymentLink
+      summary: Get a payment link
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The payment link, with what it collected.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLink' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [PaymentLinks]
+      operationId: updatePaymentLink
+      summary: Update a payment link
+      description: '`active`, `description`, `expires_at`, `max_payments`, `metadata`. The amount never changes.'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePaymentLinkRequest' }
+      responses:
+        '200':
+          description: The updated payment link.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLink' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
 
   /v1/coupons:
     post:
@@ -2191,6 +2283,63 @@ components:
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
+    CreatePaymentLinkRequest:
+      type: object
+      required: [currency, country, description]
+      properties:
+        amount: { type: integer, format: int64, minimum: 1, description: 'Fixed amount in minor units; omit to let the customer type it.' }
+        min_amount: { type: integer, format: int64, minimum: 1, description: Only without `amount`. }
+        max_amount: { type: integer, format: int64, minimum: 1, description: Only without `amount`. }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        country: { type: string, pattern: '^[A-Z]{2}$' }
+        description: { type: string, minLength: 1, maxLength: 500 }
+        method: { type: string, maxLength: 32, description: 'Limit to one method (e.g. wave); default any.' }
+        max_payments: { type: integer, minimum: 1, description: '1 = single use; omit for a reusable link.' }
+        expires_at: { type: string, format: date-time }
+        return_url: { type: string, format: uri, maxLength: 2048 }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    UpdatePaymentLinkRequest:
+      type: object
+      properties:
+        active: { type: boolean }
+        description: { type: string, minLength: 1, maxLength: 500 }
+        expires_at: { type: [string, 'null'], format: date-time }
+        max_payments: { type: [integer, 'null'], minimum: 1 }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+
+    PaymentLink:
+      type: object
+      required: [id, object, url, amount, currency, country, description, active, payments_count, amount_collected, created_at]
+      properties:
+        id: { type: string, example: plink_01a1… }
+        object: { type: string, const: payment_link }
+        url: { type: string, description: 'What to share: `<YOON_PUBLIC_URL>/l/<code>`. Whoever has it may pay.' }
+        qr_url: { type: string, description: An SVG QR code of `url`. }
+        amount: { type: [integer, 'null'], format: int64, description: Null when the customer chooses the amount. }
+        min_amount: { type: [integer, 'null'], format: int64 }
+        max_amount: { type: [integer, 'null'], format: int64 }
+        currency: { type: string }
+        country: { type: string }
+        description: { type: string }
+        method: { type: [string, 'null'] }
+        max_payments: { type: [integer, 'null'] }
+        expires_at: { type: [string, 'null'], format: date-time }
+        return_url: { type: [string, 'null'] }
+        active: { type: boolean }
+        payments_count: { type: integer, format: int64, description: Succeeded payments. }
+        amount_collected: { type: integer, format: int64, description: Sum of succeeded payments, minor units. }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        created_at: { type: string, format: date-time }
+
+    PaymentLinkPage:
+      type: object
+      required: [data, has_more, next_cursor]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/PaymentLink' } }
+        has_more: { type: boolean }
+        next_cursor: { $ref: '#/components/schemas/NextCursor' }
+
     CreateCouponRequest:
       type: object
       required: [code, duration]
@@ -2611,6 +2760,7 @@ components:
       type: object
       required: [id, object, status, amount, amount_refunded, currency, country, method, created_at, updated_at]
       properties:
+        payment_link: { type: [string, 'null'], description: 'The payment link it was paid through (ADR-0030), if any.' }
         id: { type: string, example: pay_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
         object: { type: string, const: payment }
         status: { $ref: '#/components/schemas/PaymentStatus' }

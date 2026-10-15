@@ -58,6 +58,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
       * @var string[]
       */
     protected static $openAPITypes = [
+        'payment_link' => 'string',
         'id' => 'string',
         'object' => 'string',
         'status' => '\Yoon\Generated\Model\InvoiceStatus',
@@ -121,6 +122,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
       * @psalm-var array<string, string|null>
       */
     protected static $openAPIFormats = [
+        'payment_link' => null,
         'id' => null,
         'object' => null,
         'status' => null,
@@ -182,6 +184,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
       * @var boolean[]
       */
     protected static array $openAPINullables = [
+        'payment_link' => false,
         'id' => false,
         'object' => false,
         'status' => false,
@@ -323,6 +326,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
      * @var string[]
      */
     protected static $attributeMap = [
+        'payment_link' => 'payment_link',
         'id' => 'id',
         'object' => 'object',
         'status' => 'status',
@@ -384,6 +388,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
      * @var string[]
      */
     protected static $setters = [
+        'payment_link' => 'setPaymentLink',
         'id' => 'setId',
         'object' => 'setObject',
         'status' => 'setStatus',
@@ -445,6 +450,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
      * @var string[]
      */
     protected static $getters = [
+        'payment_link' => 'getPaymentLink',
         'id' => 'getId',
         'object' => 'getObject',
         'status' => 'getStatus',
@@ -615,6 +621,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
      */
     public function __construct(?array $data = null)
     {
+        $this->setIfExists('payment_link', $data ?? [], null);
         $this->setIfExists('id', $data ?? [], null);
         $this->setIfExists('object', $data ?? [], null);
         $this->setIfExists('status', $data ?? [], null);
@@ -838,6 +845,33 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         return count($this->listInvalidProperties()) === 0;
     }
 
+
+    /**
+     * Gets payment_link
+     *
+     * @return string|null
+     */
+    public function getPaymentLink()
+    {
+        return $this->container['payment_link'];
+    }
+
+    /**
+     * Sets payment_link
+     *
+     * @param string|null $payment_link The payment link it was paid through (ADR-0030), if any.
+     *
+     * @return self
+     */
+    public function setPaymentLink($payment_link)
+    {
+        if (is_null($payment_link)) {
+            throw new \InvalidArgumentException('non-nullable payment_link cannot be null');
+        }
+        $this->container['payment_link'] = $payment_link;
+
+        return $this;
+    }
 
     /**
      * Gets id

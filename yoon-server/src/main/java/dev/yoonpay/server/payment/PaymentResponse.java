@@ -26,7 +26,8 @@ public record PaymentResponse(
         String routingReason,
         Failure failure,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        String paymentLink) {
 
     public record Customer(String phone) {
     }
@@ -48,6 +49,6 @@ public record PaymentResponse(
                 p.hosted() ? p.hostedCheckoutUrl() : p.checkoutUrl(),
                 p.instructions(), p.routingReason(),
                 p.failureCode() == null ? null : new Failure(p.failureCode(), p.failureMessage()),
-                p.createdAt(), p.updatedAt());
+                p.createdAt(), p.updatedAt(), p.paymentLinkId());
     }
 }

@@ -1,6 +1,6 @@
 # Plan — payment links
 
-Design: [ADR-0030](../adr/0030-payment-links.md). Status: **proposed — for review before any code.**
+Design: [ADR-0030](../adr/0030-payment-links.md). Status: **accepted 2026-11-10** (dashboard may create/archive links; concurrent single-use successes are kept).
 
 ## Milestones (each: tests + docs + CHANGELOG, then stop for review/commit)
 1. **Schema + API:** migration, `/v1/payment_links` (create, list, get, patch), `Payment.payment_link`,
@@ -11,6 +11,10 @@ Design: [ADR-0030](../adr/0030-payment-links.md). Status: **proposed — for rev
 3. **Operator:** dashboard "Payment links" tab (create, archive, URL, QR) through the admin API;
    CLI `yoon links create`; exports.
 4. **Docs + clients + website:** guide section, client helpers if useful, website page, LinkedIn post.
+
+## Progress
+- M1 schema (`V9`), `/v1/payment_links` API, `Payment.payment_link`, contract, regenerated
+  clients — done (243 server tests, all client suites, oasdiff clean against v0.4.0).
 
 ## Tests beyond the usual
 - Fixed and customer-chosen amounts (bounds enforced server-side, integer minor units).

@@ -32,10 +32,11 @@ public class PaymentRepository {
                         INSERT INTO payments (id, application_id, status, amount, currency, country, method, reference,
                                               description, customer_phone, return_url, customer_pi_alias,
                                               checkout, checkout_token, hosted_checkout_url, checkout_expires_at,
-                                              checkout_method)
+                                              checkout_method, payment_link_id)
                         VALUES (:id, :app, :status, :amount, :currency, :country, :method, :reference,
                                 :description, :phone, :returnUrl, :alias,
-                                :checkout, :token, :hostedUrl, :expiresAt, :checkoutMethod)""")
+                                :checkout, :token, :hostedUrl, :expiresAt, :checkoutMethod, :link)""")
+                .param("link", p.paymentLinkId())
                 .param("id", p.id())
                 .param("app", p.applicationId())
                 .param("status", p.status())

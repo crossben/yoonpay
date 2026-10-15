@@ -5,6 +5,15 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Payment links (in progress)
+- `POST/GET /v1/payment_links`, `GET/PATCH /v1/payment_links/{id}` (ADR-0030): a fixed amount, or
+  one the customer types within optional bounds; optional single use / cap, expiry, one method,
+  return URL. Each link has an unguessable URL (`/l/<code>`) and a QR code URL, and reports the
+  payments and the amount it collected (succeeded payments only). Amounts never change (database
+  trigger); archive with `active: false`. `Payment.payment_link` names the link a payment came
+  through. Migration `V9`. The public link page and the QR code come next: until then the URLs
+  do not open anything.
+
 ### Providers
 - NabooPay: `…_CREDENTIALS_FEES_CUSTOMER_SIDE` (default `true`, the behaviour so far) — set it to
   `false` for the merchant to absorb NabooPay's fee instead of the customer. Any other value stops

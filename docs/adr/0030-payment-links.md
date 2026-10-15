@@ -1,6 +1,6 @@
 # ADR-0030 — Payment links
 
-- Status: proposed
+- Status: accepted (2026-11-10)
 - Date: 2026-11-10
 - Builds on: ADR-0024 (hosted checkout)
 
@@ -44,7 +44,7 @@ Nothing new touches money.
 - Single use (`max_payments: 1`) counts **succeeded** payments. Two customers paying at the same
   moment may both succeed — money received is never refused; the link then shows used up and the
   merchant sees two payments. This is documented, not prevented (preventing it would need a lock
-  held across a provider round-trip).
+  held across a provider round-trip) — decided 2026-11-10.
 
 ### Events
 No new event types: each payment is an ordinary payment with `payment_link` set
@@ -52,7 +52,8 @@ No new event types: each payment is an ordinary payment with `payment_link` set
 
 ### Creating links without a developer
 Merchants without developers run Yoon through an operator (often themselves). Options:
-1. **(Recommended)** The operator dashboard gets a small "Payment links" tab that can **create and
+Decided: option 1.
+1. **(Chosen)** The operator dashboard gets a small "Payment links" tab that can **create and
    archive** links (through the admin API with the admin token) and shows each link's URL and QR
    code. The dashboard stops being strictly read-only, for this one resource; it never moves
    money.

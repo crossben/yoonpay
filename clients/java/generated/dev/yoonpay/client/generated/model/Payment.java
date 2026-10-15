@@ -38,6 +38,7 @@ import dev.yoonpay.client.generated.ApiClient;
  * Payment
  */
 @JsonPropertyOrder({
+  Payment.JSON_PROPERTY_PAYMENT_LINK,
   Payment.JSON_PROPERTY_ID,
   Payment.JSON_PROPERTY_OBJECT,
   Payment.JSON_PROPERTY_STATUS,
@@ -62,6 +63,10 @@ import dev.yoonpay.client.generated.ApiClient;
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class Payment {
+  public static final String JSON_PROPERTY_PAYMENT_LINK = "payment_link";
+  @jakarta.annotation.Nullable
+  private String paymentLink;
+
   public static final String JSON_PROPERTY_ID = "id";
   @jakarta.annotation.Nonnull
   private String id;
@@ -220,6 +225,30 @@ public class Payment {
 
   public Payment() { 
   }
+
+  public Payment paymentLink(@jakarta.annotation.Nullable String paymentLink) {
+    this.paymentLink = paymentLink;
+    return this;
+  }
+
+  /**
+   * The payment link it was paid through (ADR-0030), if any.
+   * @return paymentLink
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_PAYMENT_LINK, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public String getPaymentLink() {
+    return paymentLink;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_PAYMENT_LINK, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setPaymentLink(@jakarta.annotation.Nullable String paymentLink) {
+    this.paymentLink = paymentLink;
+  }
+
 
   public Payment id(@jakarta.annotation.Nonnull String id) {
     this.id = id;
@@ -737,7 +766,8 @@ public class Payment {
       return false;
     }
     Payment payment = (Payment) o;
-    return Objects.equals(this.id, payment.id) &&
+    return Objects.equals(this.paymentLink, payment.paymentLink) &&
+        Objects.equals(this.id, payment.id) &&
         Objects.equals(this._object, payment._object) &&
         Objects.equals(this.status, payment.status) &&
         Objects.equals(this.amount, payment.amount) &&
@@ -762,13 +792,14 @@ public class Payment {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, status, amount, amountRefunded, currency, country, method, checkout, checkoutExpiresAt, reference, description, customer, provider, providerReference, checkoutUrl, instructions, routingReason, failure, createdAt, updatedAt);
+    return Objects.hash(paymentLink, id, _object, status, amount, amountRefunded, currency, country, method, checkout, checkoutExpiresAt, reference, description, customer, provider, providerReference, checkoutUrl, instructions, routingReason, failure, createdAt, updatedAt);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class Payment {\n");
+    sb.append("    paymentLink: ").append(toIndentedString(paymentLink)).append("\n");
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    _object: ").append(toIndentedString(_object)).append("\n");
     sb.append("    status: ").append(toIndentedString(status)).append("\n");
@@ -836,6 +867,11 @@ public class Payment {
     }
 
     StringJoiner joiner = new StringJoiner("&");
+
+    // add `payment_link` to the URL query string
+    if (getPaymentLink() != null) {
+      joiner.add(String.format(Locale.ROOT, "%spayment_link%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getPaymentLink()))));
+    }
 
     // add `id` to the URL query string
     if (getId() != null) {

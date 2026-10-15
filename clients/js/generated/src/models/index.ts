@@ -824,6 +824,79 @@ export interface CreateCustomerRequest {
 /**
  * 
  * @export
+ * @interface CreatePaymentLinkRequest
+ */
+export interface CreatePaymentLinkRequest {
+    /**
+     * Fixed amount in minor units; omit to let the customer type it.
+     * @type {number}
+     * @memberof CreatePaymentLinkRequest
+     */
+    amount?: number;
+    /**
+     * Only without `amount`.
+     * @type {number}
+     * @memberof CreatePaymentLinkRequest
+     */
+    min_amount?: number;
+    /**
+     * Only without `amount`.
+     * @type {number}
+     * @memberof CreatePaymentLinkRequest
+     */
+    max_amount?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreatePaymentLinkRequest
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreatePaymentLinkRequest
+     */
+    country: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreatePaymentLinkRequest
+     */
+    description: string;
+    /**
+     * Limit to one method (e.g. wave); default any.
+     * @type {string}
+     * @memberof CreatePaymentLinkRequest
+     */
+    method?: string;
+    /**
+     * 1 = single use; omit for a reusable link.
+     * @type {number}
+     * @memberof CreatePaymentLinkRequest
+     */
+    max_payments?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreatePaymentLinkRequest
+     */
+    expires_at?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreatePaymentLinkRequest
+     */
+    return_url?: string;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof CreatePaymentLinkRequest
+     */
+    metadata?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
  * @interface CreatePaymentRequest
  */
 export interface CreatePaymentRequest {
@@ -2004,6 +2077,12 @@ export type ListProviders200ResponseInnerCapabilitiesInnerOperationEnum = typeof
  */
 export interface Payment {
     /**
+     * The payment link it was paid through (ADR-0030), if any.
+     * @type {string}
+     * @memberof Payment
+     */
+    payment_link?: string | null;
+    /**
      * 
      * @type {string}
      * @memberof Payment
@@ -2163,6 +2242,162 @@ export interface PaymentCustomer {
      * @memberof PaymentCustomer
      */
     phone?: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface PaymentLink
+ */
+export interface PaymentLink {
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    object: PaymentLinkObjectEnum;
+    /**
+     * What to share: `<YOON_PUBLIC_URL>/l/<code>`. Whoever has it may pay.
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    url: string;
+    /**
+     * An SVG QR code of `url`.
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    qr_url?: string;
+    /**
+     * Null when the customer chooses the amount.
+     * @type {number}
+     * @memberof PaymentLink
+     */
+    amount: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PaymentLink
+     */
+    min_amount?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PaymentLink
+     */
+    max_amount?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    currency: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    country: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    description: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    method?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PaymentLink
+     */
+    max_payments?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    expires_at?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    return_url?: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PaymentLink
+     */
+    active: boolean;
+    /**
+     * Succeeded payments.
+     * @type {number}
+     * @memberof PaymentLink
+     */
+    payments_count: number;
+    /**
+     * Sum of succeeded payments
+     * @type {number}
+     * @memberof PaymentLink
+     */
+    amount_collected: number;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof PaymentLink
+     */
+    metadata?: { [key: string]: string; };
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLink
+     */
+    created_at: string;
+}
+
+
+/**
+ * @export
+ */
+export const PaymentLinkObjectEnum = {
+    PaymentLink: 'payment_link'
+} as const;
+export type PaymentLinkObjectEnum = typeof PaymentLinkObjectEnum[keyof typeof PaymentLinkObjectEnum];
+
+/**
+ * 
+ * @export
+ * @interface PaymentLinkPage
+ */
+export interface PaymentLinkPage {
+    /**
+     * 
+     * @type {Array<PaymentLink>}
+     * @memberof PaymentLinkPage
+     */
+    data: Array<PaymentLink>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PaymentLinkPage
+     */
+    has_more: boolean;
+    /**
+     * Pass as `starting_after` to get the next page; null on the last page.
+     * @type {string}
+     * @memberof PaymentLinkPage
+     */
+    next_cursor: string | null;
 }
 /**
  * 
@@ -3357,6 +3592,43 @@ export interface UpdateCustomerRequest {
      * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
      * @type {{ [key: string]: string; }}
      * @memberof UpdateCustomerRequest
+     */
+    metadata?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
+ * @interface UpdatePaymentLinkRequest
+ */
+export interface UpdatePaymentLinkRequest {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdatePaymentLinkRequest
+     */
+    active?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdatePaymentLinkRequest
+     */
+    description?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdatePaymentLinkRequest
+     */
+    expires_at?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdatePaymentLinkRequest
+     */
+    max_payments?: number | null;
+    /**
+     * Your own key/value pairs. At most 20 keys; keys ≤ 40 characters, values ≤ 500.
+     * @type {{ [key: string]: string; }}
+     * @memberof UpdatePaymentLinkRequest
      */
     metadata?: { [key: string]: string; };
 }

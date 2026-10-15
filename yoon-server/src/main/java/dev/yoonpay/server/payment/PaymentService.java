@@ -99,7 +99,7 @@ public class PaymentService {
             payments.insert(new PaymentRecord(id, app.id(), PaymentStatus.CREATED.name(), req.amount(),
                     currency.getCurrencyCode(), req.country(), req.method(), req.reference(), req.description(),
                     phone, req.returnUrl(), null, null, null, null, null, null, null, 0, null, null, 0, alias,
-                    PaymentRecord.DIRECT, null, null, null, null, false));
+                    PaymentRecord.DIRECT, null, null, null, null, false, null));
             events.record(app.id(), "payment", id, null, PaymentStatus.CREATED, Decision.APPLY, Cause.api, null, null);
         });
 
@@ -216,7 +216,7 @@ public class PaymentService {
             payments.insert(new PaymentRecord(id, app.id(), PaymentStatus.CREATED.name(), req.amount(),
                     currency.getCurrencyCode(), req.country(), null, req.reference(), req.description(),
                     phone, req.returnUrl(), null, null, null, null, null, null, null, 0, null, null, 0, alias,
-                    PaymentRecord.HOSTED, token, url, expiresAt, req.method(), false));
+                    PaymentRecord.HOSTED, token, url, expiresAt, req.method(), false, null));
             events.record(app.id(), "payment", id, null, PaymentStatus.CREATED, Decision.APPLY, Cause.api, null,
                     "hosted checkout: waiting for the customer's choice");
         });

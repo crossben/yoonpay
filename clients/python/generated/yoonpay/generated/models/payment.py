@@ -30,6 +30,7 @@ class Payment(BaseModel):
     """
     Payment
     """ # noqa: E501
+    payment_link: Optional[StrictStr] = Field(default=None, description="The payment link it was paid through (ADR-0030), if any.")
     id: StrictStr
     object: StrictStr
     status: PaymentStatus
@@ -51,7 +52,7 @@ class Payment(BaseModel):
     failure: Optional[Failure] = None
     created_at: datetime
     updated_at: datetime
-    __properties: ClassVar[List[str]] = ["id", "object", "status", "amount", "amount_refunded", "currency", "country", "method", "checkout", "checkout_expires_at", "reference", "description", "customer", "provider", "provider_reference", "checkout_url", "instructions", "routing_reason", "failure", "created_at", "updated_at"]
+    __properties: ClassVar[List[str]] = ["payment_link", "id", "object", "status", "amount", "amount_refunded", "currency", "country", "method", "checkout", "checkout_expires_at", "reference", "description", "customer", "provider", "provider_reference", "checkout_url", "instructions", "routing_reason", "failure", "created_at", "updated_at"]
 
     @field_validator('object')
     def object_validate_enum(cls, value):
@@ -115,6 +116,11 @@ class Payment(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of failure
         if self.failure:
             _dict['failure'] = self.failure.to_dict()
+        # set to None if payment_link (nullable) is None
+        # and model_fields_set contains the field
+        if self.payment_link is None and "payment_link" in self.model_fields_set:
+            _dict['payment_link'] = None
+
         # set to None if checkout_expires_at (nullable) is None
         # and model_fields_set contains the field
         if self.checkout_expires_at is None and "checkout_expires_at" in self.model_fields_set:
@@ -167,6 +173,7 @@ class Payment(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "payment_link": obj.get("payment_link"),
             "id": obj.get("id"),
             "object": obj.get("object"),
             "status": obj.get("status"),
