@@ -18,6 +18,8 @@ Design: [ADR-0030](../adr/0030-payment-links.md). Status: **accepted 2026-11-10*
 - M2 public page `/l/<code>` (fixed or customer-chosen amount, FR/EN), "Pay" through the hosted
   checkout with per-attempt idempotency, states, `qr.svg` from the public URL, under
   `CheckoutFilter` — done (251 server tests; checked live on a demo server).
+- M3 dashboard tab (create, archive, URL, QR, totals), admin API, CLI `links create`, exports —
+  done (256 server tests).
 
 ## Tests beyond the usual
 - Fixed and customer-chosen amounts (bounds enforced server-side, integer minor units).

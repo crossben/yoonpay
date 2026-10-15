@@ -95,7 +95,7 @@ once, in Java, instead of in every project.
     invoice by itself (no payment, no ledger posting).
 - **Payment links** (in progress, ADR-0030): `/v1/payment_links` creates a shareable link and QR
   code for a fixed or customer-chosen amount; the customer opens `/l/<code>`, presses "Pay" and
-  completes an ordinary hosted checkout. Creating links from the dashboard comes next.
+  completes an ordinary hosted checkout. Operators create links from the dashboard or the CLI.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
@@ -148,14 +148,15 @@ never a second one while a provider may have the payment. Until the customer cho
 ## Operator dashboard
 
 Open `https://<your yoon>/dashboard` and paste `YOON_ADMIN_TOKEN`. You see your applications;
-payments, refunds, payouts, subscriptions, invoices, plans and coupons per application (filter
-by status, newest first, paginated);
+payments, refunds, payouts, subscriptions, invoices, plans, coupons and payment links per
+application (filter by status, newest first, paginated);
 payouts needing review; webhook dead letters, which you can replay; balances and ledger
 entries; and the status history of any record. Phone numbers stay masked. The token is kept
 only in that browser tab (session storage) and sent in the `Authorization` header, never in
 a URL. The page is static (no build step, no CDN) and served with a strict
-Content-Security-Policy. It is read-only apart from replaying dead letters: resolve a payout
-with the operator API ([docs/runbook.md](docs/runbook.md)). Set `YOON_DASHBOARD_ENABLED=false`
+Content-Security-Policy. It changes only two things: it replays dead letters, and it creates and
+archives **payment links** (with their QR codes) so a merchant without a developer can sell — it
+never moves money. Resolve a payout with the operator API ([docs/runbook.md](docs/runbook.md)). Set `YOON_DASHBOARD_ENABLED=false`
 to turn it off. See ADR-0021.
 
 ## Try it without a provider account
@@ -295,6 +296,8 @@ docker compose run --rm yoon apps add-key <name>     # rotate: issue another key
 docker compose run --rm yoon apps revoke-key <prefix>
 # grant time without payment (sub_… or cus_…; a number of periods, an end date or "open"; a note)
 docker compose run --rm yoon billing comp <app> <sub_…|cus_…> <price_…> <periods|until|open> <note…>
+# a payment link to share (amount in minor units, or "any"): prints the URL and its QR code URL
+docker compose run --rm yoon links create <app> <amount|any> <currency> <country> <description…>
 ```
 
 ## Contributing and security

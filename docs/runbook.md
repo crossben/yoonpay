@@ -63,8 +63,8 @@ status API anyway.
 ## Operator dashboard
 
 Open `$YOON/dashboard` and paste the admin token. It shows applications; payments, refunds,
-payouts, subscriptions, invoices, plans and coupons per application (filter by status, newest first); payouts needing review; dead letters
-(with **Replay**); balances and ledger entries; and the status history of any record (click its id).
+payouts, subscriptions, invoices, plans, coupons and payment links per application (filter by status, newest first); payouts needing review; dead letters
+(with **Replay**); a **Payment links** tab to create and archive links, with their URL and QR code; balances and ledger entries; and the status history of any record (click its id).
 The token stays in that browser tab's session storage; **Sign out** or closing the tab forgets it.
 The dashboard does not resolve payouts or grant comps: use `POST /admin/v1/payouts/{id}/resolve`
 and the comp command below.
@@ -119,6 +119,22 @@ Or `POST /admin/v1/applications/{app}/subscriptions/{id}/comp` (or `/customers/{
 and an `Idempotency-Key` (a retry with the same key grants once). An open invoice is voided. An
 open-ended comp lasts until the application cancels it (`POST /v1/subscriptions/{id}/cancel`
 with `{"at_period_end": false}`). When the customer later pays a period, `comp` turns false.
+
+## Create a payment link for a merchant
+
+From the dashboard (**Payment links** tab: description, amount or "customer types it", single use)
+or the command line:
+
+```sh
+docker compose run --rm yoon links create shop 5000 XOF SN Tote bag, size M
+docker compose run --rm yoon links create shop any XOF SN Donation
+```
+
+It prints the link to share (`$YOON_PUBLIC_URL/l/<code>`) and its QR code (`…/qr.svg`, print it
+for a counter). Whoever has the link may pay it; archive it (dashboard, or
+`POST /admin/v1/applications/{app}/payment_links/{id}/archive`) to stop it. Each payment through a
+link is an ordinary hosted payment (dashboard Payments tab, `payment_link` column in
+`payments.csv`).
 
 ## Rotate the admin token
 

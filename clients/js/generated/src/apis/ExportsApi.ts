@@ -33,6 +33,11 @@ export interface ExportLedgerRequest {
     to?: string;
 }
 
+export interface ExportPaymentLinksRequest {
+    from?: string;
+    to?: string;
+}
+
 export interface ExportPaymentsRequest {
     from?: string;
     to?: string;
@@ -206,6 +211,57 @@ export class ExportsApi extends runtime.BaseAPI {
      */
     async exportLedger(requestParameters: ExportLedgerRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
         const response = await this.exportLedgerRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Links created in the window, with the payments and the amount each collected (succeeded payments).
+     * Export payment links as CSV
+     */
+    async exportPaymentLinksRaw(requestParameters: ExportPaymentLinksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['from'] != null) {
+            queryParameters['from'] = requestParameters['from'];
+        }
+
+        if (requestParameters['to'] != null) {
+            queryParameters['to'] = requestParameters['to'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("apiKey", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/v1/exports/payment_links.csv`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<string>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * Links created in the window, with the payments and the amount each collected (succeeded payments).
+     * Export payment links as CSV
+     */
+    async exportPaymentLinks(requestParameters: ExportPaymentLinksRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.exportPaymentLinksRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

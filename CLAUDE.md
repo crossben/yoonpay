@@ -200,6 +200,10 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   transaction by `BillingPayments.paidWithoutPayment` (no payment, no ledger posting).
 - An `ApiProblem` may carry extra members (`with("reason", …)`); `ProblemHandler.problem(ApiProblem)`
   renders them, and `IdempotentCall` stores that rendering for replays.
+- The dashboard changes only dead letters (replay) and payment links (create, archive), through
+  the admin API with an `Idempotency-Key` per submission. Nothing in it moves money; keep it so.
+- Public pages (`/checkout/**`, `/l/**`) are all under `CheckoutFilter`; route patterns stay plain
+  (`{code}`, validated in code) so `ContractCoverageTest` can match them.
 - Receipts live under `/checkout/receipts/` so `CheckoutFilter` (CSP, no-store, rate limit)
   covers them; anything that is not a paid invoice with the right token is the same 404.
 

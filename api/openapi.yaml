@@ -1269,6 +1269,17 @@ paths:
         '200': { $ref: '#/components/responses/Csv' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /v1/exports/payment_links.csv:
+    get:
+      tags: [Exports]
+      operationId: exportPaymentLinks
+      summary: Export payment links as CSV
+      description: Links created in the window, with the payments and the amount each collected (succeeded payments).
+      parameters: [{ $ref: '#/components/parameters/From' }, { $ref: '#/components/parameters/To' }]
+      responses:
+        '200': { $ref: '#/components/responses/Csv' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
   /v1/exports/coupons.csv:
     get:
       tags: [Exports]
@@ -1917,6 +1928,77 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/applications/{application_id}/payment_links:
+    get:
+      tags: [Admin]
+      operationId: adminListApplicationPaymentLinks
+      summary: One application's payment links
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - { name: active, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/StartingAfter'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A page of payment links, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLinkPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+    post:
+      tags: [Admin]
+      operationId: adminCreatePaymentLink
+      summary: Create a payment link for an application
+      description: For merchants without a developer (ADR-0030); same rules as `POST /v1/payment_links`.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePaymentLinkRequest' }
+      responses:
+        '201':
+          description: Payment link created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLink' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: '`public_url_required`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/applications/{application_id}/payment_links/{id}/archive:
+    post:
+      tags: [Admin]
+      operationId: adminArchivePaymentLink
+      summary: Archive a payment link
+      description: The link stops accepting payments; its page says it is no longer active.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ApplicationId'
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: The archived payment link.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLink' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
 
   /admin/v1/applications/{application_id}/coupons:
     get:

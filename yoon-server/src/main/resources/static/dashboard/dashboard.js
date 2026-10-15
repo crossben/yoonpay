@@ -47,9 +47,14 @@ class ApiError extends Error {
 async function api(path, options = {}) {
     const t = token();
     if (!t) throw new ApiError(401, 'unauthorized', 'Not signed in');
+    const headers = { Authorization: `Bearer ${t}`, Accept: 'application/json' };
+    if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+    // Writes are idempotent like every write to Yoon: a double click creates one link.
+    if (options.idempotencyKey) headers['Idempotency-Key'] = options.idempotencyKey;
     const res = await fetch(path, {
         method: options.method || 'GET',
-        headers: { Authorization: `Bearer ${t}`, Accept: 'application/json' },
+        headers,
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
         credentials: 'omit',
         cache: 'no-store',
         referrerPolicy: 'no-referrer',
@@ -232,6 +237,22 @@ const VIEWS = {
             { label: 'Plans', class: 'wrap', value: (r) => (r.plans ? r.plans.join(', ') : 'all') },
         ], page.data),
     },
+    links: {
+        scope: 'app',
+        load: (cursor) => api(appPath(`/payment_links${query({ starting_after: cursor, limit: PAGE_SIZE })}`)),
+        render: (page) => el('div', {}, linkForm(), table('Payment links', [
+            { label: 'QR', value: (r) => el('img', { src: new URL(r.qr_url, location.href).pathname, alt: `QR code of ${r.description}`, class: 'qr' }) },
+            { label: 'Link', class: 'wrap', value: (r) => el('div', {}, el('b', {}, r.description), el('br'),
+                el('a', { href: r.url, target: '_blank', rel: 'noopener noreferrer' }, r.url), ' ',
+                el('button', { type: 'button', class: 'link', onclick: (e) => copy(r.url, e.currentTarget) }, 'Copy')) },
+            { label: 'Amount', class: 'num', value: (r) => (r.amount != null ? money(r.amount, r.currency) : 'customer chooses') },
+            { label: 'Uses', class: 'num', value: (r) => (r.max_payments ? `${r.payments_count} / ${r.max_payments}` : String(r.payments_count)) },
+            { label: 'Collected', class: 'num', value: (r) => money(r.amount_collected, r.currency) },
+            { label: 'State', value: (r) => (r.active ? badge('active') : badge('archived')) },
+            { label: 'Action', value: (r) => (r.active
+                ? el('button', { type: 'button', class: 'secondary', onclick: (e) => archiveLink(r.id, e.currentTarget) }, 'Archive') : '') },
+        ], page.data)),
+    },
     review: {
         scope: 'instance',
         load: (cursor) => api(`/admin/v1/payouts${query({ needs_review: true, starting_after: cursor, limit: PAGE_SIZE })}`),
@@ -298,6 +319,80 @@ function payoutTable(caption, rows, linkHistory) {
 }
 
 // ---- actions ---------------------------------------------------------------------------------
+
+/** The create form of the Payment links tab. Amounts are typed in the currency's major unit. */
+function linkForm() {
+    const field = (label, input) => el('label', { class: 'field' }, el('span', {}, label), input);
+    const description = el('input', { name: 'description', required: '', maxlength: '500', placeholder: 'Tote bag, size M' });
+    const amount = el('input', { name: 'amount', inputmode: 'decimal', placeholder: '5000' });
+    const currency = el('input', { name: 'currency', value: 'XOF', maxlength: '3', size: '4' });
+    const country = el('input', { name: 'country', value: 'SN', maxlength: '2', size: '3' });
+    const anyAmount = el('input', { type: 'checkbox', name: 'any' });
+    const single = el('input', { type: 'checkbox', name: 'single' });
+    const form = el('form', { class: 'link-form card' },
+        el('h2', {}, 'New payment link'),
+        field('Description', description), field('Amount', amount),
+        el('label', { class: 'check' }, anyAmount, ' The customer types the amount'),
+        field('Currency', currency), field('Country', country),
+        el('label', { class: 'check' }, single, ' Single use'),
+        el('button', { type: 'submit' }, 'Create link'));
+    anyAmount.addEventListener('change', () => { amount.disabled = anyAmount.checked; });
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const cur = currency.value.trim().toUpperCase();
+        const body = { description: description.value.trim(), currency: cur, country: country.value.trim().toUpperCase() };
+        if (!anyAmount.checked) {
+            const minor = toMinor(amount.value, cur);
+            if (minor == null) { message('Enter the amount, e.g. 5000.'); amount.focus(); return; }
+            body.amount = minor;
+        }
+        if (single.checked) body.max_payments = 1;
+        form.querySelector('button[type=submit]').disabled = true;
+        try {
+            // A fresh key per submission (the disabled button stops double submits; a retry after an
+            // error carries corrected fields, which must not collide with the refused request).
+            await api(appPath('/payment_links'), { method: 'POST', body, idempotencyKey: crypto.randomUUID() });
+            message('');
+            render();
+        } catch (err) {
+            form.querySelector('button[type=submit]').disabled = false;
+            handle(err);
+        }
+    });
+    return form;
+}
+
+/** "5 000" / "12,50" in major units → minor units, without floating point. */
+function toMinor(text, currency) {
+    let digits = 2;
+    try { digits = new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits; } catch { /* unknown */ }
+    const clean = String(text).replace(/[\s\u00a0\u202f]/g, '').replace(',', '.');
+    const re = digits > 0 ? new RegExp(`^\\d+(\\.\\d{1,${digits}})?$`) : /^\d+$/;
+    if (!re.test(clean)) return null;
+    const [whole, frac = ''] = clean.split('.');
+    const minor = BigInt(whole) * 10n ** BigInt(digits) + BigInt((frac + '0'.repeat(digits)).slice(0, digits) || '0');
+    return minor > 0n && minor <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(minor) : null;
+}
+
+async function archiveLink(id, button) {
+    button.disabled = true;
+    try {
+        await api(appPath(`/payment_links/${encodeURIComponent(id)}/archive`), { method: 'POST', idempotencyKey: crypto.randomUUID() });
+        render();
+    } catch (e) {
+        button.disabled = false;
+        handle(e);
+    }
+}
+
+async function copy(text, button) {
+    try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = 'Copied';
+    } catch {
+        button.textContent = 'Select and copy';
+    }
+}
 
 async function replay(id, button) {
     if (!window.confirm(`Deliver event ${id} to the application's webhook URL again?`)) return;

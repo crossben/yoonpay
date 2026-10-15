@@ -50,10 +50,10 @@ public class ExportController {
         try (PrintWriter out = csv(response, "payments");
              Stream<PaymentRecord> rows = payments.stream(app.id(), from, to)) {
             row(out, "id", "created_at", "status", "amount", "amount_refunded", "currency", "country", "method",
-                    "reference", "provider", "provider_reference", "customer_phone", "failure_code");
+                    "reference", "provider", "provider_reference", "customer_phone", "failure_code", "payment_link");
             rows.forEach(p -> row(out, p.id(), p.createdAt(), p.status().toLowerCase(), p.amount(), p.amountRefunded(),
                     p.currency(), p.country(), p.method(), p.reference(), p.provider(), p.providerReference(),
-                    Phones.mask(p.customerPhone()), p.failureCode()));
+                    Phones.mask(p.customerPhone()), p.failureCode(), p.paymentLinkId()));
         }
     }
 
@@ -215,6 +215,41 @@ public class ExportController {
             row(out, "coupon", "code", "redeemed_at", "subscription", "customer", "customer_external_id");
             rows.forEach(r -> row(out, r.couponId(), r.code(), r.redeemedAt(), r.subscriptionId(), r.customerId(),
                     r.externalId()));
+        }
+    }
+
+    record LinkRow(String id, Instant createdAt, String description, Long amount, Long minAmount, Long maxAmount,
+                   String currency, String country, Integer maxPayments, Instant expiresAt, boolean active,
+                   long paymentsCount, long amountCollected) {
+    }
+
+    /** Every payment link created in the window, with what it collected (succeeded payments). */
+    @GetMapping("/v1/exports/payment_links.csv")
+    @Transactional(readOnly = true)
+    public void paymentLinks(AppPrincipal app, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+                             HttpServletResponse response) throws IOException {
+        try (PrintWriter out = csv(response, "payment_links");
+             Stream<LinkRow> rows = jdbc.sql("""
+                             SELECT l.id, l.created_at, l.description, l.amount, l.min_amount, l.max_amount, l.currency,
+                                    l.country, l.max_payments, l.expires_at, l.active,
+                                    count(p.id) AS payments_count, coalesce(sum(p.amount), 0) AS amount_collected
+                             FROM payment_links l
+                             LEFT JOIN payments p ON p.payment_link_id = l.id AND p.status = 'SUCCEEDED'
+                             WHERE l.application_id = :app
+                               AND (CAST(:from AS TIMESTAMPTZ) IS NULL OR l.created_at >= :from)
+                               AND (CAST(:to AS TIMESTAMPTZ) IS NULL OR l.created_at < :to)
+                             GROUP BY l.id
+                             ORDER BY l.id""")
+                     .param("app", app.id())
+                     .param("from", from == null ? null : Timestamp.from(from))
+                     .param("to", to == null ? null : Timestamp.from(to))
+                     .query(LinkRow.class).stream()) {
+            row(out, "id", "created_at", "description", "amount", "min_amount", "max_amount", "currency", "country",
+                    "max_payments", "expires_at", "active", "payments_count", "amount_collected");
+            rows.forEach(r -> row(out, r.id(), r.createdAt(), r.description(), r.amount(), r.minAmount(), r.maxAmount(),
+                    r.currency(), r.country(), r.maxPayments(), r.expiresAt(), r.active(), r.paymentsCount(),
+                    r.amountCollected()));
         }
     }
 

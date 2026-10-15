@@ -17,7 +17,12 @@ never changes incompatibly.
   checkout, so every money-safety rule of the checkout applies. A double click or a retry pays
   one payment. Archived, expired and used-up links say so; unknown codes are 404. `/l/<code>/qr.svg`
   serves the QR code of the public URL. Same rules as the checkout (strict CSP, no cache, rate
-  limit). Creating links from the dashboard comes next.
+  limit).
+- Operators: a **Payment links** tab on the dashboard (create with a description and an amount or
+  "customer types it", single use; list with QR code, link, uses and amount collected; archive),
+  `GET/POST /admin/v1/applications/{app}/payment_links`, `POST …/{id}/archive`, and the CLI
+  `links create <app> <amount|any> <currency> <country> <description…>`. Exports:
+  `payment_links.csv`, and `payments.csv` gains `payment_link`.
 
 ### Providers
 - NabooPay: `…_CREDENTIALS_FEES_CUSTOMER_SIDE` (default `true`, the behaviour so far) — set it to
