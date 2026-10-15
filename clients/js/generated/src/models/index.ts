@@ -2073,6 +2073,38 @@ export type ListProviders200ResponseInnerCapabilitiesInnerOperationEnum = typeof
 /**
  * 
  * @export
+ * @interface PayPaymentLink201Response
+ */
+export interface PayPaymentLink201Response {
+    /**
+     * 
+     * @type {string}
+     * @memberof PayPaymentLink201Response
+     */
+    checkout_url: string;
+}
+/**
+ * 
+ * @export
+ * @interface PayPaymentLinkRequest
+ */
+export interface PayPaymentLinkRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof PayPaymentLinkRequest
+     */
+    amount?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PayPaymentLinkRequest
+     */
+    attempt: string;
+}
+/**
+ * 
+ * @export
  * @interface Payment
  */
 export interface Payment {
@@ -2398,6 +2430,56 @@ export interface PaymentLinkPage {
      * @memberof PaymentLinkPage
      */
     next_cursor: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface PaymentLinkView
+ */
+export interface PaymentLinkView {
+    [key: string]: any | any;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLinkView
+     */
+    merchant: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLinkView
+     */
+    description: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof PaymentLinkView
+     */
+    amount: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PaymentLinkView
+     */
+    min_amount: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PaymentLinkView
+     */
+    max_amount: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentLinkView
+     */
+    currency: string;
+    /**
+     * `open`, `inactive`, `expired` or `used_up` (open set).
+     * @type {string}
+     * @memberof PaymentLinkView
+     */
+    state: string;
 }
 /**
  * 

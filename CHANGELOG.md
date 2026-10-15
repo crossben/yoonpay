@@ -11,8 +11,13 @@ never changes incompatibly.
   return URL. Each link has an unguessable URL (`/l/<code>`) and a QR code URL, and reports the
   payments and the amount it collected (succeeded payments only). Amounts never change (database
   trigger); archive with `active: false`. `Payment.payment_link` names the link a payment came
-  through. Migration `V9`. The public link page and the QR code come next: until then the URLs
-  do not open anything.
+  through. Migration `V9`.
+- The public link page `/l/<code>` (French/English, phone-sized): the amount, or a field for the
+  customer's amount within the bounds; "Pay" creates an ordinary hosted payment and opens its
+  checkout, so every money-safety rule of the checkout applies. A double click or a retry pays
+  one payment. Archived, expired and used-up links say so; unknown codes are 404. `/l/<code>/qr.svg`
+  serves the QR code of the public URL. Same rules as the checkout (strict CSP, no cache, rate
+  limit). Creating links from the dashboard comes next.
 
 ### Providers
 - NabooPay: `…_CREDENTIALS_FEES_CUSTOMER_SIDE` (default `true`, the behaviour so far) — set it to

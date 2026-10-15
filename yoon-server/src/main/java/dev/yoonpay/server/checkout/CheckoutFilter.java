@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Guards the public hosted checkout ({@code /checkout/**}, ADR-0024): the same strict, same-origin
+ * Guards the public hosted checkout ({@code /checkout/**}, ADR-0024) and payment link pages ({@code /l/**}, ADR-0030): the same strict, same-origin
  * CSP and headers as the operator dashboard, never cached or framed, and a per-client-address
  * request limit ({@code YOON_CHECKOUT_RATE_LIMIT} per minute, 0 = off).
  */
@@ -35,7 +35,8 @@ public class CheckoutFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return !(uri.equals("/checkout") || uri.startsWith("/checkout/"));
+        // /l/…: payment link pages (ADR-0030), public like the checkout and under the same rules.
+        return !(uri.equals("/checkout") || uri.startsWith("/checkout/") || uri.startsWith("/l/"));
     }
 
     @Override

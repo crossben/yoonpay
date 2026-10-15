@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="color-scheme" content="light dark">
+    <title>Payment</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/checkout/checkout.css">
+    <script type="module" src="/checkout/link.js"></script>
+</head>
+<body>
+<header class="top">
+    <span class="brand" id="merchant" data-i18n="secure">Secure payment</span>
+    <button type="button" id="lang" class="secondary small" aria-label="Français">FR</button>
+</header>
+
+<main id="main">
+    <section class="card summary" id="summary" hidden aria-labelledby="description">
+        <p class="muted label" data-i18n="toPay">Amount to pay</p>
+        <h1 id="amount" class="amount" hidden></h1>
+        <p id="description" class="description"></p>
+        <form id="pay-form" novalidate>
+            <div id="amount-field" class="field" hidden>
+                <label for="amount-input" data-i18n="yourAmount">Amount</label>
+                <input id="amount-input" name="amount" type="text" inputmode="numeric" autocomplete="off" maxlength="15">
+                <p class="hint muted" id="bounds"></p>
+            </div>
+            <p id="form-error" class="error" role="alert" hidden></p>
+            <button type="submit" id="pay" class="primary" data-i18n="pay">Pay</button>
+        </form>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+</main>
+
+<footer class="muted">
+    <span data-i18n="footer">Payment processed by Yoon</span>
+</footer>
+</body>
+</html>

@@ -94,8 +94,8 @@ once, in Java, instead of in every project.
     forever, immutable terms, redeemed when subscribing or later; a 100% coupon pays the
     invoice by itself (no payment, no ledger posting).
 - **Payment links** (in progress, ADR-0030): `/v1/payment_links` creates a shareable link and QR
-  code for a fixed or customer-chosen amount, paid through the hosted checkout. The public link
-  page comes next.
+  code for a fixed or customer-chosen amount; the customer opens `/l/<code>`, presses "Pay" and
+  completes an ordinary hosted checkout. Creating links from the dashboard comes next.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount

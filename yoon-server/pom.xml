@@ -86,6 +86,12 @@
             <version>${libphonenumber.version}</version>
         </dependency>
         <dependency>
+            <!-- QR codes for payment links (ADR-0030): small, no dependencies, MIT. -->
+            <groupId>io.nayuki</groupId>
+            <artifactId>qrcodegen</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+        <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-spring</artifactId>
             <version>${shedlock.version}</version>

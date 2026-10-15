@@ -77,7 +77,7 @@ public class PaymentService {
 
     public PaymentRecord create(AppPrincipal app, CreatePaymentRequest req) {
         if (req.hosted()) {
-            return createHosted(app, req);
+            return createHosted(app, req, null);
         }
         if (req.method() == null) {
             throw ApiProblem.invalid("method is required unless checkout is hosted");
@@ -191,7 +191,12 @@ public class PaymentService {
     public record ChoiceResult(String errorCode) {
     }
 
-    private PaymentRecord createHosted(AppPrincipal app, CreatePaymentRequest req) {
+    /** A hosted payment opened from a payment link (ADR-0030): an ordinary hosted payment that names its link. */
+    public PaymentRecord createForLink(AppPrincipal app, CreatePaymentRequest req, String paymentLinkId) {
+        return createHosted(app, req, paymentLinkId);
+    }
+
+    private PaymentRecord createHosted(AppPrincipal app, CreatePaymentRequest req, String paymentLinkId) {
         if (req.provider() != null) {
             throw ApiProblem.invalid("provider cannot be combined with checkout hosted");
         }
@@ -216,7 +221,7 @@ public class PaymentService {
             payments.insert(new PaymentRecord(id, app.id(), PaymentStatus.CREATED.name(), req.amount(),
                     currency.getCurrencyCode(), req.country(), null, req.reference(), req.description(),
                     phone, req.returnUrl(), null, null, null, null, null, null, null, 0, null, null, 0, alias,
-                    PaymentRecord.HOSTED, token, url, expiresAt, req.method(), false, null));
+                    PaymentRecord.HOSTED, token, url, expiresAt, req.method(), false, paymentLinkId));
             events.record(app.id(), "payment", id, null, PaymentStatus.CREATED, Decision.APPLY, Cause.api, null,
                     "hosted checkout: waiting for the customer's choice");
         });

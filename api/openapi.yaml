@@ -1465,6 +1465,75 @@ paths:
         '404': { $ref: '#/components/responses/CheckoutNotFound' }
         '429': { $ref: '#/components/responses/CheckoutRateLimited' }
 
+  /checkout/api/links/{code}:
+    get:
+      tags: [Hosted checkout]
+      operationId: getPaymentLinkPage
+      summary: What a payment link's public page shows (public)
+      description: |
+        Backs `/l/{code}` (ADR-0030): merchant name, description, the amount (or the bounds the
+        customer may type within) and the link's state. An unknown code is 404.
+      security: []
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' } }
+      responses:
+        '200':
+          description: The link as the customer sees it.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentLinkView' }
+        '404': { $ref: '#/components/responses/CheckoutNotFound' }
+        '429': { $ref: '#/components/responses/CheckoutRateLimited' }
+
+  /checkout/api/links/{code}/payments:
+    post:
+      tags: [Hosted checkout]
+      operationId: payPaymentLink
+      summary: Start paying a payment link (public)
+      description: |
+        Creates an ordinary hosted payment for the link and returns its checkout URL, where the
+        customer chooses how to pay. `attempt` is random per page view: a double click or a retry
+        returns the same payment. `amount` only when the link lets the customer choose it.
+      security: []
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [attempt]
+              properties:
+                amount: { type: integer, format: int64, minimum: 1 }
+                attempt: { type: string, pattern: '^[A-Za-z0-9-]{8,64}$' }
+      responses:
+        '201':
+          description: The payment to complete on its checkout page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [checkout_url]
+                properties:
+                  checkout_url: { type: string }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/CheckoutNotFound' }
+        '409':
+          description: '`link_inactive`, `link_expired`, `link_used_up`, or an idempotency conflict.'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`no_provider_for_method` and other refusals of the hosted payment.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/CheckoutRateLimited' }
+
   /checkout/api/receipts/{id}:
     get:
       tags: [Hosted checkout]
@@ -2885,6 +2954,19 @@ components:
         percent_off: { type: [integer, 'null'] }
         amount_off: { type: [integer, 'null'], format: int64 }
         periods_remaining: { type: [integer, 'null'], description: 'On a subscription: invoices it still discounts (null = forever). Null on an invoice.' }
+
+    PaymentLinkView:
+      type: object
+      additionalProperties: false
+      required: [merchant, description, amount, min_amount, max_amount, currency, state]
+      properties:
+        merchant: { type: [string, 'null'] }
+        description: { type: string }
+        amount: { type: [integer, 'null'], format: int64 }
+        min_amount: { type: [integer, 'null'], format: int64 }
+        max_amount: { type: [integer, 'null'], format: int64 }
+        currency: { type: string }
+        state: { type: string, description: '`open`, `inactive`, `expired` or `used_up` (open set).' }
 
     ReceiptView:
       type: object
