@@ -10,6 +10,8 @@ import {
   PlansApi,
   RefundsApi,
   SubscriptionsApi,
+  CouponsApi,
+  PaymentLinksApi,
   type CreateCustomerRequest,
   type CreatePaymentRequest,
   type CreateSubscriptionRequest,
@@ -71,6 +73,8 @@ export class Yoon {
   private customersApi?: CustomersApi;
   private plansApi?: PlansApi;
   private subscriptionsApi?: SubscriptionsApi;
+  private couponsApi?: CouponsApi;
+  private paymentLinksApi?: PaymentLinksApi;
 
   constructor(baseUrl: string, apiKey: string, options: YoonOptions = {}) {
     if (typeof baseUrl !== "string" || baseUrl.length === 0) {
@@ -248,6 +252,16 @@ export class Yoon {
   }
 
   /** Subscriptions and their invoices (`getInvoice`, `listInvoices`). */
+  /** Coupons (Yoon 0.4+): percent or amount off, redeemed on subscriptions. */
+  coupons(): CouponsApi {
+    return (this.couponsApi ??= new CouponsApi(this.configuration));
+  }
+
+  /** Payment links (Yoon 0.5+): a shareable URL and QR code that opens a hosted checkout. */
+  paymentLinks(): PaymentLinksApi {
+    return (this.paymentLinksApi ??= new PaymentLinksApi(this.configuration));
+  }
+
   subscriptions(): SubscriptionsApi {
     return (this.subscriptionsApi ??= new SubscriptionsApi(this.configuration));
   }

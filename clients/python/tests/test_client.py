@@ -292,3 +292,4 @@ def test_billing_apis_are_exposed(httpserver, yoon):
 
     assert sub.status == "past_due" and sub.latest_invoice.checkout_url
     assert yoon.customers() is not None and yoon.plans() is not None
+    assert hasattr(yoon.coupons(), "create_coupon") and hasattr(yoon.payment_links(), "create_payment_link")

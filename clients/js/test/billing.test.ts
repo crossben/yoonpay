@@ -216,5 +216,7 @@ describe("Yoon billing helpers", () => {
     expect(typeof yoon.customers().listCustomers).toBe("function");
     expect(typeof yoon.plans().listPlans).toBe("function");
     expect(typeof yoon.subscriptions().listInvoices).toBe("function");
+    expect(typeof yoon.coupons().createCoupon).toBe("function");
+    expect(typeof yoon.paymentLinks().createPaymentLink).toBe("function");
   });
 });

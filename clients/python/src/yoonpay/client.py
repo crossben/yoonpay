@@ -29,6 +29,8 @@ from yoonpay.generated import (
     RefundsApi,
     SubscriptionsApi,
 )
+from yoonpay.generated.api.coupons_api import CouponsApi
+from yoonpay.generated.api.payment_links_api import PaymentLinksApi
 
 from yoonpay.generated.api.exports_api import ExportsApi
 
@@ -207,6 +209,14 @@ class Yoon:
     def subscriptions(self) -> SubscriptionsApi:
         """Subscriptions and their invoices (``get_invoice``, ``list_invoices``)."""
         return SubscriptionsApi(self._client)
+
+    def coupons(self) -> CouponsApi:
+        """Coupons (Yoon 0.4+): percent or amount off, redeemed on subscriptions."""
+        return CouponsApi(self._client)
+
+    def payment_links(self) -> PaymentLinksApi:
+        """Payment links (Yoon 0.5+): a shareable URL and QR code that opens a hosted checkout."""
+        return PaymentLinksApi(self._client)
 
 
 def _key(idempotency_key: str) -> str:

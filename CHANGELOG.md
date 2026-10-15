@@ -5,7 +5,7 @@ never changes incompatibly.
 
 ## [Unreleased]
 
-### Payment links (in progress)
+### Payment links
 - `POST/GET /v1/payment_links`, `GET/PATCH /v1/payment_links/{id}` (ADR-0030): a fixed amount, or
   one the customer types within optional bounds; optional single use / cap, expiry, one method,
   return URL. Each link has an unguessable URL (`/l/<code>`) and a QR code URL, and reports the
@@ -23,6 +23,9 @@ never changes incompatibly.
   `GET/POST /admin/v1/applications/{app}/payment_links`, `POST …/{id}/archive`, and the CLI
   `links create <app> <amount|any> <currency> <country> <description…>`. Exports:
   `payment_links.csv`, and `payments.csv` gains `payment_link`.
+- Guide: [docs/payment-links.md](docs/payment-links.md). Python `Yoon.payment_links()` and
+  `Yoon.coupons()`, JS `yoon.paymentLinks()` and `yoon.coupons()` (coupons were only in the
+  generated code in 0.4.0).
 
 ### Providers
 - NabooPay: `…_CREDENTIALS_FEES_CUSTOMER_SIDE` (default `true`, the behaviour so far) — set it to

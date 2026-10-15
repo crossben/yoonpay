@@ -93,7 +93,7 @@ once, in Java, instead of in every project.
   - coupons (`/v1/coupons`): percent or amount off, once, N periods or
     forever, immutable terms, redeemed when subscribing or later; a 100% coupon pays the
     invoice by itself (no payment, no ledger posting).
-- **Payment links** (in progress, ADR-0030): `/v1/payment_links` creates a shareable link and QR
+- **Payment links** ([guide](docs/payment-links.md), ADR-0030): `/v1/payment_links` creates a shareable link and QR
   code for a fixed or customer-chosen amount; the customer opens `/l/<code>`, presses "Pay" and
   completes an ordinary hosted checkout. Operators create links from the dashboard or the CLI.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and

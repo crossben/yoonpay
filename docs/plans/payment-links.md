@@ -20,6 +20,8 @@ Design: [ADR-0030](../adr/0030-payment-links.md). Status: **accepted 2026-11-10*
   `CheckoutFilter` — done (251 server tests; checked live on a demo server).
 - M3 dashboard tab (create, archive, URL, QR, totals), admin API, CLI `links create`, exports —
   done (256 server tests).
+- M4 guide `docs/payment-links.md`, Python/JS accessors (`payment_links()`, `coupons()`) —
+  done. Website and LinkedIn: outside this repository.
 
 ## Tests beyond the usual
 - Fixed and customer-chosen amounts (bounds enforced server-side, integer minor units).
