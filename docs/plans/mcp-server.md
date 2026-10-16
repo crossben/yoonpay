@@ -18,6 +18,8 @@ Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **accepted 2026-10-16** (
 ## Progress
 - M1 package skeleton: `clients/mcp`, stdio, config from the environment, `about`, API key
   scrubbed from every result, CI job (Node 20/22/24) — done (6 tests; checked over stdio).
+- M2 read tools (19 + `about`), contact masking, `untrusted_text`, `currency_decimals`, paging cap
+  — done (18 tests; every tool called over stdio against the demo server).
 
 ## Tests beyond the usual
 - Without `YOON_MCP_WRITES`, write tools are not listed and cannot be called.

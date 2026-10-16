@@ -9,6 +9,12 @@ never changes incompatibly.
 - `clients/mcp` (`@yoonpay/mcp`, not published yet — [ADR-0032](docs/adr/0032-mcp-server.md)):
   an MCP server over one application's API key, for Claude, Cursor and other MCP clients. First
   tool: `about` (version and configured providers). The API key never appears in a tool result.
+- Read tools: payments (`get_payment`, `list_payments`, `explain_payment` — a summary built only
+  from Yoon's own fields, plus the status history), refunds, payouts, customers, subscriptions
+  (with history), invoices, payment links, balances, ledger entries, events. Lists page at 20 by
+  default, 50 at most. Phone numbers and e-mails are masked unless `YOON_MCP_SHOW_CONTACTS=true`;
+  free text (descriptions, names, metadata, provider messages) comes back under `untrusted_text`;
+  objects with a currency carry `currency_decimals`.
 
 ## [0.6.0] - 2026-10-16
 
