@@ -1,0 +1,48 @@
+{
+  "name": "@yoonpay/mcp",
+  "version": "0.6.0",
+  "description": "MCP server for Yoon, a self-hosted payment gateway for African payment providers: lets an AI assistant read your payments, subscriptions and invoices.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crossben/yoonpay.git",
+    "directory": "clients/mcp"
+  },
+  "bugs": "https://github.com/crossben/yoonpay/issues",
+  "keywords": ["yoon", "mcp", "model-context-protocol", "payments", "wave", "orange-money", "senegal", "xof"],
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "yoon-mcp": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.31.0",
+    "@yoonpay/yoon": "^0.6.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

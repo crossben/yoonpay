@@ -1,6 +1,6 @@
 # ADR-0032 — MCP server for AI agents
 
-- Status: proposed (2026-10-16) — three choices below wait for review
+- Status: accepted (2026-10-16) — choices 1A, 2A, 3A
 - Date: 2026-10-16
 - Builds on: the JavaScript client, application API keys (`apps add-key` / `revoke-key`), ADR-0030/0031
 

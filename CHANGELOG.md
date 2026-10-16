@@ -5,6 +5,11 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### MCP server for AI assistants (in progress)
+- `clients/mcp` (`@yoonpay/mcp`, not published yet — [ADR-0032](docs/adr/0032-mcp-server.md)):
+  an MCP server over one application's API key, for Claude, Cursor and other MCP clients. First
+  tool: `about` (version and configured providers). The API key never appears in a tool result.
+
 ## [0.6.0] - 2026-10-16
 
 The customer portal: one API call gives a customer a private page to see their subscription,

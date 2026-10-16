@@ -1,7 +1,7 @@
 # Plan — MCP server for AI agents
 
-Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **proposed — waiting for review** (choices
-1–3 in the ADR).
+Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **accepted 2026-10-16** (choices 1A, 2A,
+3A: writes opt-in and never money out; contacts masked; a separate ordinary key).
 
 ## Milestones (each: tests + docs + CHANGELOG, then stop for review/commit)
 1. **Package skeleton:** `clients/mcp` (TypeScript, `@modelcontextprotocol/sdk`, stdio), config
@@ -14,6 +14,10 @@ Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **proposed — waiting fo
 4. **Release + docs:** release workflow publishes `@yoonpay/mcp` with the other clients;
    `docs/mcp.md` (Claude Desktop, Claude Code, Cursor configs), README, website page; tried by
    hand with Claude Code against the sandbox server (`devtools/`).
+
+## Progress
+- M1 package skeleton: `clients/mcp`, stdio, config from the environment, `about`, API key
+  scrubbed from every result, CI job (Node 20/22/24) — done (6 tests; checked over stdio).
 
 ## Tests beyond the usual
 - Without `YOON_MCP_WRITES`, write tools are not listed and cannot be called.

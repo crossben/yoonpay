@@ -133,6 +133,9 @@ Yoon's, and the provider's quirks.
 | Python | `yoonpay` | [clients/python](clients/python) — Python ≥ 3.10; Django, FastAPI and Flask webhook helpers |
 | Spring Boot | `io.github.crossben:yoon-spring-boot-starter` | [clients/java-spring-boot-starter](clients/java-spring-boot-starter) — auto-configured `Yoon` bean and webhook filter; Spring Boot 3.x and 4.x |
 
+In progress: [clients/mcp](clients/mcp), an MCP server so an AI assistant can read your payments,
+subscriptions and invoices ([ADR-0032](docs/adr/0032-mcp-server.md); not published yet).
+
 The PHP, Java, JavaScript and Python clients are generated from `api/openapi.yaml` (never edited by
 hand; CI fails if they drift); the Symfony bundle and the Spring Boot starter build on the PHP and
 Java clients. Each has a thin hand-written layer: idempotency-key-first helpers, one exception type carrying Yoon's

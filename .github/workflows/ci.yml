@@ -218,6 +218,29 @@ jobs:
           pip install ./clients/python
           YOON_URL=http://localhost:8080 YOON_API_KEY="$YOON_API_KEY" python clients/python/e2e/run.py
 
+  mcp-server:
+    # clients/mcp (ADR-0032): the MCP server for AI assistants, over the published JS client.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['20', '22', '24']
+    defaults:
+      run:
+        working-directory: clients/mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: clients/mcp/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      # Starts without settings: must refuse with a message, not crash or hang.
+      - run: "! node dist/cli.js"
+
   example-shop:
     runs-on: ubuntu-latest
     defaults:
