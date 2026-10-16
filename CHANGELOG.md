@@ -5,8 +5,8 @@ never changes incompatibly.
 
 ## [Unreleased]
 
-### MCP server for AI assistants (in progress)
-- `clients/mcp` (`@yoonpay/mcp`, not published yet — [ADR-0032](docs/adr/0032-mcp-server.md)):
+### MCP server for AI assistants
+- `clients/mcp` (`@yoonpay/mcp`, [guide](docs/mcp.md), [ADR-0032](docs/adr/0032-mcp-server.md)):
   an MCP server over one application's API key, for Claude, Cursor and other MCP clients. First
   tool: `about` (version and configured providers). The API key never appears in a tool result.
 - Read tools: payments (`get_payment`, `list_payments`, `explain_payment` — a summary built only
@@ -19,6 +19,7 @@ never changes incompatibly.
   (view and pay only — no cancel, plan change or coupon) and `redeliver_event`. Each requires an
   `idempotency_key`; a retry with the same key does one thing. No tool sends money out: no refund,
   payout, cancellation, comp or coupon.
+- Published to npm by the release workflow (`npm-mcp`), in lockstep with the other clients.
 
 ## [0.6.0] - 2026-10-16
 

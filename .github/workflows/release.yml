@@ -111,6 +111,38 @@ jobs:
             npm publish --provenance --access public
           fi
 
+  npm-mcp:
+    # Publishes @yoonpay/mcp from clients/mcp (ADR-0032), same trusted publishing as npm-client.
+    # npm only lets a trusted publisher be set on a package that exists: the very first version
+    # is published by hand (docs/mcp.md, "Releasing"), then crossben/yoonpay + release.yml is
+    # added as its trusted publisher.
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing and provenance
+    defaults:
+      run:
+        working-directory: clients/mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@^11.5.1
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+      - name: Publish unless this version is already on npm
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "@yoonpay/mcp@$version" version >/dev/null 2>&1; then
+            echo "@yoonpay/mcp $version is already published: nothing to do."
+          else
+            npm publish --provenance --access public
+          fi
+
   pypi-client:
     # Publishes yoonpay from clients/python through PyPI trusted publishing — no token. The
     # owner registers this repository and the workflow file release.yml as a trusted publisher

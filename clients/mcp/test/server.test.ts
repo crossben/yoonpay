@@ -83,3 +83,14 @@ describe("the API key", () => {
     expect(text(result)).not.toContain(KEY);
   });
 });
+
+describe("version", () => {
+  it("matches package.json, and the client dependency is the same minor", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { VERSION } = await import("../src/server");
+    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    expect(VERSION).toBe(pkg.version);
+    const [major, minor] = pkg.version.split(".");
+    expect(pkg.dependencies["@yoonpay/yoon"]).toBe(`^${major}.${minor}.0`);
+  });
+});

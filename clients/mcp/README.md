@@ -1,8 +1,9 @@
-# @yoonpay/mcp — Yoon for AI assistants (in progress)
+# @yoonpay/mcp — Yoon for AI assistants
 
 An [MCP](https://modelcontextprotocol.io) server that lets an AI assistant (Claude Desktop,
 Claude Code, Cursor…) read one Yoon application's data through the `/v1` API. Design:
-[ADR-0032](../../docs/adr/0032-mcp-server.md). **Not published yet.**
+[ADR-0032](../../docs/adr/0032-mcp-server.md). From Yoon 0.7.0. **Setup for Claude Desktop, Claude
+Code and Cursor: [docs/mcp.md](../../docs/mcp.md).**
 
 ## Tools (all read-only)
 | Tool | |

@@ -99,6 +99,10 @@ once, in Java, instead of in every project.
 - **Payment links** ([guide](docs/payment-links.md), ADR-0030): `/v1/payment_links` creates a shareable link and QR
   code for a fixed or customer-chosen amount; the customer opens `/l/<code>`, presses "Pay" and
   completes an ordinary hosted checkout. Operators create links from the dashboard or the CLI.
+- **AI assistants** ([guide](docs/mcp.md), ADR-0032, from 0.7.0): `@yoonpay/mcp` lets Claude,
+  Cursor or any MCP client read payments, subscriptions, invoices and the ledger with an API key
+  of their own. Read-only by default; with `YOON_MCP_WRITES=true` it can also create payment and
+  portal links and re-send webhooks. It never sends money out. Contacts are masked.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
   payouts needing review, resolved through the same state machine.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
@@ -133,8 +137,8 @@ Yoon's, and the provider's quirks.
 | Python | `yoonpay` | [clients/python](clients/python) — Python ≥ 3.10; Django, FastAPI and Flask webhook helpers |
 | Spring Boot | `io.github.crossben:yoon-spring-boot-starter` | [clients/java-spring-boot-starter](clients/java-spring-boot-starter) — auto-configured `Yoon` bean and webhook filter; Spring Boot 3.x and 4.x |
 
-In progress: [clients/mcp](clients/mcp), an MCP server so an AI assistant can read your payments,
-subscriptions and invoices ([ADR-0032](docs/adr/0032-mcp-server.md); not published yet).
+For AI assistants: `@yoonpay/mcp` ([clients/mcp](clients/mcp), [guide](docs/mcp.md)), an MCP
+server over the JavaScript client — from 0.7.0.
 
 The PHP, Java, JavaScript and Python clients are generated from `api/openapi.yaml` (never edited by
 hand; CI fails if they drift); the Symfony bundle and the Spring Boot starter build on the PHP and
