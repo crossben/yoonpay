@@ -9,7 +9,7 @@ Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **accepted 2026-10-16** (
 2. **Read tools:** payments (with `explain_payment`), refunds, payouts, customers, subscriptions,
    invoices, payment links, balances and ledger, events; amounts with exponent; paging cap;
    contact masking; customer text returned as `untrusted_text`.
-3. **Writes (if chosen):** `create_payment_link`, `create_portal_session`, `redeliver_event`
+3. **Writes:** `create_payment_link`, `create_portal_session`, `redeliver_event`
    behind `YOON_MCP_WRITES=true`, required `idempotency_key`.
 4. **Release + docs:** release workflow publishes `@yoonpay/mcp` with the other clients;
    `docs/mcp.md` (Claude Desktop, Claude Code, Cursor configs), README, website page; tried by
@@ -20,6 +20,10 @@ Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **accepted 2026-10-16** (
   scrubbed from every result, CI job (Node 20/22/24) — done (6 tests; checked over stdio).
 - M2 read tools (19 + `about`), contact masking, `untrusted_text`, `currency_decimals`, paging cap
   — done (18 tests; every tool called over stdio against the demo server).
+- M3 write tools behind `YOON_MCP_WRITES=true` (payment link, view-and-pay portal session, event
+  redelivery), required `idempotency_key` — done (25 tests; against the demo server a retried link
+  returned the same link, and a redelivery without a webhook URL returned Yoon's
+  `no_webhook_endpoint`).
 
 ## Tests beyond the usual
 - Without `YOON_MCP_WRITES`, write tools are not listed and cannot be called.

@@ -27,14 +27,23 @@ What the assistant receives:
   `untrusted_text`, so text a customer typed is not taken for instructions.
 - **Amounts in minor units** with `currency_decimals` (XOF: 0, so 5000 is 5 000 XOF).
 
-The opt-in write tools come in the next milestone.
+## Write tools (only with `YOON_MCP_WRITES=true`)
+| Tool | |
+| --- | --- |
+| `create_payment_link` | A link and QR code to share; money comes **in** |
+| `create_portal_session` | A private, expiring portal link for one customer — view and pay only |
+| `redeliver_event` | Re-sends one webhook to your own application |
+
+Each takes a required `idempotency_key`: retrying with the same key does the action once. There is
+no tool that sends money out or ends a customer's access — no refund, payout, cancellation, comp or
+coupon — so a manipulated assistant can at worst create a link or re-send a webhook.
 
 ## Settings (environment)
 | Variable | |
 | --- | --- |
 | `YOON_URL` | Your gateway, e.g. `https://pay.example.com` |
 | `YOON_API_KEY` | A key just for the assistant: `apps add-key <app>`; revoke it alone with `apps revoke-key <prefix>` |
-| `YOON_MCP_WRITES` | `true` to list the write tools (later milestone; never refunds or payouts) |
+| `YOON_MCP_WRITES` | `true` to list the three write tools below (never refunds or payouts) |
 | `YOON_MCP_SHOW_CONTACTS` | `true` to return phone numbers and e-mails unmasked |
 
 The API key never appears in a tool result: anything sent back to the assistant is scrubbed.

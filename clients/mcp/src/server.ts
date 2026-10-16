@@ -3,6 +3,7 @@ import { Yoon } from "@yoonpay/yoon";
 import type { McpConfig } from "./config";
 import { registerReadTools } from "./read";
 import { Results } from "./result";
+import { registerWriteTools } from "./write";
 
 export const VERSION = "0.6.0";
 
@@ -38,6 +39,7 @@ export function createServer(config: McpConfig, yoon: Yoon = new Yoon(config.url
       }),
   );
   registerReadTools(server, yoon, results);
+  if (config.writes) registerWriteTools(server, yoon, results);
 
   return server;
 }

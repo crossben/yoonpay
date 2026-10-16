@@ -15,6 +15,10 @@ never changes incompatibly.
   default, 50 at most. Phone numbers and e-mails are masked unless `YOON_MCP_SHOW_CONTACTS=true`;
   free text (descriptions, names, metadata, provider messages) comes back under `untrusted_text`;
   objects with a currency carry `currency_decimals`.
+- Write tools, only with `YOON_MCP_WRITES=true`: `create_payment_link`, `create_portal_session`
+  (view and pay only — no cancel, plan change or coupon) and `redeliver_event`. Each requires an
+  `idempotency_key`; a retry with the same key does one thing. No tool sends money out: no refund,
+  payout, cancellation, comp or coupon.
 
 ## [0.6.0] - 2026-10-16
 
