@@ -200,3 +200,33 @@ If you built subscriptions on top of one-off payments:
    they pay through Yoon.
 5. Switch your "Buy" buttons to `POST /v1/subscriptions` and `/renew`; keep the old payment
    path read-only until its pending payments have settled or expired.
+
+## 12. Customer portal (0.6)
+
+A page where your customer manages their own subscription, so you do not build one: plan,
+status, paid-until date, invoices and receipts, a **Pay** button, and — if you allow them —
+cancel / resume, change plan and coupons. Design: [ADR-0031](adr/0031-customer-portal.md).
+
+Your "Manage my subscription" button asks Yoon for a session **for the signed-in user's
+customer**, and redirects to its URL:
+
+```python
+from yoonpay.fastapi import redirect_to_portal
+
+@app.get("/account/billing")
+def billing(user: User = Depends(current_user)):
+    return redirect_to_portal(yoon, user.yoon_customer_id, return_url="https://app.example/account",
+                              allow={"cancel": True, "change_prices": [PRO_MONTHLY, PRO_YEARLY]})
+```
+
+JavaScript (Next.js route handler): `portalRedirect(yoon, customerId, { returnUrl, allow })` from
+`@yoonpay/yoon/next`. Any language: `POST /v1/customers/{id}/portal_sessions`.
+
+- The URL opens only that customer's portal and expires after an hour
+  (`YOON_APPS_<APP>_BILLING_PORTAL_TTL`, at most 24h). Create a new session on every click; never
+  store or log the URL (it carries a secret token).
+- Without `allow`, the customer may **view and pay** only. You choose, per session: `cancel`
+  (at period end, and resume), `change_prices` (the prices they may switch to; an upgrade is paid
+  now, a cheaper plan waits for the period end) and `coupons`.
+- Every action follows the same rules as the API and sends the usual events. The subscription's
+  history shows it was done by the customer from the portal (cause `portal`).

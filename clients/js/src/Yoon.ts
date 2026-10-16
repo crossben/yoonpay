@@ -15,6 +15,8 @@ import {
   type CreateCustomerRequest,
   type CreatePaymentRequest,
   type CreateSubscriptionRequest,
+  type CreatePortalSessionRequestAllow,
+  type PortalSession,
   type Customer,
   type Invoice,
   type CreatePayoutRequest,
@@ -130,6 +132,25 @@ export class Yoon {
 
   createPayment(payment: CreatePaymentRequest, idempotencyKey: string): Promise<Payment> {
     return this.call(() => this.payments().createPayment({ Idempotency_Key: idempotencyKey, CreatePaymentRequest: payment }));
+  }
+
+  /**
+   * A customer portal session (Yoon 0.6+): send the customer to `.url` right away. `allow` adds
+   * actions beyond viewing and paying. A new session per click is intended, so the idempotency key
+   * defaults to a random one.
+   */
+  createPortalSession(
+    customerId: string,
+    options: { returnUrl?: string; allow?: CreatePortalSessionRequestAllow } = {},
+    idempotencyKey: string = `portal-${crypto.randomUUID()}`,
+  ): Promise<PortalSession> {
+    return this.call(() =>
+      this.customers().createPortalSession({
+        id: customerId,
+        Idempotency_Key: idempotencyKey,
+        CreatePortalSessionRequest: { return_url: options.returnUrl, allow: options.allow },
+      }),
+    );
   }
 
   getPayment(id: string): Promise<Payment> {

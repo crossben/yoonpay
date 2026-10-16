@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import uuid
 from datetime import datetime
 from typing import Any, Callable, Literal, Mapping, Optional, TypeVar, Union
 
@@ -31,6 +32,8 @@ from yoonpay.generated import (
 )
 from yoonpay.generated.api.coupons_api import CouponsApi
 from yoonpay.generated.api.payment_links_api import PaymentLinksApi
+from yoonpay.generated.models.create_portal_session_request import CreatePortalSessionRequest
+from yoonpay.generated.models.portal_session import PortalSession
 
 from yoonpay.generated.api.exports_api import ExportsApi
 
@@ -124,6 +127,28 @@ class Yoon:
     ) -> Payment:
         request = payment if isinstance(payment, CreatePaymentRequest) else CreatePaymentRequest.from_dict(dict(payment))
         return self.call(lambda: self.payments().create_payment(_key(idempotency_key), request))
+
+    def create_portal_session(
+        self,
+        customer_id: str,
+        *,
+        return_url: Optional[str] = None,
+        allow: Optional[Mapping[str, Any]] = None,
+        idempotency_key: Optional[str] = None,
+    ) -> PortalSession:
+        """A customer portal session (Yoon 0.6+): send the customer to ``.url`` right away.
+
+        ``allow`` adds actions beyond viewing and paying, e.g. ``{"cancel": True,
+        "change_prices": ["price_…"], "coupons": True}``. A new session per click is intended, so
+        the idempotency key defaults to a random one."""
+        body: dict[str, Any] = {}
+        if return_url is not None:
+            body["return_url"] = return_url
+        if allow is not None:
+            body["allow"] = dict(allow)
+        request = CreatePortalSessionRequest.from_dict(body)
+        key = idempotency_key or f"portal-{uuid.uuid4()}"
+        return self.call(lambda: self.customers().create_portal_session(customer_id, _key(key), request))
 
     def get_payment(self, id: str) -> Payment:
         return self.call(lambda: self.payments().get_payment(id))

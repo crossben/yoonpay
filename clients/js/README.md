@@ -195,6 +195,7 @@ export const POST = yoonWebhookRoute({
 });
 ```
 
+- Customer portal (Yoon 0.6+): `portalRedirect(yoon, customerId, { returnUrl, allow })` from `@yoonpay/yoon/next` in a route handler, or `yoon.createPortalSession(...)` anywhere — for the signed-in user's own customer only.
 - `entitlementOf(subscription)` → `{ entitled, plan, until, features, status }`. `active`,
   `past_due` (grace) and `trialing` are entitled; `incomplete`, `expired`, `canceled` and any status this client
   does not know are not. `until` is `current_period_end`; `null` on an entitled subscription is an

@@ -23,7 +23,7 @@ the retry. ``yoon_event`` is the dependency that hands the verified event to the
 
 from __future__ import annotations
 
-from typing import Any, Callable, Coroutine, Optional
+from typing import Any, Callable, Coroutine, Mapping, Optional
 
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -82,3 +82,18 @@ def redirect_to_checkout(invoice_or_subscription: Any) -> RedirectResponse:
     if url is None:
         raise NoCheckout("No checkout_url: the invoice is paid or void, or its checkout expired; call renew")
     return RedirectResponse(url, status_code=303)
+
+
+def redirect_to_portal(
+    yoon: Any,
+    customer_id: str,
+    *,
+    return_url: Optional[str] = None,
+    allow: Optional[Mapping[str, Any]] = None,
+) -> RedirectResponse:
+    """A 303 redirect to a fresh customer portal session (Yoon 0.6+) for ``customer_id``.
+
+    Call it from your "Manage my subscription" route, for the logged-in user's customer only.
+    ``allow`` adds actions beyond viewing and paying (``cancel``, ``change_prices``, ``coupons``)."""
+    session = yoon.create_portal_session(customer_id, return_url=return_url, allow=allow)
+    return RedirectResponse(session.url, status_code=303)

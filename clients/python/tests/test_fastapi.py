@@ -100,3 +100,22 @@ def test_redirect_to_checkout_without_a_checkout_raises(obj):
 
     with pytest.raises(NoCheckout, match="renew"):
         redirect_to_checkout(obj)
+
+
+def test_redirect_to_portal_creates_a_session_and_redirects(httpserver):
+    from yoonpay import Yoon
+    from yoonpay.fastapi import redirect_to_portal
+
+    httpserver.expect_oneshot_request("/v1/customers/cus_1/portal_sessions", method="POST").respond_with_json(
+        {"id": "ps_1", "object": "portal_session", "customer": "cus_1",
+         "url": "https://pay.example/checkout/portal/ps_1?t=secret", "expires_at": "2026-10-16T12:00:00Z"},
+        status=201)
+    yoon = Yoon(httpserver.url_for("/").rstrip("/"), "yk_test")
+
+    r = redirect_to_portal(yoon, "cus_1", return_url="https://app.example/account", allow={"cancel": True})
+
+    assert r.status_code == 303
+    assert r.headers["location"] == "https://pay.example/checkout/portal/ps_1?t=secret"
+    sent = httpserver.log[0][0]
+    assert sent.headers["Idempotency-Key"].startswith("portal-")
+    assert sent.get_json() == {"return_url": "https://app.example/account", "allow": {"cancel": True}}

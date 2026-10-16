@@ -5,7 +5,7 @@ never changes incompatibly.
 
 ## [Unreleased]
 
-### Customer portal (in progress)
+### Customer portal
 - `POST /v1/customers/{id}/portal_sessions` (ADR-0031): a URL that opens one customer's portal,
   valid for `YOON_APPS_<APP>_BILLING_PORTAL_TTL` (1 hour by default, at most 24 hours). Only the
   token's SHA-256 is stored. `allow` adds actions beyond viewing and paying (cancel and resume,
@@ -22,6 +22,9 @@ never changes incompatibly.
   rules and code as the API; recorded in the subscription's history with cause `portal`; a
   double click acts once; another customer's subscription is not found; a disallowed action is
   `403 action_not_allowed`. Cancelling asks for a second tap, never a browser dialog.
+- Clients: Python `yoon.create_portal_session(customer_id, return_url=…, allow=…)` and
+  `yoonpay.fastapi.redirect_to_portal(…)`; JS `yoon.createPortalSession(…)` and `portalRedirect(…)`
+  in `@yoonpay/yoon/next`. Guide: "Customer portal" in [docs/billing.md](docs/billing.md).
 
 ## [0.5.0] - 2026-10-15
 

@@ -172,6 +172,8 @@ def yoon_events(event: Event = Depends(yoon_event)) -> None:
         save_access(e.external_id, entitled=e.entitled, plan=e.plan, until=e.until, features=e.features)
 ```
 
+Customer portal (Yoon 0.6+): `return redirect_to_portal(yoon, customer_id, return_url=..., allow={"cancel": True})` in a FastAPI route, or `yoon.create_portal_session(...)` anywhere — for the signed-in user's own customer only.
+
 `Entitlement` is entitled for `active`, `past_due` (the grace period) and `trialing`; `until` is
 `current_period_end`, `None` for an open-ended comp. An unknown status gives
 `entitled=False` and an unknown event type is not in `ENTITLEMENT_EVENTS`: neither raises.

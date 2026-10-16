@@ -220,3 +220,30 @@ describe("Yoon billing helpers", () => {
     expect(typeof yoon.paymentLinks().createPaymentLink).toBe("function");
   });
 });
+
+describe("customer portal", () => {
+  it("creates a session with a random key and redirects to it", async () => {
+    const { Yoon } = await import("../src/index");
+    const { portalRedirect } = await import("../src/adapters/next");
+    const calls: { url: string; init: RequestInit }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return new Response(JSON.stringify({ id: "ps_1", object: "portal_session", customer: "cus_1",
+        url: "https://pay.example/checkout/portal/ps_1?t=secret", expires_at: "2026-10-16T12:00:00Z" }),
+      { status: 201, headers: { "content-type": "application/json" } });
+    }));
+    try {
+      const yoon = new Yoon("https://pay.example", "yk_test");
+      const r = await portalRedirect(yoon, "cus_1", { returnUrl: "https://app.example/account", allow: { cancel: true } });
+
+      expect(r.status).toBe(303);
+      expect(r.headers.get("location")).toBe("https://pay.example/checkout/portal/ps_1?t=secret");
+      expect(calls[0]!.url).toBe("https://pay.example/v1/customers/cus_1/portal_sessions");
+      const headers = new Headers(calls[0]!.init.headers);
+      expect(headers.get("Idempotency-Key")).toMatch(/^portal-/);
+      expect(JSON.parse(String(calls[0]!.init.body))).toEqual({ return_url: "https://app.example/account", allow: { cancel: true } });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});

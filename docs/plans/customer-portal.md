@@ -19,6 +19,8 @@ Design: [ADR-0031](../adr/0031-customer-portal.md). Status: **accepted 2026-10-1
 - M3 actions: renew, cancel/resume, change to allowed prices, coupon — same service code with a
   `Cause` parameter (the API keeps `api`), idempotent per click, ownership and permission
   checked — done (275 server tests; checked on a demo server).
+- M4 Python/JS helpers (`create_portal_session` / `redirect_to_portal`, `createPortalSession` /
+  `portalRedirect`), guide section — done. Website and LinkedIn: outside this repository.
 
 ## Tests beyond the usual
 - A session opens only its customer's data; expired, wrong-token and unknown sessions are the

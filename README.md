@@ -90,6 +90,8 @@ once, in Java, instead of in every project.
     (FastAPI, Next.js);
   - free trials: `trialing` is entitled with nothing to pay; unpaid at the
     end → grace → expired; one trial per customer and plan;
+  - a customer portal: one call gives the customer a private page to see their subscription,
+    pay, and — if the merchant allows — cancel, change plan or redeem a coupon;
   - coupons (`/v1/coupons`): percent or amount off, once, N periods or
     forever, immutable terms, redeemed when subscribing or later; a 100% coupon pays the
     invoice by itself (no payment, no ledger posting).

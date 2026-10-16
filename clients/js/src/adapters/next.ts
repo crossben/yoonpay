@@ -49,3 +49,17 @@ export function checkoutRedirect(invoiceOrSubscription: object): Response {
 }
 
 export { checkoutUrlOf, NoCheckoutError } from "../billing";
+
+/**
+ * A 303 to a fresh customer portal session (Yoon 0.6+), for a route handler such as
+ * `app/account/billing/route.ts`. Call it for the signed-in user's own customer only. In a server
+ * action use `redirect((await yoon.createPortalSession(id, options)).url)` instead.
+ */
+export async function portalRedirect(
+  yoon: { createPortalSession(customerId: string, options?: { returnUrl?: string; allow?: object }): Promise<{ url: string }> },
+  customerId: string,
+  options: { returnUrl?: string; allow?: object } = {},
+): Promise<Response> {
+  const session = await yoon.createPortalSession(customerId, options);
+  return new Response(null, { status: 303, headers: { location: session.url } });
+}
