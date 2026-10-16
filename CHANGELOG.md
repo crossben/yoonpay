@@ -5,6 +5,12 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-16
+
+AI assistants: `@yoonpay/mcp` lets Claude, Codex, Gemini CLI, Cursor, OpenCode, VS Code or any MCP
+client read your Yoon data — read-only by default, never moving money out
+([guide](docs/mcp.md)). Upgrading from 0.6.x: nothing to do — no migration, no API change.
+
 ### MCP server for AI assistants
 - `clients/mcp` (`@yoonpay/mcp`, [guide](docs/mcp.md), [ADR-0032](docs/adr/0032-mcp-server.md)):
   an MCP server over one application's API key, for Claude, Cursor and other MCP clients. First

@@ -14,7 +14,7 @@ One API in front of PayDunya, DexPay, NabooPay, CinetPay, Wave, Stripe and PI-SP
 verified webhooks, idempotency, a ledger and automatic reconciliation — written
 once, in Java, instead of in every project.
 
-> **Status: 0.6.0.** The gateway, its operations tooling, its operator dashboard, hosted
+> **Status: 0.7.0.** The gateway, its operations tooling, its operator dashboard, hosted
 > checkout, payment links, prepaid subscriptions (with free trials, coupons and a customer
 > portal), its
 > PayDunya, DexPay, NabooPay, CinetPay, Wave (direct), Stripe and PI-SPI adapters and its clients

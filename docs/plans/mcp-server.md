@@ -1,6 +1,6 @@
 # Plan — MCP server for AI agents
 
-Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **accepted 2026-10-16** (choices 1A, 2A,
+Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **shipped in 0.7.0** (accepted 2026-10-16) (choices 1A, 2A,
 3A: writes opt-in and never money out; contacts masked; a separate ordinary key).
 
 ## Milestones (each: tests + docs + CHANGELOG, then stop for review/commit)

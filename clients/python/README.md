@@ -186,7 +186,7 @@ Customer portal (Yoon 0.6+): `return redirect_to_portal(yoon, customer_id, retur
 Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
 
 ```text
-Integrate Yoon payments (yoonpay 0.6.x) into this Python app.
+Integrate Yoon payments (yoonpay 0.7.x) into this Python app.
 Install: pip install "yoonpay[django]" (or [fastapi], [flask]; Python 3.10+)
 Do:
 1. One shared client: Yoon(os.environ["YOON_URL"], os.environ["YOON_API_KEY"]).

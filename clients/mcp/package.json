@@ -1,6 +1,6 @@
 {
   "name": "@yoonpay/mcp",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "MCP server for Yoon, a self-hosted payment gateway for African payment providers: lets an AI assistant read your payments, subscriptions and invoices.",
   "license": "Apache-2.0",
   "repository": {

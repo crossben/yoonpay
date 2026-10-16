@@ -85,12 +85,13 @@ describe("the API key", () => {
 });
 
 describe("version", () => {
-  it("matches package.json, and the client dependency is the same minor", async () => {
+  it("matches package.json; the JS client dependency is a published 0.x release", async () => {
     const { readFileSync } = await import("node:fs");
     const { VERSION } = await import("../src/server");
     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
     expect(VERSION).toBe(pkg.version);
-    const [major, minor] = pkg.version.split(".");
-    expect(pkg.dependencies["@yoonpay/yoon"]).toBe(`^${major}.${minor}.0`);
+    // The MCP server only needs what the client already had; it depends on a version that is
+    // on npm before the release tag, so CI and the release can install it.
+    expect(pkg.dependencies["@yoonpay/yoon"]).toMatch(/^\^0\.\d+\.0$/);
   });
 });

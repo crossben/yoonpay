@@ -10,7 +10,7 @@ pulled in: the application brings its own.
 <dependency>
     <groupId>io.github.crossben</groupId>
     <artifactId>yoon-spring-boot-starter</artifactId>
-    <version>0.6.0</version>
+    <version>0.7.0</version>
 </dependency>
 ```
 
@@ -107,8 +107,8 @@ YoonEventStore yoonEventStore(CacheManager caches) {
 Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
 
 ```text
-Integrate Yoon payments (io.github.crossben:yoon-spring-boot-starter 0.6.x) into this Spring Boot app.
-Install: dependency io.github.crossben:yoon-spring-boot-starter:0.6.0 (Spring Boot 3.x or 4.x)
+Integrate Yoon payments (io.github.crossben:yoon-spring-boot-starter 0.7.x) into this Spring Boot app.
+Install: dependency io.github.crossben:yoon-spring-boot-starter:0.7.0 (Spring Boot 3.x or 4.x)
 Do:
 1. application.properties: set yoon.url, yoon.api-key and yoon.webhook-secret from the
    YOON_URL, YOON_API_KEY and YOON_WEBHOOK_SECRET environment variables, and

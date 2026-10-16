@@ -5,7 +5,7 @@ import { registerReadTools } from "./read";
 import { Results } from "./result";
 import { registerWriteTools } from "./write";
 
-export const VERSION = "0.6.0";
+export const VERSION = "0.7.0";
 
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false } as const;
 
