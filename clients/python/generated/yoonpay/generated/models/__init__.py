@@ -84,6 +84,8 @@ from yoonpay.generated.models.payout_status import PayoutStatus
 from yoonpay.generated.models.plan import Plan
 from yoonpay.generated.models.plan_page import PlanPage
 from yoonpay.generated.models.plan_ref import PlanRef
+from yoonpay.generated.models.portal_action200_response import PortalAction200Response
+from yoonpay.generated.models.portal_action_request import PortalActionRequest
 from yoonpay.generated.models.portal_session import PortalSession
 from yoonpay.generated.models.portal_view import PortalView
 from yoonpay.generated.models.portal_view_allow import PortalViewAllow

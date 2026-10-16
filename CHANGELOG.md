@@ -15,8 +15,13 @@ never changes incompatibly.
   subscriptions (plan, status, paid until, trial end, pending change, coupon), a **Pay** button
   for an open invoice, the invoices with their receipts, and a Back link. Nothing of the
   merchant's own data (metadata, external ids) or of another customer. Same rules as the checkout
-  (strict CSP, no cache, rate limit, identical 404s). Actions (renew, cancel, change plan,
-  coupons) come next.
+  (strict CSP, no cache, rate limit, identical 404s).
+- Portal actions: **renew** (always; to the hosted checkout), and only if the session allows them
+  **cancel at period end / resume**, **change plan** to one of the session's prices (an upgrade
+  goes to the checkout, a cheaper plan waits for the period end) and **redeem a coupon**. Same
+  rules and code as the API; recorded in the subscription's history with cause `portal`; a
+  double click acts once; another customer's subscription is not found; a disallowed action is
+  `403 action_not_allowed`. Cancelling asks for a second tap, never a browser dialog.
 
 ## [0.5.0] - 2026-10-15
 

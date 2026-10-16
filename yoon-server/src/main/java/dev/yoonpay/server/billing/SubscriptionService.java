@@ -181,10 +181,14 @@ public class SubscriptionService {
     // ------------------------------------------------------------------ change
 
     public SubscriptionRecord change(AppPrincipal app, String id, String priceId, String when, String returnUrl) {
+        return change(app, id, priceId, when, returnUrl, Cause.api);
+    }
+
+    public SubscriptionRecord change(AppPrincipal app, String id, String priceId, String when, String returnUrl, Cause cause) {
         SubscriptionRecord s = subscriptions.find(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
         SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
         if (status == SubscriptionStatus.TRIALING) {
-            return changeDuringTrial(app, s, priceId);
+            return changeDuringTrial(app, s, priceId, cause);
         }
         if (status != SubscriptionStatus.ACTIVE && status != SubscriptionStatus.PAST_DUE) {
             throw ApiProblem.unprocessable("subscription_not_active", "Only an active or past-due subscription can change plan");
@@ -207,9 +211,9 @@ public class SubscriptionService {
             throw ApiProblem.unprocessable("change_not_upgrade",
                     "Only an upgrade can apply now; a downgrade or a cheaper period applies at the period end");
         }
-        voidOpenInvoice(app, s.id(), "replaced by a plan change");
+        voidOpenInvoice(app, s.id(), "replaced by a plan change", cause);
         if (effective.equals("period_end")) {
-            transitions.update(app, s.id(), Cause.api, "change to " + next.id() + " at period end",
+            transitions.update(app, s.id(), cause, "change to " + next.id() + " at period end",
                     Map.of("pending_price_id", next.id()), "subscription.changed");
             return subscriptions.find(app.id(), id).orElseThrow();
         }
@@ -220,7 +224,7 @@ public class SubscriptionService {
     }
 
     /** Nothing was paid during a trial: a change only switches the price the first invoice will charge. */
-    private SubscriptionRecord changeDuringTrial(AppPrincipal app, SubscriptionRecord s, String priceId) {
+    private SubscriptionRecord changeDuringTrial(AppPrincipal app, SubscriptionRecord s, String priceId, Cause cause) {
         PriceRecord current = catalog.findPrice(app.id(), s.priceId()).orElseThrow();
         PriceRecord next = activePrice(app, priceId);
         if (!next.currency().equals(current.currency())) {
@@ -229,11 +233,11 @@ public class SubscriptionService {
         if (next.id().equals(current.id())) {
             return s;
         }
-        voidOpenInvoice(app, s.id(), "replaced by a plan change during the trial");
+        voidOpenInvoice(app, s.id(), "replaced by a plan change during the trial", cause);
         Map<String, Object> fields = new HashMap<>();
         fields.put("price_id", next.id());
         fields.put("pending_price_id", null);
-        transitions.update(app, s.id(), Cause.api, "change to " + next.id() + " during the trial", fields, "subscription.changed");
+        transitions.update(app, s.id(), cause, "change to " + next.id() + " during the trial", fields, "subscription.changed");
         return subscriptions.find(app.id(), s.id()).orElseThrow();
     }
 
@@ -245,6 +249,10 @@ public class SubscriptionService {
      * priced with the new discount; with a payment in progress it is refused (409).
      */
     public SubscriptionRecord setDiscount(AppPrincipal app, String id, String code) {
+        return setDiscount(app, id, code, Cause.api);
+    }
+
+    public SubscriptionRecord setDiscount(AppPrincipal app, String id, String code, Cause cause) {
         tx.executeWithoutResult(t -> {
             SubscriptionRecord s = subscriptions.lock(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
             SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
@@ -260,7 +268,7 @@ public class SubscriptionService {
                     throw new ApiProblem(org.springframework.http.HttpStatus.CONFLICT, "payment_in_progress",
                             "The open invoice is being paid; change the discount once it settles");
                 }
-                invoiceTransitions.apply(app, open.id(), InvoiceStatus.VOID, Cause.api, "replaced: discount changed",
+                invoiceTransitions.apply(app, open.id(), InvoiceStatus.VOID, cause, "replaced: discount changed",
                         Map.of("voided_at", clock.instant()));
             });
             Map<String, Object> fields = new HashMap<>();
@@ -270,7 +278,7 @@ public class SubscriptionService {
             } else {
                 fields.putAll(discounting.redeem(app, s, code));
             }
-            transitions.update(app, id, Cause.api, code == null ? "discount removed" : "coupon " + code + " applied",
+            transitions.update(app, id, cause, code == null ? "discount removed" : "coupon " + code + " applied",
                     fields, "subscription.changed");
         });
         return subscriptions.find(app.id(), id).orElseThrow();
@@ -279,31 +287,39 @@ public class SubscriptionService {
     // ------------------------------------------------------------------ cancel / resume
 
     public SubscriptionRecord cancel(AppPrincipal app, String id, boolean atPeriodEnd) {
+        return cancel(app, id, atPeriodEnd, Cause.api);
+    }
+
+    public SubscriptionRecord cancel(AppPrincipal app, String id, boolean atPeriodEnd, Cause cause) {
         SubscriptionRecord s = subscriptions.find(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
         SubscriptionStatus status = SubscriptionStatus.valueOf(s.status());
         if (atPeriodEnd && (status == SubscriptionStatus.ACTIVE || status == SubscriptionStatus.TRIALING)
                 && s.currentPeriodEnd() != null) {
-            transitions.update(app, id, Cause.api, "cancel at period end", Map.of("cancel_at_period_end", true),
+            transitions.update(app, id, cause, "cancel at period end", Map.of("cancel_at_period_end", true),
                     "subscription.changed");
         } else if (status == SubscriptionStatus.EXPIRED || status == SubscriptionStatus.CANCELED) {
             return s;
         } else {
-            voidOpenInvoice(app, id, "subscription canceled");
+            voidOpenInvoice(app, id, "subscription canceled", cause);
             Map<String, Object> fields = new HashMap<>();
             fields.put("canceled_at", clock.instant());
             fields.put("cancel_at_period_end", false);
             fields.put("pending_price_id", null);
-            transitions.apply(app, id, SubscriptionStatus.CANCELED, Cause.api, "canceled now", fields);
+            transitions.apply(app, id, SubscriptionStatus.CANCELED, cause, "canceled now", fields);
         }
         return subscriptions.find(app.id(), id).orElseThrow();
     }
 
     public SubscriptionRecord resume(AppPrincipal app, String id) {
+        return resume(app, id, Cause.api);
+    }
+
+    public SubscriptionRecord resume(AppPrincipal app, String id, Cause cause) {
         SubscriptionRecord s = subscriptions.find(app.id(), id).orElseThrow(() -> ApiProblem.notFound("Subscription", id));
         if (!s.cancelAtPeriodEnd()) {
             return s;
         }
-        transitions.update(app, id, Cause.api, "cancellation withdrawn", Map.of("cancel_at_period_end", false),
+        transitions.update(app, id, cause, "cancellation withdrawn", Map.of("cancel_at_period_end", false),
                 "subscription.changed");
         return subscriptions.find(app.id(), id).orElseThrow();
     }
@@ -362,11 +378,11 @@ public class SubscriptionService {
         invoices.linkPayment(invoice.id(), payment.id(), invoice.subscriptionId(), invoice.customerId());
     }
 
-    private void voidOpenInvoice(AppPrincipal app, String subscriptionId, String why) {
+    private void voidOpenInvoice(AppPrincipal app, String subscriptionId, String why, Cause cause) {
         tx.executeWithoutResult(t -> {
             subscriptions.lock(app.id(), subscriptionId).orElseThrow();   // billing lock order: subscription first
             invoices.lockOpen(subscriptionId).ifPresent(i -> invoiceTransitions.apply(app, i.id(), InvoiceStatus.VOID,
-                    Cause.api, why, Map.of("voided_at", clock.instant())));
+                    cause, why, Map.of("voided_at", clock.instant())));
         });
     }
 

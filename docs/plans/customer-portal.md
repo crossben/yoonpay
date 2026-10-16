@@ -16,6 +16,9 @@ Design: [ADR-0031](../adr/0031-customer-portal.md). Status: **accepted 2026-10-1
   regenerated clients — done (262 server tests).
 - M2 read-only portal page: subscriptions, open invoice with Pay, invoices and receipts, FR/EN,
   under `CheckoutFilter` — done (267 server tests; checked on a demo server).
+- M3 actions: renew, cancel/resume, change to allowed prices, coupon — same service code with a
+  `Cause` parameter (the API keeps `api`), idempotent per click, ownership and permission
+  checked — done (275 server tests; checked on a demo server).
 
 ## Tests beyond the usual
 - A session opens only its customer's data; expired, wrong-token and unknown sessions are the

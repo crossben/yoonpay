@@ -15,6 +15,10 @@ const TEXT = {
         statuses: { active: 'Active', trialing: 'Free trial', past_due: 'Payment due', incomplete: 'Awaiting payment',
             expired: 'Expired', canceled: 'Canceled' },
         invoiceStatuses: { paid: 'Paid', open: 'To pay', void: 'Canceled', uncollectible: 'Unpaid' },
+        renew: 'Renew', payNow: 'Pay now (the trial days are kept)', cancel: 'Cancel at the end of the period', confirmCancel: 'Tap again to confirm',
+        resume: 'Keep my subscription', change: 'Change plan', changeTo: 'Change to', apply: 'Apply',
+        couponPlaceholder: 'Coupon code', done: 'Done.', working: 'One moment…',
+        refused: 'This could not be done: {why}', notAllowed: 'This is not available here.',
         otherLang: 'Français',
     },
     fr: {
@@ -29,6 +33,10 @@ const TEXT = {
         statuses: { active: 'Actif', trialing: 'Essai gratuit', past_due: 'Paiement en attente', incomplete: 'En attente de paiement',
             expired: 'Expiré', canceled: 'Annulé' },
         invoiceStatuses: { paid: 'Payée', open: 'À payer', void: 'Annulée', uncollectible: 'Impayée' },
+        renew: 'Renouveler', payNow: "Payer maintenant (les jours d'essai sont conservés)", cancel: 'Résilier en fin de période', confirmCancel: 'Touchez encore pour confirmer',
+        resume: 'Garder mon abonnement', change: 'Changer de formule', changeTo: 'Passer à', apply: 'Appliquer',
+        couponPlaceholder: 'Code promo', done: 'C’est fait.', working: 'Un instant…',
+        refused: 'Impossible : {why}', notAllowed: "Cette action n'est pas disponible ici.",
         otherLang: 'English',
     },
 };
@@ -110,8 +118,90 @@ function subscriptionCard(s) {
         const a = node('a', 'button primary', fill(t('pay'), { amount: money(s.open_invoice.amount_due, s.open_invoice.currency) }));
         a.href = pay;
         card.appendChild(a);
+    } else if (s.status !== 'canceled') {
+        card.appendChild(button(t(s.status === 'trialing' ? 'payNow' : 'renew'), 'primary', () => act({ action: 'renew', subscription: s.id })));
+    }
+    const live = ['active', 'trialing'].includes(s.status);
+    if (view.allow.cancel && live && !s.cancel_at_period_end) {
+        const b = button(t('cancel'), 'secondary', () => {
+            if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = t('confirmCancel'); return; }
+            act({ action: 'cancel', subscription: s.id });
+        });
+        card.appendChild(b);
+    }
+    if (view.allow.cancel && s.cancel_at_period_end) {
+        card.appendChild(button(t('resume'), 'secondary', () => act({ action: 'resume', subscription: s.id })));
+    }
+    const options = view.allow.prices.filter((p) => p.currency === s.currency && !(p.amount === s.amount && p.plan === s.plan
+        && p.interval === s.interval && p.interval_count === s.interval_count));
+    if (options.length && ['active', 'trialing', 'past_due'].includes(s.status)) {
+        const select = node('select', 'field-input');
+        select.setAttribute('aria-label', t('changeTo'));
+        options.forEach((p) => {
+            const o = node('option', null, `${p.plan} — ${money(p.amount, p.currency)} / ${every(p.interval, p.interval_count)}`);
+            o.value = p.id;
+            select.appendChild(o);
+        });
+        const row = node('div', 'action-row');
+        row.appendChild(select);
+        row.appendChild(button(t('change'), 'secondary', () => act({ action: 'change', subscription: s.id, price: select.value })));
+        card.appendChild(row);
+    }
+    if (view.allow.coupons && s.status !== 'canceled') {
+        const input = node('input', 'field-input');
+        input.placeholder = t('couponPlaceholder');
+        input.maxLength = 32;
+        input.setAttribute('aria-label', t('couponPlaceholder'));
+        const row = node('div', 'action-row');
+        row.appendChild(input);
+        row.appendChild(button(t('apply'), 'secondary', () => act({ action: 'coupon', subscription: s.id, coupon: input.value.trim() })));
+        card.appendChild(row);
     }
     return card;
+}
+
+function button(label, kind, onClick) {
+    const b = node('button', `button ${kind}`, label);
+    b.type = 'button';
+    b.addEventListener('click', onClick);
+    return b;
+}
+
+function newAttempt() {
+    return (crypto.randomUUID && crypto.randomUUID()) || String(Date.now()) + Math.random().toString(16).slice(2);
+}
+
+/** One action; a fresh attempt per click (the server acts once per attempt). */
+async function act(body) {
+    document.querySelectorAll('#subscriptions button').forEach((b) => { b.disabled = true; });
+    setStatus('working', 'wait');
+    let res, json = null;
+    try {
+        res = await fetch(`/checkout/api/portal/${encodeURIComponent(id)}/actions`, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Yoon-Checkout-Token': token },
+            body: JSON.stringify({ ...body, attempt: newAttempt() }),
+            credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer',
+        });
+        try { json = await res.json(); } catch (e) { json = null; }
+    } catch (e) {
+        setStatus('network', 'bad');
+        render();
+        return;
+    }
+    if (res.ok) {
+        const next = json && safeHttpUrl(json.checkout_url);
+        if (next) { location.assign(next); return; }
+        await load();
+        setStatus('done', 'ok');
+        return;
+    }
+    if (res.status === 404) { setStatus('notFound', 'bad'); return; }
+    message = null;
+    $('status').className = 'status bad';
+    $('status').textContent = res.status === 403 ? t('notAllowed')
+        : fill(t('refused'), { why: (json && json.detail) || res.status });
+    render();
 }
 
 function render() {

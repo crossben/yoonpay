@@ -7,7 +7,7 @@ Update the status column as items move.
 | # | Item | Status |
 | --- | --- | --- |
 | 1 | Payment links | **shipped in 0.5.0** — [ADR-0030](../adr/0030-payment-links.md), [plan](payment-links.md) |
-| 2 | Customer portal | **designed** — [ADR-0031](../adr/0031-customer-portal.md), [plan](customer-portal.md); M1–M2 done, M3 (actions) next |
+| 2 | Customer portal | **designed** — [ADR-0031](../adr/0031-customer-portal.md), [plan](customer-portal.md); M1–M3 done, M4 (helpers, docs, website) next |
 | 3 | MCP server for AI agents | planned |
 | 4 | Small items (below) | planned, one at a time |
 | 5 | Automatic charging, Stripe first (0.5.x/0.6.0) | waits for a merchant that needs it, and a Stripe account |

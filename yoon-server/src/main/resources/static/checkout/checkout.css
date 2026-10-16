@@ -148,3 +148,8 @@ button:disabled { opacity: .6; cursor: progress; }
 .pill.bad { border-color: var(--bad); color: var(--bad); }
 .sub .button.primary { display: flex; margin-top: 1rem; }
 .nowrap { white-space: nowrap; }
+.sub .button { display: flex; width: 100%; margin-top: .75rem; }
+.action-row { display: flex; gap: .5rem; margin-top: .75rem; }
+.action-row .button { width: auto; margin-top: 0; flex: none; }
+.field-input { flex: 1; min-width: 0; font: inherit; padding: .55rem .6rem; border: 1px solid var(--border);
+               border-radius: 8px; background: var(--bg); color: var(--text); }

@@ -110,6 +110,8 @@ __all__ = [
     "Plan",
     "PlanPage",
     "PlanRef",
+    "PortalAction200Response",
+    "PortalActionRequest",
     "PortalSession",
     "PortalView",
     "PortalViewAllow",
@@ -238,6 +240,8 @@ from yoonpay.generated.models.payout_status import PayoutStatus as PayoutStatus
 from yoonpay.generated.models.plan import Plan as Plan
 from yoonpay.generated.models.plan_page import PlanPage as PlanPage
 from yoonpay.generated.models.plan_ref import PlanRef as PlanRef
+from yoonpay.generated.models.portal_action200_response import PortalAction200Response as PortalAction200Response
+from yoonpay.generated.models.portal_action_request import PortalActionRequest as PortalActionRequest
 from yoonpay.generated.models.portal_session import PortalSession as PortalSession
 from yoonpay.generated.models.portal_view import PortalView as PortalView
 from yoonpay.generated.models.portal_view_allow import PortalViewAllow as PortalViewAllow

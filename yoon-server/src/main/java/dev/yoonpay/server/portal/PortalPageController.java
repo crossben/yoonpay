@@ -50,6 +50,19 @@ public class PortalPageController {
                               Instant periodStart, Instant periodEnd, String receiptUrl) {
     }
 
+    /** One customer action; {@code attempt} is random per click, so a double click acts once. */
+    public record ActionRequest(
+            @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Pattern(regexp = "renew|cancel|resume|change|coupon") String action,
+            @jakarta.validation.constraints.NotBlank @jakarta.validation.constraints.Size(max = 64) String subscription,
+            @jakarta.validation.constraints.Size(max = 64) String price,
+            @jakarta.validation.constraints.Size(max = 32) String coupon,
+            @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Pattern(regexp = "[A-Za-z0-9-]{8,64}") String attempt) {
+    }
+
+    /** Where to send the customer next: a checkout to pay, or null (reload the portal). */
+    public record ActionResult(String checkoutUrl) {
+    }
+
     public record PortalView(String merchant, String customer, String returnUrl, Instant expiresAt, Allow allow,
                              List<SubscriptionItem> subscriptions, List<InvoiceItem> invoices) {
     }
@@ -61,10 +74,16 @@ public class PortalPageController {
     private final InvoiceRepository invoices;
     private final CatalogRepository catalog;
     private final BillingViews views;
+    private final dev.yoonpay.server.billing.SubscriptionService service;
+    private final dev.yoonpay.server.web.IdempotentCall idempotent;
 
     public PortalPageController(PortalService portal, Applications applications, CustomerRepository customers,
                                 SubscriptionRepository subscriptions, InvoiceRepository invoices,
-                                CatalogRepository catalog, BillingViews views) {
+                                CatalogRepository catalog, BillingViews views,
+                                dev.yoonpay.server.billing.SubscriptionService service,
+                                dev.yoonpay.server.web.IdempotentCall idempotent) {
+        this.service = service;
+        this.idempotent = idempotent;
         this.portal = portal;
         this.applications = applications;
         this.customers = customers;
@@ -124,6 +143,60 @@ public class PortalPageController {
         PlanRecord plan = catalog.findPlan(app, p.planId()).orElseThrow();
         return new PriceOption(p.id(), plan.name(), p.amount(), p.currency(), p.interval().toLowerCase(Locale.ROOT),
                 p.intervalCount());
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping("/checkout/api/portal/{id}/actions")
+    org.springframework.http.ResponseEntity<String> act(@PathVariable String id,
+            @RequestHeader(name = CheckoutController.TOKEN_HEADER, required = false) String token,
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody ActionRequest body,
+            jakarta.servlet.http.HttpServletRequest request) {
+        PortalSessionRecord s = session(id, token);
+        var app = applications.find(s.applicationId()).orElseThrow();
+        // The customer's own subscription only; any other id is the same 404 as an unknown one.
+        var sub = subscriptions.find(app.id(), body.subscription())
+                .filter(x -> x.customerId().equals(s.customerId()))
+                .orElseThrow(() -> new ApiProblem(HttpStatus.NOT_FOUND, "resource_not_found", "Subscription not found"));
+        return idempotent.run(app, "portal:" + s.id() + ":" + body.attempt(), request, body, HttpStatus.OK, () -> {
+            var cause = dev.yoonpay.server.lifecycle.StatusEvents.Cause.portal;
+            return switch (body.action()) {
+                case "renew" -> new ActionResult(views.invoice(service.renew(app, sub.id(), s.returnUrl())).checkoutUrl());
+                case "cancel" -> {
+                    allowed(s.allowCancel());
+                    service.cancel(app, sub.id(), true, cause);
+                    yield new ActionResult(null);
+                }
+                case "resume" -> {
+                    allowed(s.allowCancel());
+                    service.resume(app, sub.id(), cause);
+                    yield new ActionResult(null);
+                }
+                case "change" -> {
+                    if (body.price() == null || !PortalService.changePrices(s).contains(body.price())) {
+                        throw new ApiProblem(HttpStatus.FORBIDDEN, "action_not_allowed", "This plan is not offered here");
+                    }
+                    var changed = views.subscription(service.change(app, sub.id(), body.price(), null, s.returnUrl(), cause));
+                    var inv = changed.latestInvoice();
+                    // An upgrade is paid now: send the customer to its checkout.
+                    yield new ActionResult(inv != null && "open".equals(inv.status()) && "upgrade".equals(inv.kind())
+                            ? inv.checkoutUrl() : null);
+                }
+                case "coupon" -> {
+                    allowed(s.allowCoupons());
+                    if (body.coupon() == null || body.coupon().isBlank()) {
+                        throw ApiProblem.invalid("enter a coupon code");
+                    }
+                    service.setDiscount(app, sub.id(), body.coupon().strip(), cause);
+                    yield new ActionResult(null);
+                }
+                default -> throw ApiProblem.invalid("unknown action");
+            };
+        });
+    }
+
+    private static void allowed(boolean allowed) {
+        if (!allowed) {
+            throw new ApiProblem(HttpStatus.FORBIDDEN, "action_not_allowed", "This action is not available here");
+        }
     }
 
     PortalSessionRecord session(String id, String token) {

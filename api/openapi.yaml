@@ -1603,6 +1603,66 @@ paths:
         '404': { $ref: '#/components/responses/CheckoutNotFound' }
         '429': { $ref: '#/components/responses/CheckoutRateLimited' }
 
+  /checkout/api/portal/{id}/actions:
+    post:
+      tags: [Hosted checkout]
+      operationId: portalAction
+      summary: A customer action from the portal (public, token-scoped)
+      description: |
+        `renew` (always), and — only if the session allows them — `cancel` (at period end),
+        `resume`, `change` (to one of the session's prices) and `coupon`. Same rules as the API;
+        recorded in the subscription's history with cause `portal`. `attempt` is random per
+        click: a double click acts once. `checkout_url` is where to pay next (renew, upgrade),
+        or null.
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - $ref: '#/components/parameters/CheckoutToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, subscription, attempt]
+              properties:
+                action: { type: string, enum: [renew, cancel, resume, change, coupon] }
+                subscription: { type: string }
+                price: { type: string }
+                coupon: { type: string, maxLength: 32 }
+                attempt: { type: string, pattern: '^[A-Za-z0-9-]{8,64}$' }
+      responses:
+        '200':
+          description: Done.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [checkout_url]
+                properties:
+                  checkout_url: { type: [string, 'null'] }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403':
+          description: '`action_not_allowed` — the merchant did not allow it in this session.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404': { $ref: '#/components/responses/CheckoutNotFound' }
+        '409':
+          description: '`payment_in_progress`, or an idempotency conflict.'
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: 'The subscription refused it (e.g. `change_not_upgrade`, `coupon_not_applicable`).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/CheckoutRateLimited' }
+
   /checkout/api/receipts/{id}:
     get:
       tags: [Hosted checkout]

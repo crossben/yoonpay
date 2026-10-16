@@ -2868,6 +2868,70 @@ export interface PlanRef {
 /**
  * 
  * @export
+ * @interface PortalAction200Response
+ */
+export interface PortalAction200Response {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalAction200Response
+     */
+    checkout_url: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface PortalActionRequest
+ */
+export interface PortalActionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalActionRequest
+     */
+    action: PortalActionRequestActionEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalActionRequest
+     */
+    subscription: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalActionRequest
+     */
+    price?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalActionRequest
+     */
+    coupon?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PortalActionRequest
+     */
+    attempt: string;
+}
+
+
+/**
+ * @export
+ */
+export const PortalActionRequestActionEnum = {
+    Renew: 'renew',
+    Cancel: 'cancel',
+    Resume: 'resume',
+    Change: 'change',
+    Coupon: 'coupon'
+} as const;
+export type PortalActionRequestActionEnum = typeof PortalActionRequestActionEnum[keyof typeof PortalActionRequestActionEnum];
+
+/**
+ * 
+ * @export
  * @interface PortalSession
  */
 export interface PortalSession {
