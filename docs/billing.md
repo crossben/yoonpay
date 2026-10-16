@@ -4,7 +4,7 @@ Yoon 0.3.0 bills **prepaid subscriptions**: the customer pays each period (month
 Yoon's hosted checkout, by mobile money, PI-SPI or card, and your application grants access
 from Yoon's webhooks. Nothing is charged automatically: mobile money has no card-style
 auto-debit, so every period is a payment the customer makes. (Automatic charging, Stripe first,
-is planned for 0.5.0.)
+is on the roadmap: [docs/plans/roadmap.md](plans/roadmap.md).)
 
 Design: [ADR-0025](adr/0025-customers-and-catalog.md) (customers, plans, prices),
 [ADR-0026](adr/0026-subscriptions-prepaid.md) (subscriptions, lifecycle),
@@ -201,7 +201,7 @@ If you built subscriptions on top of one-off payments:
 5. Switch your "Buy" buttons to `POST /v1/subscriptions` and `/renew`; keep the old payment
    path read-only until its pending payments have settled or expired.
 
-## 12. Customer portal (0.6)
+## 12. Customer portal (since 0.6.0)
 
 A page where your customer manages their own subscription, so you do not build one: plan,
 status, paid-until date, invoices and receipts, a **Pay** button, and — if you allow them —

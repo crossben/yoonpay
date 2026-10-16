@@ -1,6 +1,6 @@
 # Plan — customer portal
 
-Design: [ADR-0031](../adr/0031-customer-portal.md). Status: **accepted 2026-10-15** (default: view and pay; the merchant opts in to the rest).
+Design: [ADR-0031](../adr/0031-customer-portal.md). Status: **shipped in 0.6.0** (accepted 2026-10-15) (default: view and pay; the merchant opts in to the rest).
 
 ## Milestones (each: tests + docs + CHANGELOG, then stop for review/commit)
 1. **Sessions:** migration, `POST /v1/customers/{id}/portal_sessions`, token (hashed), expiry,

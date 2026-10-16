@@ -7,7 +7,7 @@ African payment providers. Apache-2.0. Java 17+, Jackson 2, no other dependency.
 <dependency>
     <groupId>io.github.crossben</groupId>
     <artifactId>yoon-java</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 
@@ -39,8 +39,8 @@ hand. Yoon's own test suite runs this client against a real server (`JavaClientT
 Copy this into your coding agent (Claude Code, Cursor, Copilot) to add Yoon to an existing app.
 
 ```text
-Integrate Yoon payments (io.github.crossben:yoon-java 0.5.x) into this Java app.
-Install: Maven/Gradle dependency io.github.crossben:yoon-java:0.5.0 (Java 17+)
+Integrate Yoon payments (io.github.crossben:yoon-java 0.6.x) into this Java app.
+Install: Maven/Gradle dependency io.github.crossben:yoon-java:0.6.0 (Java 17+)
 Do:
 1. One shared client: new Yoon(System.getenv("YOON_URL"), System.getenv("YOON_API_KEY")).
 2. Create a payment keyed on the order:

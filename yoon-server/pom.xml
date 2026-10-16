@@ -7,7 +7,7 @@
     <parent>
         <groupId>dev.yoonpay</groupId>
         <artifactId>yoon-parent</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
     </parent>
 
     <artifactId>yoon-server</artifactId>
@@ -137,7 +137,7 @@
             <artifactId>yoon-java</artifactId>
             <!-- The Java client follows the API version, not the server's (built in this reactor,
                  clients/java). A server-only patch release leaves this at the API version. -->
-            <version>0.5.0</version>
+            <version>0.6.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

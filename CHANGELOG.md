@@ -5,6 +5,13 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-16
+
+The customer portal: one API call gives a customer a private page to see their subscription,
+pay, and — if the merchant allows it — cancel, change plan or redeem a coupon. Upgrading from
+0.5.x: migration `V10` runs on start-up; `/v1` stays compatible (new routes; status history may
+show the new cause `portal`, an open-set value).
+
 ### Customer portal
 - `POST /v1/customers/{id}/portal_sessions` (ADR-0031): a URL that opens one customer's portal,
   valid for `YOON_APPS_<APP>_BILLING_PORTAL_TTL` (1 hour by default, at most 24 hours). Only the
