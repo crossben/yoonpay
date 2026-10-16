@@ -8,7 +8,7 @@ Update the status column as items move.
 | --- | --- | --- |
 | 1 | Payment links | **shipped in 0.5.0** — [ADR-0030](../adr/0030-payment-links.md), [plan](payment-links.md) |
 | 2 | Customer portal | **shipped in 0.6.0** — [ADR-0031](../adr/0031-customer-portal.md), [plan](customer-portal.md) |
-| 3 | MCP server for AI agents | planned |
+| 3 | MCP server for AI agents | **proposed** — [ADR-0032](../adr/0032-mcp-server.md), [plan](mcp-server.md); waiting for review |
 | 4 | Small items (below) | planned, one at a time |
 | 5 | Automatic charging, Stripe first (0.5.x/0.6.0) | waits for a merchant that needs it, and a Stripe account |
 | 6 | SYSCOHADA accounting export | planned — needs an accountant's review of the default mapping |
