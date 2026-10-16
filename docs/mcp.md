@@ -1,6 +1,7 @@
 # Yoon for AI assistants (MCP)
 
-`@yoonpay/mcp` lets an AI assistant — Claude Desktop, Claude Code, Cursor or any client of the
+`@yoonpay/mcp` lets an AI assistant — Claude, OpenAI Codex, Gemini CLI, Cursor, OpenCode,
+GitHub Copilot in VS Code or any other client of the
 [Model Context Protocol](https://modelcontextprotocol.io) — answer questions from your Yoon data:
 "why did order 1042 fail?", "who is past due?", "how much came in on Wave this week?". Design:
 [ADR-0032](adr/0032-mcp-server.md). Available from Yoon 0.7.0.
@@ -22,7 +23,9 @@ in a file you commit.
 
 ## 2. Add it to your assistant
 
-Requires Node.js 20 or newer.
+Requires Node.js 20 or newer. Every client starts the same program — `npx -y @yoonpay/mcp` with
+`YOON_URL` and `YOON_API_KEY` in its environment — and saves it in its own format. Use the
+user-level configuration (as below), so the key never lands in a project's files.
 
 **Claude Desktop** — Settings → Developer → Edit Config (`claude_desktop_config.json`); **Cursor**
 — `~/.cursor/mcp.json`:
@@ -47,6 +50,64 @@ Requires Node.js 20 or newer.
 ```sh
 claude mcp add yoon -e YOON_URL=https://pay.example.com -e YOON_API_KEY=yk_… -- npx -y @yoonpay/mcp
 ```
+
+**OpenAI Codex CLI** (saved in `~/.codex/config.toml`):
+
+```sh
+codex mcp add yoon --env YOON_URL=https://pay.example.com --env YOON_API_KEY=yk_… -- npx -y @yoonpay/mcp
+```
+
+**Gemini CLI** — `--scope user` saves it in `~/.gemini/settings.json` (the default, `project`,
+writes `.gemini/settings.json` inside the repository). Do not add `--trust`: it skips the
+confirmation before each tool call.
+
+```sh
+gemini mcp add --scope user -e YOON_URL=https://pay.example.com -e YOON_API_KEY=yk_… yoon npx -y @yoonpay/mcp
+```
+
+**OpenCode** — `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "yoon": {
+      "type": "local",
+      "command": ["npx", "-y", "@yoonpay/mcp"],
+      "enabled": true,
+      "environment": {
+        "YOON_URL": "https://pay.example.com",
+        "YOON_API_KEY": "yk_…"
+      }
+    }
+  }
+}
+```
+
+**VS Code (GitHub Copilot)** — Command Palette → *MCP: Open User Configuration*. VS Code asks for
+the key when the server first starts, so it is not written in the file:
+
+```json
+{
+  "inputs": [
+    { "type": "promptString", "id": "yoon-api-key", "description": "Yoon API key", "password": true }
+  ],
+  "servers": {
+    "yoon": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@yoonpay/mcp"],
+      "env": {
+        "YOON_URL": "https://pay.example.com",
+        "YOON_API_KEY": "${input:yoon-api-key}"
+      }
+    }
+  }
+}
+```
+
+**Any other MCP client:** give it the command `npx`, the arguments `-y @yoonpay/mcp` and the two
+variables, in its own format.
 
 Restart the assistant, then ask: *"What does the Yoon about tool say?"*
 

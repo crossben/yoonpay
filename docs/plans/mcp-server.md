@@ -25,7 +25,8 @@ Design: [ADR-0032](../adr/0032-mcp-server.md). Status: **accepted 2026-10-16** (
   returned the same link, and a redelivery without a webhook URL returned Yoon's
   `no_webhook_endpoint`).
 - M4 release job `npm-mcp`, version lockstep test, `docs/mcp.md` (Claude Desktop, Claude Code,
-  Cursor), README — done (26 tests). Website page and the first manual npm publish: at 0.7.0.
+  Cursor, Codex, Gemini CLI, OpenCode, VS Code), README — done (26 tests). Website page and the
+  first manual npm publish: at 0.7.0.
 
 ## Tests beyond the usual
 - Without `YOON_MCP_WRITES`, write tools are not listed and cannot be called.

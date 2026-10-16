@@ -100,7 +100,7 @@ once, in Java, instead of in every project.
   code for a fixed or customer-chosen amount; the customer opens `/l/<code>`, presses "Pay" and
   completes an ordinary hosted checkout. Operators create links from the dashboard or the CLI.
 - **AI assistants** ([guide](docs/mcp.md), ADR-0032, from 0.7.0): `@yoonpay/mcp` lets Claude,
-  Cursor or any MCP client read payments, subscriptions, invoices and the ledger with an API key
+  Codex, Gemini CLI, Cursor, OpenCode, VS Code or any MCP client read payments, subscriptions, invoices and the ledger with an API key
   of their own. Read-only by default; with `YOON_MCP_WRITES=true` it can also create payment and
   portal links and re-send webhooks. It never sends money out. Contacts are masked.
 - **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and

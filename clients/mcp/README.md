@@ -2,8 +2,8 @@
 
 An [MCP](https://modelcontextprotocol.io) server that lets an AI assistant (Claude Desktop,
 Claude Code, Cursor…) read one Yoon application's data through the `/v1` API. Design:
-[ADR-0032](../../docs/adr/0032-mcp-server.md). From Yoon 0.7.0. **Setup for Claude Desktop, Claude
-Code and Cursor: [docs/mcp.md](../../docs/mcp.md).**
+[ADR-0032](../../docs/adr/0032-mcp-server.md). From Yoon 0.7.0. **Setup for Claude, Codex, Gemini CLI,
+Cursor, OpenCode and VS Code: [docs/mcp.md](../../docs/mcp.md).**
 
 ## Tools (all read-only)
 | Tool | |
