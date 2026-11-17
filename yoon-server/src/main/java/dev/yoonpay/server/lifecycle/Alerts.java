@@ -23,6 +23,10 @@ public class Alerts {
         payout_needs_review,
         /** A provider reported a status its adapter does not map. */
         unmapped_provider_status,
+        /** A refund that was FAILED turned out to be refunded; total may exceed the payment. */
+        late_refund,
+        /** The total refunded amount exceeds the payment amount after a late success. */
+        refund_exceeds_payment,
         /** An outbound event exhausted its delivery attempts. */
         event_dead,
         /** A payment arrived for an invoice that had been voided: the money is applied, a human should look. */

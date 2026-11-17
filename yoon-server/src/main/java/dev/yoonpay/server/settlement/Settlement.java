@@ -155,6 +155,17 @@ public class Settlement {
             refunds.countStatusCheck(r.id());
             return Outcome.NO_ANSWER;
         }
+
+        Money expected = new Money(r.amount(), Currency.getInstance(r.currency()));
+        if (result.confirmedAmount() != null && !result.confirmedAmount().equals(expected)) {
+            alerts.raise(Alerts.Type.amount_mismatch, r.id(),
+                    "refund: provider confirms " + result.confirmedAmount() + ", expected " + expected);
+            events.record(app.id(), "refund", r.id(), RefundStatus.valueOf(r.status()), result.status(),
+                    Decision.IGNORE, cause, result.rawStatus(),
+                    "amount mismatch: provider confirms " + result.confirmedAmount() + ", expected " + expected);
+            return Outcome.AMOUNT_MISMATCH;
+        }
+
         if (!result.status().isFinal()) {
             return Outcome.STILL_OPEN;
         }
@@ -186,6 +197,17 @@ public class Settlement {
             payouts.countStatusCheck(po.id());
             return Outcome.NO_ANSWER;
         }
+
+        Money expected = new Money(po.amount(), Currency.getInstance(po.currency()));
+        if (result.confirmedAmount() != null && !result.confirmedAmount().equals(expected)) {
+            alerts.raise(Alerts.Type.amount_mismatch, po.id(),
+                    "payout: provider confirms " + result.confirmedAmount() + ", expected " + expected);
+            events.record(app.id(), "payout", po.id(), PayoutStatus.valueOf(po.status()), result.status(),
+                    Decision.IGNORE, cause, result.rawStatus(),
+                    "amount mismatch: provider confirms " + result.confirmedAmount() + ", expected " + expected);
+            return Outcome.AMOUNT_MISMATCH;
+        }
+
         if (!result.status().isFinal()) {
             return Outcome.STILL_OPEN;
         }

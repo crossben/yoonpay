@@ -29,9 +29,12 @@ public class RefundRepository {
                 .update();
     }
 
-    /** Refunds that are, or may become, money returned: everything but FAILED. */
+    /** Refunds that are, or may become, money returned. FAILED refunds with a provider reference
+     *  are included because the provider may still confirm them as a late success. */
     public long committedAmount(String paymentId) {
-        return jdbc.sql("SELECT coalesce(sum(amount), 0) FROM refunds WHERE payment_id = :p AND status <> 'FAILED'")
+        return jdbc.sql("""
+                        SELECT coalesce(sum(amount), 0) FROM refunds
+                        WHERE payment_id = :p AND (status <> 'FAILED' OR provider_reference IS NOT NULL)""")
                 .param("p", paymentId).query(Long.class).single();
     }
 
