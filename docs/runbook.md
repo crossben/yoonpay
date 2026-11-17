@@ -181,8 +181,17 @@ application's settings if the outage lasts.
 ## Amount mismatch
 
 Alert `YoonAmountMismatch`: a provider confirmed a different amount. Yoon did **not** settle the
-payment. Find it in the logs (`ALERT amount_mismatch resource=pay_…`) and its history
-(`GET /v1/payments/{id}/events`), then settle the difference with the customer outside Yoon.
+payment, refund or payout. Find it in the logs (`ALERT amount_mismatch resource=pay_…` or
+`resource=ref_…` or `resource=po_…`) and its history (`GET /v1/{resource}/{id}/events`), then
+settle the difference with the customer outside Yoon.
+
+## Refund exceeds payment
+
+Alert `YoonRefundExceedsPayment`: a provider confirmed a refund Yoon had marked failed (late
+success). The total refunded now exceeds the payment amount. The ledger posting was recorded
+(the money left). Find the refund in the logs (`ALERT refund_exceeds_payment resource=ref_…`)
+and its payment (`GET /v1/payments/{id}/refunds`). Contact the provider to recover the excess
+or settle it with the application.
 
 ## Restore a backup
 
