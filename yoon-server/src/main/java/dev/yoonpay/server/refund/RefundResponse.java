@@ -16,12 +16,16 @@ public record RefundResponse(
         String providerReference,
         Failure failure,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        boolean needsReview,
+        boolean holdsAmount) {
 
     public static RefundResponse of(RefundRecord r) {
+        // A failed refund the provider saw keeps its amount until an operator releases it (plan D1).
+        boolean holds = r.status().equals("FAILED") && r.providerReference() != null && r.amountReleasedAt() == null;
         return new RefundResponse(r.id(), "refund", r.paymentId(), r.status().toLowerCase(), r.amount(), r.currency(),
                 r.reason(), r.provider(), r.providerReference(),
                 r.failureCode() == null ? null : new Failure(r.failureCode(), r.failureMessage()),
-                r.createdAt(), r.updatedAt());
+                r.createdAt(), r.updatedAt(), r.needsReview(), holds);
     }
 }

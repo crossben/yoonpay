@@ -24,10 +24,22 @@ groups:
           summary: "{{ $value }} payout(s) have an unknown outcome and need a human (runbook: resolve a payout)."
 
       - alert: YoonLateSuccess
-        expr: increase(yoon_alerts_total{type=~"late_success|late_payout"}[1h]) > 0
+        expr: increase(yoon_alerts_total{type=~"late_success|late_payout|late_refund"}[1h]) > 0
         labels: {severity: warning}
         annotations:
           summary: Money arrived or left after Yoon had given up on it. Check the affected order with the application.
+
+      - alert: YoonRefundExceedsPayment
+        expr: increase(yoon_alerts_total{type="refund_exceeds_payment"}[1h]) > 0
+        labels: {severity: critical}
+        annotations:
+          summary: "More was refunded on a payment than it was worth (runbook: refund exceeds payment)."
+
+      - alert: YoonRefundNeedsReview
+        expr: increase(yoon_alerts_total{type="refund_needs_review"}[1h]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "A refund needs a human to check it with the provider (runbook: a refund needs review)."
 
       - alert: YoonDeadEvents
         expr: yoon_outbox_dead > 0

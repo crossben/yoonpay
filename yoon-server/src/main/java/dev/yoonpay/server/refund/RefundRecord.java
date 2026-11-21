@@ -17,5 +17,7 @@ public record RefundRecord(
         String failureCode,
         String failureMessage,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        boolean needsReview,
+        Instant amountReleasedAt) {
 }

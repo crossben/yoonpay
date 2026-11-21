@@ -76,7 +76,8 @@ public class RefundService {
             }
 
             RefundRecord refund = new RefundRecord(Ids.refund(), app.id(), paymentId, RefundStatus.CREATED.name(),
-                    amount, payment.currency(), req.reason(), payment.provider(), null, null, null, null, null);
+                    amount, payment.currency(), req.reason(), payment.provider(), null, null, null, null, null,
+                    false, null);
             refunds.insert(refund);
             events.record(app.id(), "refund", refund.id(), null, RefundStatus.CREATED, Decision.APPLY, Cause.api, null, null);
             return new Reserved(refund, payment, provider);

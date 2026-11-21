@@ -159,6 +159,38 @@ curl -X POST -H "Authorization: Bearer $ADMIN" -H "Content-Type: application/jso
 
 Never resolve as `failed` without checking: the application may pay again.
 
+## A refund needs review
+
+Alert `YoonRefundNeedsReview` or `YoonAmountMismatch` on a `re_…` resource. The refund carries
+`needs_review: true`; the sweep stops checking it. Check the provider's dashboard, then:
+
+```sh
+curl -X POST -H "Authorization: Bearer $ADMIN" -H "Content-Type: application/json" \
+  "$YOON/admin/v1/refunds/re_…/resolve" \
+  -d '{"status":"refunded","note":"Seen on the Stripe dashboard, re_3P…"}'
+# or: docker compose run --rm yoon refunds resolve re_… refunded "Seen on the Stripe dashboard"
+```
+
+## Release the amount of a failed refund
+
+A refund the provider accepted and then reported failed keeps its amount (`holds_amount: true`):
+the provider might still confirm it, and a second refund would then pay twice. The application's
+next refund of that amount gets `refund_exceeds_payment`. Once the provider confirms no money left:
+
+```sh
+curl -X POST -H "Authorization: Bearer $ADMIN" -H "Content-Type: application/json" \
+  "$YOON/admin/v1/refunds/re_…/release" -d '{"note":"Stripe confirms re_3P… failed: card closed"}'
+# or: docker compose run --rm yoon refunds release re_… "Stripe confirms it failed"
+```
+
+## Refund exceeds payment
+
+Alert `YoonRefundExceedsPayment` (critical): a refund confirmed late pushed the amount refunded on
+a payment past what was paid — usually after a release. The money really left, and the ledger
+records it. Find the refund in the logs (`ALERT refund_exceeds_payment resource=re_…`) and the
+payment's refunds (`GET /v1/payments/{id}/refunds`), then recover the excess with the customer or
+the provider.
+
 ## Replay dead letters
 
 Alert `YoonDeadEvents`: an application's webhook endpoint refused events 12 times. Fix the
@@ -181,8 +213,11 @@ application's settings if the outage lasts.
 ## Amount mismatch
 
 Alert `YoonAmountMismatch`: a provider confirmed a different amount. Yoon did **not** settle the
-payment. Find it in the logs (`ALERT amount_mismatch resource=pay_…`) and its history
-(`GET /v1/payments/{id}/events`), then settle the difference with the customer outside Yoon.
+payment, refund or payout. Find it in the logs (`ALERT amount_mismatch resource=pay_…`, `re_…` or
+`po_…`) and its history (`GET /v1/payments/{id}/events`, `/v1/refunds/{id}/events`,
+`/v1/payouts/{id}/events`). A refund or payout is flagged `needs_review` (one alert, not one per
+sweep): resolve it as in "A refund needs review" / "A payout needs review". For a payment, settle
+the difference with the customer outside Yoon.
 
 ## Restore a backup
 

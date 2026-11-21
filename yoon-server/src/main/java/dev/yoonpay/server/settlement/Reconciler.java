@@ -149,7 +149,8 @@ public class Reconciler {
 
     public int sweepRefunds() {
         List<RefundRecord> open = jdbc.sql("""
-                        SELECT * FROM refunds WHERE status IN ('PENDING', 'UNKNOWN') AND updated_at < :before
+                        SELECT * FROM refunds WHERE status IN ('PENDING', 'UNKNOWN') AND NOT needs_review
+                          AND updated_at < :before
                         ORDER BY updated_at LIMIT :batch""")
                 .param("before", Timestamp.from(clock.instant().minus(sweep.pendingAfter()))).param("batch", BATCH)
                 .query(RefundRecord.class).list();

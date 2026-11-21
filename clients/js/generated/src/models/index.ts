@@ -123,6 +123,19 @@ export type AdminListApplications200ResponseDataInnerObjectEnum = typeof AdminLi
 /**
  * 
  * @export
+ * @interface AdminReleaseRefundRequest
+ */
+export interface AdminReleaseRefundRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminReleaseRefundRequest
+     */
+    note: string;
+}
+/**
+ * 
+ * @export
  * @interface AdminReplayDeadLetter202Response
  */
 export interface AdminReplayDeadLetter202Response {
@@ -178,6 +191,36 @@ export const AdminResolvePayoutRequestStatusEnum = {
     Failed: 'failed'
 } as const;
 export type AdminResolvePayoutRequestStatusEnum = typeof AdminResolvePayoutRequestStatusEnum[keyof typeof AdminResolvePayoutRequestStatusEnum];
+
+/**
+ * 
+ * @export
+ * @interface AdminResolveRefundRequest
+ */
+export interface AdminResolveRefundRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminResolveRefundRequest
+     */
+    status: AdminResolveRefundRequestStatusEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminResolveRefundRequest
+     */
+    note: string;
+}
+
+
+/**
+ * @export
+ */
+export const AdminResolveRefundRequestStatusEnum = {
+    Refunded: 'refunded',
+    Failed: 'failed'
+} as const;
+export type AdminResolveRefundRequestStatusEnum = typeof AdminResolveRefundRequestStatusEnum[keyof typeof AdminResolveRefundRequestStatusEnum];
 
 /**
  * 
@@ -3652,6 +3695,23 @@ export interface Refund {
      * @memberof Refund
      */
     updated_at: string;
+    /**
+     * A human must settle this refund: the provider confirmed a different amount, or the
+     * outcome cannot be checked automatically. Since 0.8.0.
+     * 
+     * @type {boolean}
+     * @memberof Refund
+     */
+    needs_review?: boolean;
+    /**
+     * A failed refund the provider had already seen keeps its amount reserved — the provider
+     * may still confirm it late — until an operator releases it after checking with the
+     * provider. While true, that amount cannot be refunded again. Since 0.8.0.
+     * 
+     * @type {boolean}
+     * @memberof Refund
+     */
+    holds_amount?: boolean;
 }
 
 

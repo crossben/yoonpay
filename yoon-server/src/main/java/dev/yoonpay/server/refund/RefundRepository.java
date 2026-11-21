@@ -29,15 +29,37 @@ public class RefundRepository {
                 .update();
     }
 
-    /** Refunds that are, or may become, money returned: everything but FAILED. */
+    /**
+     * Refunds that are, or may become, money returned. A FAILED refund the provider never saw
+     * (no reference) is free again; one the provider saw stays committed — it may still be
+     * confirmed late — until an operator releases it (decision D1, money-safety plan 2026-11).
+     */
     public long committedAmount(String paymentId) {
-        return jdbc.sql("SELECT coalesce(sum(amount), 0) FROM refunds WHERE payment_id = :p AND status <> 'FAILED'")
+        return jdbc.sql("""
+                        SELECT coalesce(sum(amount), 0) FROM refunds
+                        WHERE payment_id = :p
+                          AND (status <> 'FAILED' OR (provider_reference IS NOT NULL AND amount_released_at IS NULL))""")
                 .param("p", paymentId).query(Long.class).single();
+    }
+
+    /** Money actually returned on a payment: REFUNDED refunds only. */
+    public long refundedAmount(String paymentId) {
+        return jdbc.sql("SELECT coalesce(sum(amount), 0) FROM refunds WHERE payment_id = :p AND status = 'REFUNDED'")
+                .param("p", paymentId).query(Long.class).single();
+    }
+
+    public void releaseAmount(String id) {
+        jdbc.sql("UPDATE refunds SET amount_released_at = now(), updated_at = now() WHERE id = :id").param("id", id).update();
     }
 
     public Optional<RefundRecord> find(UUID app, String id) {
         return jdbc.sql("SELECT * FROM refunds WHERE application_id = :app AND id = :id")
                 .param("app", app).param("id", id).query(RefundRecord.class).optional();
+    }
+
+    /** Any application's refund: for operator actions, which name a refund by id only. */
+    public Optional<RefundRecord> findAnyApplication(String id) {
+        return jdbc.sql("SELECT * FROM refunds WHERE id = :id").param("id", id).query(RefundRecord.class).optional();
     }
 
     public Optional<RefundRecord> lock(UUID app, String id) {

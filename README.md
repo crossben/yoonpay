@@ -103,8 +103,9 @@ once, in Java, instead of in every project.
   Codex, Gemini CLI, Cursor, OpenCode, VS Code or any MCP client read payments, subscriptions, invoices and the ledger with an API key
   of their own. Read-only by default; with `YOON_MCP_WRITES=true` it can also create payment and
   portal links and re-send webhooks. It never sends money out. Contacts are masked.
-- **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters and
-  payouts needing review, resolved through the same state machine.
+- **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters, and payouts and
+  refunds needing review, resolved through the same state machine; releasing the amount a
+  failed refund holds.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
   mismatch, late success, payout needs review, dead event…).
 
@@ -307,6 +308,9 @@ docker compose run --rm yoon apps add-key <name>     # rotate: issue another key
 docker compose run --rm yoon apps revoke-key <prefix>
 # grant time without payment (sub_… or cus_…; a number of periods, an end date or "open"; a note)
 docker compose run --rm yoon billing comp <app> <sub_…|cus_…> <price_…> <periods|until|open> <note…>
+# a refund a human checked with the provider: settle it, or free the amount a failed one holds
+docker compose run --rm yoon refunds resolve <re_…> refunded|failed <note…>
+docker compose run --rm yoon refunds release <re_…> <note…>
 # a payment link to share (amount in minor units, or "any"): prints the URL and its QR code URL
 docker compose run --rm yoon links create <app> <amount|any> <currency> <country> <description…>
 ```

@@ -161,6 +161,18 @@ public final class FakeProvider implements PaymentProvider {
         refunds.computeIfPresent(ref.value(), (k, r) -> new Record<>(status, raw(status), r.requested(), r.requested()));
     }
 
+    /** Provider-side truth with an explicit amount (a provider confirming a different refund amount). */
+    public void settleRefund(ProviderReference ref, RefundStatus status, long confirmedAmount) {
+        refunds.computeIfPresent(ref.value(), (k, r) ->
+                new Record<>(status, raw(status), r.requested(), new Money(confirmedAmount, r.requested().currency())));
+    }
+
+    /** Provider-side truth with an explicit amount (a provider confirming a different payout amount). */
+    public void settlePayout(ProviderReference ref, PayoutStatus status, long confirmedAmount) {
+        payouts.computeIfPresent(ref.value(), (k, r) ->
+                new Record<>(status, raw(status), r.requested(), new Money(confirmedAmount, r.requested().currency())));
+    }
+
     /** Reference of the payment created for Yoon's {@code attemptReference}, even if the caller never saw it. */
     public ProviderReference referenceFor(String attemptReference) {
         return new ProviderReference("fake_" + attemptReference);

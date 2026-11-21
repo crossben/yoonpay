@@ -21,6 +21,12 @@ public class Alerts {
         late_payout,
         /** A payout's outcome stayed unknown past the review threshold. */
         payout_needs_review,
+        /** A refund Yoon had marked failed turned out to be refunded. */
+        late_refund,
+        /** The amount actually refunded on a payment exceeds what was paid (after a late refund). */
+        refund_exceeds_payment,
+        /** A refund needs a human: its outcome cannot be checked automatically, or its amount disagrees. */
+        refund_needs_review,
         /** A provider reported a status its adapter does not map. */
         unmapped_provider_status,
         /** An outbound event exhausted its delivery attempts. */

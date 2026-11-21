@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
 from yoonpay.generated.models.failure import Failure
 from yoonpay.generated.models.refund_status import RefundStatus
@@ -41,7 +41,9 @@ class Refund(BaseModel):
     failure: Optional[Failure] = None
     created_at: datetime
     updated_at: datetime
-    __properties: ClassVar[List[str]] = ["id", "object", "payment_id", "status", "amount", "currency", "reason", "provider", "provider_reference", "failure", "created_at", "updated_at"]
+    needs_review: Optional[StrictBool] = Field(default=None, description="A human must settle this refund: the provider confirmed a different amount, or the outcome cannot be checked automatically. Since 0.8.0. ")
+    holds_amount: Optional[StrictBool] = Field(default=None, description="A failed refund the provider had already seen keeps its amount reserved — the provider may still confirm it late — until an operator releases it after checking with the provider. While true, that amount cannot be refunded again. Since 0.8.0. ")
+    __properties: ClassVar[List[str]] = ["id", "object", "payment_id", "status", "amount", "currency", "reason", "provider", "provider_reference", "failure", "created_at", "updated_at", "needs_review", "holds_amount"]
 
     @field_validator('object')
     def object_validate_enum(cls, value):
@@ -125,7 +127,9 @@ class Refund(BaseModel):
             "provider_reference": obj.get("provider_reference"),
             "failure": Failure.from_dict(obj["failure"]) if obj.get("failure") is not None else None,
             "created_at": obj.get("created_at"),
-            "updated_at": obj.get("updated_at")
+            "updated_at": obj.get("updated_at"),
+            "needs_review": obj.get("needs_review"),
+            "holds_amount": obj.get("holds_amount")
         })
         return _obj
 

@@ -7,9 +7,11 @@ import dev.yoonpay.core.lifecycle.RefundStatus;
 import dev.yoonpay.core.money.Money;
 import dev.yoonpay.server.auth.AppPrincipal;
 import dev.yoonpay.server.ledger.LedgerRepository;
+import dev.yoonpay.server.lifecycle.Alerts;
 import dev.yoonpay.server.lifecycle.StatusEvents;
 import dev.yoonpay.server.lifecycle.StatusEvents.Cause;
 import dev.yoonpay.server.outbox.Outbox;
+import dev.yoonpay.server.payment.PaymentRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -22,21 +24,25 @@ import java.util.Map;
 public class RefundTransitions {
 
     private final RefundRepository refunds;
+    private final PaymentRepository payments;
     private final StatusEvents events;
     private final LedgerRepository ledger;
     private final Outbox outbox;
+    private final Alerts alerts;
     private final TransactionTemplate tx;
     private final dev.yoonpay.server.lifecycle.StatusMetrics metrics;
 
-    public RefundTransitions(RefundRepository refunds, StatusEvents events, LedgerRepository ledger, Outbox outbox,
-                             TransactionTemplate tx,
-                            dev.yoonpay.server.lifecycle.StatusMetrics metrics) {
-        this.metrics = metrics;
+    public RefundTransitions(RefundRepository refunds, PaymentRepository payments, StatusEvents events,
+                             LedgerRepository ledger, Outbox outbox, Alerts alerts, TransactionTemplate tx,
+                             dev.yoonpay.server.lifecycle.StatusMetrics metrics) {
         this.refunds = refunds;
+        this.payments = payments;
         this.events = events;
         this.ledger = ledger;
         this.outbox = outbox;
+        this.alerts = alerts;
         this.tx = tx;
+        this.metrics = metrics;
     }
 
     public Decision apply(AppPrincipal app, String id, RefundStatus to, Cause cause, String rawStatus,
@@ -55,6 +61,18 @@ public class RefundTransitions {
 
             switch (to) {
                 case REFUNDED -> {
+                    if (from == RefundStatus.FAILED) {
+                        // Late success: the money left after Yoon had given up on it (still applied:
+                        // the ledger must show what really moved).
+                        alerts.raise(Alerts.Type.late_refund, id, "was failed, the provider confirms it refunded");
+                    }
+                    // The payment amount never changes: a plain read keeps the payment → refund lock order.
+                    long paid = payments.find(app.id(), updated.paymentId()).orElseThrow().amount();
+                    long refunded = refunds.refundedAmount(updated.paymentId());
+                    if (refunded > paid) {
+                        alerts.raise(Alerts.Type.refund_exceeds_payment, id,
+                                "refunded " + refunded + " on a payment of " + paid + " " + updated.currency());
+                    }
                     ledger.post(app.id(), LedgerPosting.transfer("refund " + id + " of " + updated.paymentId(),
                             Accounts.customerFunds(updated.provider()), Accounts.providerBalance(updated.provider()),
                             new Money(updated.amount(), Currency.getInstance(updated.currency()))));
@@ -65,6 +83,18 @@ public class RefundTransitions {
                 }
             }
             return decision;
+        });
+    }
+
+    /** Flags a refund a human must settle, once: later calls change nothing and raise nothing. */
+    public void flagForReview(AppPrincipal app, String id, Alerts.Type alert, String detail) {
+        tx.executeWithoutResult(st -> {
+            RefundRecord current = refunds.lock(app.id(), id).orElseThrow();
+            if (current.needsReview()) {
+                return;
+            }
+            refunds.update(id, current.status(), Map.of("needs_review", true));
+            alerts.raise(alert, id, detail);
         });
     }
 }

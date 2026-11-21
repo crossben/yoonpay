@@ -3,6 +3,7 @@ package dev.yoonpay.server.admin;
 import dev.yoonpay.core.lifecycle.Decision;
 import dev.yoonpay.core.lifecycle.IllegalTransitionException;
 import dev.yoonpay.core.lifecycle.PayoutStatus;
+import dev.yoonpay.core.lifecycle.RefundStatus;
 import dev.yoonpay.server.auth.AppPrincipal;
 import dev.yoonpay.server.auth.Applications;
 import dev.yoonpay.server.lifecycle.StatusEvents.Cause;
@@ -12,6 +13,8 @@ import dev.yoonpay.server.payout.PayoutRecord;
 import dev.yoonpay.server.payout.PayoutRepository;
 import dev.yoonpay.server.payout.PayoutResponse;
 import dev.yoonpay.server.payout.PayoutTransitions;
+import dev.yoonpay.server.refund.RefundOperations;
+import dev.yoonpay.server.refund.RefundResponse;
 import dev.yoonpay.server.web.ApiProblem;
 import dev.yoonpay.server.web.Page;
 import jakarta.validation.Valid;
@@ -43,9 +46,12 @@ public class AdminController {
     private final Applications applications;
     private final JdbcClient jdbc;
     private final ObjectMapper json;
+    private final RefundOperations refundOperations;
 
     public AdminController(EventRepository events, PayoutRepository payouts, PayoutTransitions payoutTransitions,
-                           Applications applications, JdbcClient jdbc, ObjectMapper json) {
+                           Applications applications, JdbcClient jdbc, ObjectMapper json,
+                           RefundOperations refundOperations) {
+        this.refundOperations = refundOperations;
         this.events = events;
         this.payouts = payouts;
         this.payoutTransitions = payoutTransitions;
@@ -116,5 +122,26 @@ public class AdminController {
             throw ApiProblem.unprocessable("already_final", "Payout " + id + " is already " + payout.status().toLowerCase());
         }
         return PayoutResponse.of(payouts.find(app.id(), id).orElseThrow());
+    }
+
+    /** @param status {@code refunded} or {@code failed}, as confirmed with the provider out of band */
+    public record RefundResolution(@NotBlank @Pattern(regexp = "refunded|failed") String status,
+                                   @NotBlank @Size(max = 500) String note) {
+    }
+
+    /** A human settles a refund after checking the provider's dashboard. Goes through the state machine. */
+    @PostMapping("/refunds/{id}/resolve")
+    RefundResponse resolveRefund(@PathVariable String id, @Valid @RequestBody RefundResolution resolution) {
+        RefundStatus target = resolution.status().equals("refunded") ? RefundStatus.REFUNDED : RefundStatus.FAILED;
+        return RefundResponse.of(refundOperations.resolve(id, target, resolution.note()));
+    }
+
+    public record Note(@NotBlank @Size(max = 500) String note) {
+    }
+
+    /** Frees the amount of a refund that failed after the provider saw it (money-safety plan, D1). */
+    @PostMapping("/refunds/{id}/release")
+    RefundResponse releaseRefund(@PathVariable String id, @Valid @RequestBody Note note) {
+        return RefundResponse.of(refundOperations.release(id, note.note()));
     }
 }

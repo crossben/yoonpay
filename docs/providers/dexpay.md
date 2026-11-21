@@ -64,6 +64,11 @@ Tested in `DexPayStatusTest`.
   stays unknown and is flagged for review.
 - Payout operator codes (`wave_sn_payout`, `om_sn_payout`) are DexPay's to rename; confirm them
   against the sandbox operator list before going live.
+- **Payout amount, not verified yet:** Yoon settles a payout only if the status API's `amount`
+  equals the amount Yoon sent. If DexPay reports an amount that includes its fee, every payout is
+  flagged `needs_review` with an `amount_mismatch` alert instead of `paid` — resolve them by hand
+  and report it, so the adapter can read the right field. Payouts have not been run against the
+  sandbox yet.
 
 ## Evidence
 

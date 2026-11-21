@@ -82,8 +82,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => '\DateTime',
         'payment_id' => 'string',
         'reason' => 'string',
-        'recipient' => '\Yoon\Generated\Model\PayoutRecipient',
         'needs_review' => 'bool',
+        'holds_amount' => 'bool',
+        'recipient' => '\Yoon\Generated\Model\PayoutRecipient',
         'discount' => '\Yoon\Generated\Model\Discount',
         'price' => '\Yoon\Generated\Model\SubscriptionPrice',
         'collection_method' => 'string',
@@ -146,8 +147,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'date-time',
         'payment_id' => null,
         'reason' => null,
-        'recipient' => null,
         'needs_review' => null,
+        'holds_amount' => null,
+        'recipient' => null,
         'discount' => null,
         'price' => null,
         'collection_method' => null,
@@ -208,8 +210,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => false,
         'payment_id' => false,
         'reason' => false,
-        'recipient' => false,
         'needs_review' => false,
+        'holds_amount' => false,
+        'recipient' => false,
         'discount' => false,
         'price' => false,
         'collection_method' => false,
@@ -350,8 +353,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'updated_at',
         'payment_id' => 'payment_id',
         'reason' => 'reason',
-        'recipient' => 'recipient',
         'needs_review' => 'needs_review',
+        'holds_amount' => 'holds_amount',
+        'recipient' => 'recipient',
         'discount' => 'discount',
         'price' => 'price',
         'collection_method' => 'collection_method',
@@ -412,8 +416,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'setUpdatedAt',
         'payment_id' => 'setPaymentId',
         'reason' => 'setReason',
-        'recipient' => 'setRecipient',
         'needs_review' => 'setNeedsReview',
+        'holds_amount' => 'setHoldsAmount',
+        'recipient' => 'setRecipient',
         'discount' => 'setDiscount',
         'price' => 'setPrice',
         'collection_method' => 'setCollectionMethod',
@@ -474,8 +479,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'getUpdatedAt',
         'payment_id' => 'getPaymentId',
         'reason' => 'getReason',
-        'recipient' => 'getRecipient',
         'needs_review' => 'getNeedsReview',
+        'holds_amount' => 'getHoldsAmount',
+        'recipient' => 'getRecipient',
         'discount' => 'getDiscount',
         'price' => 'getPrice',
         'collection_method' => 'getCollectionMethod',
@@ -645,8 +651,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('updated_at', $data ?? [], null);
         $this->setIfExists('payment_id', $data ?? [], null);
         $this->setIfExists('reason', $data ?? [], null);
-        $this->setIfExists('recipient', $data ?? [], null);
         $this->setIfExists('needs_review', $data ?? [], null);
+        $this->setIfExists('holds_amount', $data ?? [], null);
+        $this->setIfExists('recipient', $data ?? [], null);
         $this->setIfExists('discount', $data ?? [], null);
         $this->setIfExists('price', $data ?? [], null);
         $this->setIfExists('collection_method', $data ?? [], null);
@@ -764,11 +771,11 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         if ($this->container['payment_id'] === null) {
             $invalidProperties[] = "'payment_id' can't be null";
         }
-        if ($this->container['recipient'] === null) {
-            $invalidProperties[] = "'recipient' can't be null";
-        }
         if ($this->container['needs_review'] === null) {
             $invalidProperties[] = "'needs_review' can't be null";
+        }
+        if ($this->container['recipient'] === null) {
+            $invalidProperties[] = "'recipient' can't be null";
         }
         if ($this->container['price'] === null) {
             $invalidProperties[] = "'price' can't be null";
@@ -1495,33 +1502,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     }
 
     /**
-     * Gets recipient
-     *
-     * @return \Yoon\Generated\Model\PayoutRecipient
-     */
-    public function getRecipient()
-    {
-        return $this->container['recipient'];
-    }
-
-    /**
-     * Sets recipient
-     *
-     * @param \Yoon\Generated\Model\PayoutRecipient $recipient recipient
-     *
-     * @return self
-     */
-    public function setRecipient($recipient)
-    {
-        if (is_null($recipient)) {
-            throw new \InvalidArgumentException('non-nullable recipient cannot be null');
-        }
-        $this->container['recipient'] = $recipient;
-
-        return $this;
-    }
-
-    /**
      * Gets needs_review
      *
      * @return bool
@@ -1544,6 +1524,60 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
             throw new \InvalidArgumentException('non-nullable needs_review cannot be null');
         }
         $this->container['needs_review'] = $needs_review;
+
+        return $this;
+    }
+
+    /**
+     * Gets holds_amount
+     *
+     * @return bool|null
+     */
+    public function getHoldsAmount()
+    {
+        return $this->container['holds_amount'];
+    }
+
+    /**
+     * Sets holds_amount
+     *
+     * @param bool|null $holds_amount A failed refund the provider had already seen keeps its amount reserved — the provider may still confirm it late — until an operator releases it after checking with the provider. While true, that amount cannot be refunded again. Since 0.8.0.
+     *
+     * @return self
+     */
+    public function setHoldsAmount($holds_amount)
+    {
+        if (is_null($holds_amount)) {
+            throw new \InvalidArgumentException('non-nullable holds_amount cannot be null');
+        }
+        $this->container['holds_amount'] = $holds_amount;
+
+        return $this;
+    }
+
+    /**
+     * Gets recipient
+     *
+     * @return \Yoon\Generated\Model\PayoutRecipient
+     */
+    public function getRecipient()
+    {
+        return $this->container['recipient'];
+    }
+
+    /**
+     * Sets recipient
+     *
+     * @param \Yoon\Generated\Model\PayoutRecipient $recipient recipient
+     *
+     * @return self
+     */
+    public function setRecipient($recipient)
+    {
+        if (is_null($recipient)) {
+            throw new \InvalidArgumentException('non-nullable recipient cannot be null');
+        }
+        $this->container['recipient'] = $recipient;
 
         return $this;
     }

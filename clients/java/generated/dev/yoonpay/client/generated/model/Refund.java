@@ -48,7 +48,9 @@ import dev.yoonpay.client.generated.ApiClient;
   Refund.JSON_PROPERTY_PROVIDER_REFERENCE,
   Refund.JSON_PROPERTY_FAILURE,
   Refund.JSON_PROPERTY_CREATED_AT,
-  Refund.JSON_PROPERTY_UPDATED_AT
+  Refund.JSON_PROPERTY_UPDATED_AT,
+  Refund.JSON_PROPERTY_NEEDS_REVIEW,
+  Refund.JSON_PROPERTY_HOLDS_AMOUNT
 })
 @jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0")
 public class Refund {
@@ -134,6 +136,14 @@ public class Refund {
   public static final String JSON_PROPERTY_UPDATED_AT = "updated_at";
   @jakarta.annotation.Nonnull
   private OffsetDateTime updatedAt;
+
+  public static final String JSON_PROPERTY_NEEDS_REVIEW = "needs_review";
+  @jakarta.annotation.Nullable
+  private Boolean needsReview;
+
+  public static final String JSON_PROPERTY_HOLDS_AMOUNT = "holds_amount";
+  @jakarta.annotation.Nullable
+  private Boolean holdsAmount;
 
   public Refund() { 
   }
@@ -426,6 +436,54 @@ public class Refund {
   }
 
 
+  public Refund needsReview(@jakarta.annotation.Nullable Boolean needsReview) {
+    this.needsReview = needsReview;
+    return this;
+  }
+
+  /**
+   * A human must settle this refund: the provider confirmed a different amount, or the outcome cannot be checked automatically. Since 0.8.0. 
+   * @return needsReview
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_NEEDS_REVIEW, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Boolean getNeedsReview() {
+    return needsReview;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_NEEDS_REVIEW, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setNeedsReview(@jakarta.annotation.Nullable Boolean needsReview) {
+    this.needsReview = needsReview;
+  }
+
+
+  public Refund holdsAmount(@jakarta.annotation.Nullable Boolean holdsAmount) {
+    this.holdsAmount = holdsAmount;
+    return this;
+  }
+
+  /**
+   * A failed refund the provider had already seen keeps its amount reserved — the provider may still confirm it late — until an operator releases it after checking with the provider. While true, that amount cannot be refunded again. Since 0.8.0. 
+   * @return holdsAmount
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_HOLDS_AMOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Boolean getHoldsAmount() {
+    return holdsAmount;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_HOLDS_AMOUNT, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setHoldsAmount(@jakarta.annotation.Nullable Boolean holdsAmount) {
+    this.holdsAmount = holdsAmount;
+  }
+
+
   /**
    * Return true if this Refund object is equal to o.
    */
@@ -449,12 +507,14 @@ public class Refund {
         Objects.equals(this.providerReference, refund.providerReference) &&
         Objects.equals(this.failure, refund.failure) &&
         Objects.equals(this.createdAt, refund.createdAt) &&
-        Objects.equals(this.updatedAt, refund.updatedAt);
+        Objects.equals(this.updatedAt, refund.updatedAt) &&
+        Objects.equals(this.needsReview, refund.needsReview) &&
+        Objects.equals(this.holdsAmount, refund.holdsAmount);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, _object, paymentId, status, amount, currency, reason, provider, providerReference, failure, createdAt, updatedAt);
+    return Objects.hash(id, _object, paymentId, status, amount, currency, reason, provider, providerReference, failure, createdAt, updatedAt, needsReview, holdsAmount);
   }
 
   @Override
@@ -473,6 +533,8 @@ public class Refund {
     sb.append("    failure: ").append(toIndentedString(failure)).append("\n");
     sb.append("    createdAt: ").append(toIndentedString(createdAt)).append("\n");
     sb.append("    updatedAt: ").append(toIndentedString(updatedAt)).append("\n");
+    sb.append("    needsReview: ").append(toIndentedString(needsReview)).append("\n");
+    sb.append("    holdsAmount: ").append(toIndentedString(holdsAmount)).append("\n");
     sb.append("}");
     return sb.toString();
   }
@@ -578,6 +640,16 @@ public class Refund {
     // add `updated_at` to the URL query string
     if (getUpdatedAt() != null) {
       joiner.add(String.format(Locale.ROOT, "%supdated_at%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getUpdatedAt()))));
+    }
+
+    // add `needs_review` to the URL query string
+    if (getNeedsReview() != null) {
+      joiner.add(String.format(Locale.ROOT, "%sneeds_review%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getNeedsReview()))));
+    }
+
+    // add `holds_amount` to the URL query string
+    if (getHoldsAmount() != null) {
+      joiner.add(String.format(Locale.ROOT, "%sholds_amount%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getHoldsAmount()))));
     }
 
     return joiner.toString();

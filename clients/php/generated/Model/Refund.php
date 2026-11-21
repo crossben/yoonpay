@@ -68,7 +68,9 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
         'provider_reference' => 'string',
         'failure' => '\Yoon\Generated\Model\Failure',
         'created_at' => '\DateTime',
-        'updated_at' => '\DateTime'
+        'updated_at' => '\DateTime',
+        'needs_review' => 'bool',
+        'holds_amount' => 'bool'
     ];
 
     /**
@@ -90,7 +92,9 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
         'provider_reference' => null,
         'failure' => null,
         'created_at' => 'date-time',
-        'updated_at' => 'date-time'
+        'updated_at' => 'date-time',
+        'needs_review' => null,
+        'holds_amount' => null
     ];
 
     /**
@@ -110,7 +114,9 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
         'provider_reference' => true,
         'failure' => false,
         'created_at' => false,
-        'updated_at' => false
+        'updated_at' => false,
+        'needs_review' => false,
+        'holds_amount' => false
     ];
 
     /**
@@ -210,7 +216,9 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
         'provider_reference' => 'provider_reference',
         'failure' => 'failure',
         'created_at' => 'created_at',
-        'updated_at' => 'updated_at'
+        'updated_at' => 'updated_at',
+        'needs_review' => 'needs_review',
+        'holds_amount' => 'holds_amount'
     ];
 
     /**
@@ -230,7 +238,9 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
         'provider_reference' => 'setProviderReference',
         'failure' => 'setFailure',
         'created_at' => 'setCreatedAt',
-        'updated_at' => 'setUpdatedAt'
+        'updated_at' => 'setUpdatedAt',
+        'needs_review' => 'setNeedsReview',
+        'holds_amount' => 'setHoldsAmount'
     ];
 
     /**
@@ -250,7 +260,9 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
         'provider_reference' => 'getProviderReference',
         'failure' => 'getFailure',
         'created_at' => 'getCreatedAt',
-        'updated_at' => 'getUpdatedAt'
+        'updated_at' => 'getUpdatedAt',
+        'needs_review' => 'getNeedsReview',
+        'holds_amount' => 'getHoldsAmount'
     ];
 
     /**
@@ -335,6 +347,8 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
         $this->setIfExists('failure', $data ?? [], null);
         $this->setIfExists('created_at', $data ?? [], null);
         $this->setIfExists('updated_at', $data ?? [], null);
+        $this->setIfExists('needs_review', $data ?? [], null);
+        $this->setIfExists('holds_amount', $data ?? [], null);
     }
 
     /**
@@ -749,6 +763,60 @@ class Refund implements ModelInterface, ArrayAccess, \JsonSerializable
             throw new \InvalidArgumentException('non-nullable updated_at cannot be null');
         }
         $this->container['updated_at'] = $updated_at;
+
+        return $this;
+    }
+
+    /**
+     * Gets needs_review
+     *
+     * @return bool|null
+     */
+    public function getNeedsReview()
+    {
+        return $this->container['needs_review'];
+    }
+
+    /**
+     * Sets needs_review
+     *
+     * @param bool|null $needs_review A human must settle this refund: the provider confirmed a different amount, or the outcome cannot be checked automatically. Since 0.8.0.
+     *
+     * @return self
+     */
+    public function setNeedsReview($needs_review)
+    {
+        if (is_null($needs_review)) {
+            throw new \InvalidArgumentException('non-nullable needs_review cannot be null');
+        }
+        $this->container['needs_review'] = $needs_review;
+
+        return $this;
+    }
+
+    /**
+     * Gets holds_amount
+     *
+     * @return bool|null
+     */
+    public function getHoldsAmount()
+    {
+        return $this->container['holds_amount'];
+    }
+
+    /**
+     * Sets holds_amount
+     *
+     * @param bool|null $holds_amount A failed refund the provider had already seen keeps its amount reserved — the provider may still confirm it late — until an operator releases it after checking with the provider. While true, that amount cannot be refunded again. Since 0.8.0.
+     *
+     * @return self
+     */
+    public function setHoldsAmount($holds_amount)
+    {
+        if (is_null($holds_amount)) {
+            throw new \InvalidArgumentException('non-nullable holds_amount cannot be null');
+        }
+        $this->container['holds_amount'] = $holds_amount;
 
         return $this;
     }

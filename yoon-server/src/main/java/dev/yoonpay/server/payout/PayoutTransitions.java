@@ -95,13 +95,18 @@ public class PayoutTransitions {
 
     /** Flags a payout whose outcome stayed unknown too long, once, with an event and an alert. */
     public void flagForReview(AppPrincipal app, String id, String detail) {
+        flagForReview(app, id, Alerts.Type.payout_needs_review, detail);
+    }
+
+    /** Flags a payout a human must settle, once, raising {@code alert}; later calls change nothing. */
+    public void flagForReview(AppPrincipal app, String id, Alerts.Type alert, String detail) {
         tx.executeWithoutResult(s -> {
             PayoutRecord current = payouts.lock(app.id(), id).orElseThrow();
             if (current.needsReview()) {
                 return;
             }
             payouts.update(id, current.status(), Map.of("needs_review", true));
-            alerts.raise(Alerts.Type.payout_needs_review, id, detail);
+            alerts.raise(alert, id, detail);
             outbox.emit(app, "payout.needs_review", "payout", id,
                     PayoutResponse.of(payouts.find(app.id(), id).orElseThrow()));
         });

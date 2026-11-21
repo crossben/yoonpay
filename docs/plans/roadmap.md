@@ -99,6 +99,10 @@ no offline writes that touch money.
   subscriptions (0.3/0.4) are the answer, card auto-renewal is item 5.
 - Multi-country: already there through CinetPay (9 countries, XOF, XAF, GNF…); other providers
   are limited by what they support, not by Yoon.
+- Yoon Cloud (2026-10-21), shelved. Holding merchants' money on Yoon's own provider accounts would
+  need a BCEAO payment-institution licence (Instruction n°001-01-2024) and compete with the
+  licensed aggregators. Managed hosting on the merchant's own accounts avoids that, but there is
+  too little value for now.
 
 ## Done since 0.4.0
 - NabooPay: `FEES_CUSTOMER_SIDE` per application (merchant may absorb the fee).

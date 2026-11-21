@@ -230,7 +230,8 @@ paths:
         '409': { $ref: '#/components/responses/IdempotencyConflict' }
         '422':
           description: |
-            `code` is one of `payment_not_refundable`, `refund_exceeds_payment`,
+            `code` is one of `payment_not_refundable`, `refund_exceeds_payment` (more than what is
+            left: refunds that are pending, refunded, or failed with `holds_amount: true` count),
             `refund_not_supported` (the provider has no refund API — send a payout instead),
             `provider_not_configured`.
           content:
@@ -2264,6 +2265,79 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
 
+  /admin/v1/refunds/{id}/resolve:
+    post:
+      tags: [Admin]
+      operationId: adminResolveRefund
+      summary: Settle a refund by hand
+      description: |
+        After checking with the provider directly — for a refund flagged `needs_review`. Goes
+        through the refund state machine, the ledger and the application's events like any other
+        change; the note is kept in the history. Since 0.8.0.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, note]
+              properties:
+                status: { type: string, enum: [refunded, failed] }
+                note: { type: string, maxLength: 500, example: 'Confirmed on the Wave dashboard' }
+      responses:
+        '200':
+          description: The resolved refund.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Refund' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '422':
+          description: '`already_final` or `illegal_transition`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/v1/refunds/{id}/release:
+    post:
+      tags: [Admin]
+      operationId: adminReleaseRefund
+      summary: Release the amount a failed refund holds
+      description: |
+        For a failed refund with `holds_amount: true`, once the provider has confirmed that no money
+        left: the amount can then be refunded again. If the provider still confirms the refund later,
+        it is applied (the money moved) and an alert is raised. Since 0.8.0.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                note: { type: string, maxLength: 500, example: 'Stripe confirms re_123 failed: card closed' }
+      responses:
+        '200':
+          description: 'The refund, now with `holds_amount` false.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Refund' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '422':
+          description: '`nothing_to_release`: the refund is not failed, the provider never saw it, or it was already released.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
 webhooks:
   event:
     post:
@@ -3323,6 +3397,17 @@ components:
         failure: { $ref: '#/components/schemas/Failure' }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+        needs_review:
+          type: boolean
+          description: |
+            A human must settle this refund: the provider confirmed a different amount, or the
+            outcome cannot be checked automatically. Since 0.8.0.
+        holds_amount:
+          type: boolean
+          description: |
+            A failed refund the provider had already seen keeps its amount reserved — the provider
+            may still confirm it late — until an operator releases it after checking with the
+            provider. While true, that amount cannot be refunded again. Since 0.8.0.
 
     CreatePayoutRequest:
       type: object

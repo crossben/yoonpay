@@ -155,6 +155,19 @@ public class Settlement {
             refunds.countStatusCheck(r.id());
             return Outcome.NO_ANSWER;
         }
+        Money expectedRefund = new Money(r.amount(), Currency.getInstance(r.currency()));
+        if (result.confirmedAmount() != null && !result.confirmedAmount().equals(expectedRefund)) {
+            // Never settle on a different amount; a human compares with the provider. Flagged once,
+            // so the sweep does not repeat the alert (the refund sweep skips refunds under review).
+            if (!r.needsReview()) {
+                events.record(app.id(), "refund", r.id(), RefundStatus.valueOf(r.status()), result.status(),
+                        Decision.IGNORE, cause, result.rawStatus(),
+                        "amount mismatch: provider confirms " + result.confirmedAmount() + ", expected " + expectedRefund);
+            }
+            refundTransitions.flagForReview(app, r.id(), Alerts.Type.amount_mismatch,
+                    "refund: provider confirms " + result.confirmedAmount() + ", expected " + expectedRefund);
+            return Outcome.AMOUNT_MISMATCH;
+        }
         if (!result.status().isFinal()) {
             return Outcome.STILL_OPEN;
         }
@@ -185,6 +198,17 @@ public class Settlement {
         if (result == null || result.status() == null) {
             payouts.countStatusCheck(po.id());
             return Outcome.NO_ANSWER;
+        }
+        Money expectedPayout = new Money(po.amount(), Currency.getInstance(po.currency()));
+        if (result.confirmedAmount() != null && !result.confirmedAmount().equals(expectedPayout)) {
+            if (!po.needsReview()) {
+                events.record(app.id(), "payout", po.id(), PayoutStatus.valueOf(po.status()), result.status(),
+                        Decision.IGNORE, cause, result.rawStatus(),
+                        "amount mismatch: provider confirms " + result.confirmedAmount() + ", expected " + expectedPayout);
+            }
+            payoutTransitions.flagForReview(app, po.id(), Alerts.Type.amount_mismatch,
+                    "payout: provider confirms " + result.confirmedAmount() + ", expected " + expectedPayout);
+            return Outcome.AMOUNT_MISMATCH;
         }
         if (!result.status().isFinal()) {
             return Outcome.STILL_OPEN;

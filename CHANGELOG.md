@@ -5,6 +5,20 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+### Money safety (audit 2026-11-19, PR #1 by @mooder1)
+- **A refund can no longer be paid twice.** A refund the provider accepted and then reported failed
+  keeps its amount reserved (`holds_amount: true` on the refund): the provider may still confirm it,
+  and a second refund in the meantime would double-pay. An operator releases it after checking
+  with the provider: `POST /admin/v1/refunds/{id}/release` or `refunds release <re_…> <note…>`.
+  A refund rejected before the provider saw it frees its amount at once, as before.
+- A refund confirmed late raises `late_refund`; if the amount refunded on a payment ever exceeds
+  what was paid, `refund_exceeds_payment` (critical, Prometheus `YoonRefundExceedsPayment`).
+- Refunds and payouts are no longer settled when the provider confirms a different amount: they are
+  flagged `needs_review` with one `amount_mismatch` alert, and an operator resolves them
+  (`POST /admin/v1/refunds/{id}/resolve`, the existing payout resolve).
+- Upgrading: migration `V11` runs on start-up. `Refund` gains `needs_review` and `holds_amount`
+  (optional fields).
+
 ## [0.7.0] - 2026-10-16
 
 AI assistants: `@yoonpay/mcp` lets Claude, Codex, Gemini CLI, Cursor, OpenCode, VS Code or any MCP
