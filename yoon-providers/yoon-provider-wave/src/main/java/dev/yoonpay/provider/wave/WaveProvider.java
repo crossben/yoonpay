@@ -205,8 +205,16 @@ public final class WaveProvider implements PaymentProvider {
     @Override
     public CallOutcome refund(RefundRequest request) {
         String session = request.payment().value();
-        JsonNode json = read("/v1/checkout/sessions/" + encode(session));
-        Money paid = amount(json);
+        Result got = http.get(path("/v1/checkout/sessions/" + encode(session)), headers());
+        if (got instanceof Result.Answered nf && nf.status() == 404) {
+            return new CallOutcome.Rejected("PAYMENT_NOT_FOUND", "Wave does not know this checkout session");
+        }
+        if (!(got instanceof Result.Answered ok) || !ProviderHttp.isSuccess(ok.status())) {
+            // Nothing was sent that moves money: refused, with the real cause (not "not found").
+            return new CallOutcome.Rejected("PROVIDER_UNAVAILABLE",
+                    "could not read the payment from Wave: " + ProviderHttp.describe(got));
+        }
+        Money paid = amount(Json.parse(ok.body()));
         if (paid == null) {
             return new CallOutcome.Rejected("PAYMENT_NOT_FOUND", "Wave does not know this checkout session");
         }
@@ -218,7 +226,8 @@ public final class WaveProvider implements PaymentProvider {
         return switch (postRefund(session)) {
             case Result.NotSent n -> new CallOutcome.Rejected("PROVIDER_UNAVAILABLE", n.cause());
             case Result.Lost l -> new CallOutcome.Unknown(l.cause(), ref);
-            case Result.Answered a when ProviderHttp.isSuccess(a.status()) -> new CallOutcome.Accepted(ref, null, null);
+            // Wave answers 200 only once the payment is refunded: the answer is the confirmation (ADR-0033).
+            case Result.Answered a when ProviderHttp.isSuccess(a.status()) -> CallOutcome.Accepted.completed(ref);
             case Result.Answered a when a.status() == 400 || a.status() == 401 || a.status() == 403
                     || a.status() == 404 || a.status() == 409 || a.status() == 422 ->
                     new CallOutcome.Rejected(code(a), message(a.body()));
@@ -227,14 +236,12 @@ public final class WaveProvider implements PaymentProvider {
     }
 
     /**
-     * Wave has no refund status. Its refund call is idempotent and answers 200 once the payment
-     * is refunded, so asking again <em>is</em> the status check: 200 means refunded.
+     * Wave has no refund status API, and a status check never re-sends the refund (decision D2,
+     * ADR-0033): no answer. A refund whose call was lost stays unknown and is flagged for review;
+     * an operator checks the Wave dashboard.
      */
     @Override
     public StatusResult<RefundStatus> refundStatus(ProviderReference refund) {
-        if (postRefund(refund.value()) instanceof Result.Answered a && ProviderHttp.isSuccess(a.status())) {
-            return new StatusResult<>(RefundStatus.REFUNDED, "refunded", null);
-        }
         return new StatusResult<>(null, null, null);
     }
 

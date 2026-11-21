@@ -184,7 +184,16 @@ public final class StripeProvider implements PaymentProvider {
 
     @Override
     public CallOutcome refund(RefundRequest request) {
-        Optional<String> paymentIntent = Json.text(read("/v1/checkout/sessions/" + encode(request.payment().value())), "payment_intent");
+        Result got = http.get(path("/v1/checkout/sessions/" + encode(request.payment().value())), headers(null));
+        if (got instanceof Result.Answered nf && nf.status() == 404) {
+            return new CallOutcome.Rejected("PAYMENT_NOT_FOUND", "Stripe has no such Checkout Session");
+        }
+        if (!(got instanceof Result.Answered ok) || !ProviderHttp.isSuccess(ok.status())) {
+            // Nothing was sent that moves money: refused, with the real cause (not "not found").
+            return new CallOutcome.Rejected("PROVIDER_UNAVAILABLE",
+                    "could not read the payment from Stripe: " + ProviderHttp.describe(got));
+        }
+        Optional<String> paymentIntent = Json.text(Json.parse(ok.body()), "payment_intent");
         if (paymentIntent.isEmpty()) {
             return new CallOutcome.Rejected("PAYMENT_NOT_FOUND", "Stripe has no paid payment for this Checkout Session");
         }
@@ -227,21 +236,36 @@ public final class StripeProvider implements PaymentProvider {
         return new StatusResult<>(null, null, null);
     }
 
+    /** Refund pages read when looking for a lost refund: the {@value} × 100 most recent refunds. */
+    static final int LOOKUP_PAGES = 20;
+
     /**
-     * A lost refund answer is found among recent refunds by our reference in metadata. A lost
-     * Checkout Session needs no lookup: no money moves until the customer opens its URL, which
-     * they never received.
+     * A lost refund answer is found among recent refunds by our reference in metadata, newest
+     * first, following Stripe's pages (it used to read the first 100 only). A lost Checkout
+     * Session needs no lookup: no money moves until the customer opens its URL, which they never
+     * received.
      */
     @Override
     public Optional<ProviderReference> lookup(Operation operation, String attemptReference) {
         if (operation != Operation.REFUND) {
             return Optional.empty();
         }
-        JsonNode data = read("/v1/refunds?limit=100").path("data");
         List<String> found = new ArrayList<>();
-        for (JsonNode r : data) {
-            if (attemptReference.equals(Json.text(r, "metadata.yoon_reference").orElse(null))) {
-                Json.text(r, "id").ifPresent(found::add);
+        String after = null;
+        for (int page = 0; page < LOOKUP_PAGES; page++) {
+            JsonNode json = read("/v1/refunds?limit=100" + (after == null ? "" : "&starting_after=" + encode(after)));
+            JsonNode data = json.path("data");
+            for (JsonNode r : data) {
+                if (attemptReference.equals(Json.text(r, "metadata.yoon_reference").orElse(null))) {
+                    Json.text(r, "id").ifPresent(found::add);
+                }
+            }
+            if (!found.isEmpty() || !json.path("has_more").asBoolean(false) || data.isEmpty()) {
+                break;
+            }
+            after = Json.text(data.path(data.size() - 1), "id").orElse(null);
+            if (after == null) {
+                break;
             }
         }
         return found.size() == 1 ? Optional.of(new ProviderReference(found.getFirst())) : Optional.empty();

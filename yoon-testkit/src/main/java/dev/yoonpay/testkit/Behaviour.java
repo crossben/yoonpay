@@ -9,6 +9,10 @@ public sealed interface Behaviour {
     record Accept() implements Behaviour {
     }
 
+    /** Provider accepts and its answer already confirms the operation is done (ADR-0033, e.g. Wave refunds). */
+    record AcceptCompleted() implements Behaviour {
+    }
+
     /** Definite refusal from the provider. */
     record Reject(String code) implements Behaviour {
     }
@@ -30,6 +34,10 @@ public sealed interface Behaviour {
 
     static Behaviour accept() {
         return new Accept();
+    }
+
+    static Behaviour acceptCompleted() {
+        return new AcceptCompleted();
     }
 
     static Behaviour reject(String code) {

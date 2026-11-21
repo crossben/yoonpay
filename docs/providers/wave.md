@@ -50,8 +50,12 @@ Payouts (`GET /v1/payout/{id}` → `status`):
 | `failed` | failed |
 | `reversed`, anything else | no answer (a reversal outside Yoon needs a human) |
 
-Refunds: Wave has no refund status. The refund call is idempotent and answers 200 once the
-payment is refunded, so Yoon asks again with the same call: 200 → refunded.
+Refunds: Wave has no refund status API. Its refund call answers 200 only "when the payment is
+refunded", so a 200 is the confirmation: the refund is `refunded` at once (ADR-0033). Yoon never
+sends a refund again to learn its outcome: a refund whose answer was lost (timeout, 5xx) stays
+`unknown` and is flagged for review after `YOON_SWEEP_REFUND_REVIEW_AFTER`; check it on the Wave
+dashboard and resolve it. If Yoon cannot read the checkout session first, the refund is refused as
+`provider_unavailable` (nothing was sent).
 
 Tested in `WaveStatusTest`.
 

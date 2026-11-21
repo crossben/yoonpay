@@ -88,6 +88,9 @@ Tested in `PiSpiStatusTest`.
 
 ## Quirks
 
+- **A refund needs the received payment first** (`/paiements-recus?txId=`). If PI-SPI cannot be
+  asked (no token, 401, timeout), the refund is refused as `provider_unavailable` — nothing was
+  sent; `payment_not_found` means PI-SPI answered and has no such payment.
 - **Everything is keyed on Yoon's own reference** (`txId`), so a lost answer can always be looked
   up. A duplicate `txId` (`DU03`) means an earlier attempt arrived: Yoon asks the status API
   instead of guessing.

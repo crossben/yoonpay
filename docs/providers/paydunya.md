@@ -48,8 +48,13 @@ Tested in `PayDunyaStatusTest`.
 
 ## Quirks
 
-- **The IPN "hash" is `sha512(master key)`**: a constant, so a captured callback can be
-  replayed. Yoon checks it but always re-confirms with the confirm API.
+- **The IPN "hash" is `sha512(master key)`**: a constant that does not depend on the body, so
+  anyone who has seen one callback can forge any other — it authenticates nothing. PayDunya offers
+  nothing stronger. Yoon checks it, but a callback only ever makes Yoon ask the confirm API about a
+  record it already has, by the reference Yoon stored: a forged callback cannot settle anything.
+- **A checkout whose create answer is lost cannot be matched later.** PayDunya has no search by
+  Yoon's reference (sent as `custom_data.yoon_attempt`), so the payment stays pending without a
+  token and expires. Low risk: the customer never received the checkout URL.
 - Callbacks arrive as JSON or form data; `hash` sits in `data` or at the root; `data` may be a
   JSON string. Checkout callbacks carry `data.invoice.token`; disburse callbacks `token` or
   `disburse_invoice`, sometimes flat and unsigned.

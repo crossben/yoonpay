@@ -49,6 +49,9 @@ Tested in `NabooPayStatusTest`.
 
 ## Quirks
 
+- **A transaction whose create answer is lost cannot be matched later:** NabooPay takes no
+  reference of Yoon's and has no search, so the payment stays pending without an `order_id` and
+  expires. Low risk: the customer never received the checkout URL.
 - The wallet is sent from the table above, never derived from a slug (a production bug once
   sent `ORANGE-MONEY` and only Wave worked).
 - Amounts are JSON integers in whole units; currencies with minor units are refused.

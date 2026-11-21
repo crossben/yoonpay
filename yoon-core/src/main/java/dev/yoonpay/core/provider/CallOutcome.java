@@ -16,8 +16,21 @@ public sealed interface CallOutcome {
      *
      * @param checkoutUrl  hosted checkout to redirect the customer to, if any
      * @param instructions push/USSD instruction to show the customer, if any
+     * @param completed    the provider's answer itself confirms the operation is done (Wave answers a
+     *                     refund with 200 only once the payment is refunded) — the status API need not
+     *                     be asked. Honoured for refunds only (ADR-0033).
      */
-    record Accepted(ProviderReference reference, URI checkoutUrl, String instructions) implements CallOutcome {
+    record Accepted(ProviderReference reference, URI checkoutUrl, String instructions, boolean completed)
+            implements CallOutcome {
+
+        public Accepted(ProviderReference reference, URI checkoutUrl, String instructions) {
+            this(reference, checkoutUrl, instructions, false);
+        }
+
+        /** Accepted and already done: the answer is the confirmation (ADR-0033). */
+        public static Accepted completed(ProviderReference reference) {
+            return new Accepted(reference, null, null, true);
+        }
     }
 
     /**

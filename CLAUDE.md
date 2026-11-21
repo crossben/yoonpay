@@ -220,6 +220,9 @@ an ADR; supersede it with a new one). Database migrations: `yoon-server/src/main
   reference if known); a 2xx you cannot read → `Unknown`; a definite refusal →
   `Rejected`. A step that moves no money (e.g. PayDunya `get-invoice`) may be
   `Rejected` on any failure.
+- Never re-send a mutating call to learn its outcome. `Accepted.completed(ref)` is for a provider
+  whose answer to the call itself confirms it is done (Wave refunds, ADR-0033); only refunds honour
+  it. Without a status API and without that, report no answer and let the review flag reach a human.
 - Status mapping lives in one `*Status` class; unknown raw values map to `null`
   (never guessed). A parameterised table test lists every raw value, and
   `docs/providers/<id>.md` shows the same table — keep them in sync.

@@ -158,6 +158,32 @@ class StripeProviderTest {
     }
 
     @Test
+    void a_session_stripe_cannot_be_asked_about_is_unavailable_not_not_found() {
+        wm.stubFor(get("/v1/checkout/sessions/cs_test_1").willReturn(serverError()));
+        wm.stubFor(get("/v1/checkout/sessions/cs_gone").willReturn(notFound()));
+
+        CallOutcome down = provider().refund(new RefundRequest("rf_1", new ProviderReference("cs_test_1"), Money.of(1, "XOF"), null));
+        CallOutcome gone = provider().refund(new RefundRequest("rf_2", new ProviderReference("cs_gone"), Money.of(1, "XOF"), null));
+
+        assertThat(((CallOutcome.Rejected) down).code()).isEqualTo("PROVIDER_UNAVAILABLE");
+        assertThat(((CallOutcome.Rejected) down).message()).contains("HTTP 500");
+        assertThat(((CallOutcome.Rejected) gone).code()).isEqualTo("PAYMENT_NOT_FOUND");
+        wm.verify(0, postRequestedFor(urlEqualTo("/v1/refunds")));
+    }
+
+    @Test
+    void a_lost_refund_is_found_past_the_first_page_of_refunds() {
+        wm.stubFor(get(urlPathEqualTo("/v1/refunds")).withQueryParam("starting_after", absent()).willReturn(okJson("""
+                {"object":"list","has_more":true,"data":[{"id":"re_9","metadata":{"yoon_reference":"rf_9"}},{"id":"re_8","metadata":{}}]}""")));
+        wm.stubFor(get(urlPathEqualTo("/v1/refunds")).withQueryParam("starting_after", equalTo("re_8")).willReturn(okJson("""
+                {"object":"list","has_more":false,"data":[{"id":"re_1","metadata":{"yoon_reference":"rf_1"}}]}""")));
+
+        assertThat(provider().lookup(Operation.REFUND, "rf_1")).contains(new ProviderReference("re_1"));
+        assertThat(provider().lookup(Operation.REFUND, "rf_9")).as("found on the first page, no more read").contains(new ProviderReference("re_9"));
+        assertThat(provider().lookup(Operation.REFUND, "rf_nowhere")).isEmpty();
+    }
+
+    @Test
     void refund_too_large_is_refused_and_a_lost_one_is_unknown() {
         wm.stubFor(get("/v1/checkout/sessions/cs_test_1").willReturn(okJson(SESSION)));
         wm.stubFor(post("/v1/refunds").willReturn(jsonResponse("""

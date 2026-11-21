@@ -1,7 +1,7 @@
 # Plan — money-safety fixes (November 2026)
 
 Source: the 2026-11-19 audit of main @ `f56db29` (0.7.0) and PR #1 by @mooder1. Every finding was
-re-checked against the code before this plan; all hold. Status: **accepted 2026-11-21** (D1: reserved until an operator releases it; D2: no re-send,
+re-checked against the code before this plan; all hold. Status: **done 2026-11-21**, accepted 2026-11-21 (D1: reserved until an operator releases it; D2: no re-send,
 human review).
 
 ## Findings, re-checked
@@ -48,6 +48,10 @@ Not fixable here without the provider: PI-SPI `txId` on refunds, JWS, bulk/cance
   history entry), never expires while flagged, swept last; `POST /admin/v1/payments/{id}/resolve`;
   a flag clears when the provider later confirms the right amount (payments, refunds, payouts).
   `PaymentReviewTest` (3); the alert-once test fails without the guard (checked).
+- M4 adapters — done: M5 Wave refund confirmed by its own 200 (`Accepted.completed`, ADR-0033),
+  status check never re-sends; M3 a failed read before a refund is `PROVIDER_UNAVAILABLE` (Stripe,
+  Wave, PI-SPI); M4 Stripe lookup follows pages (2 000 refunds); M2 and M6 documented per provider
+  (no reference field exists to send for NabooPay, no search for PayDunya/Stripe sessions).
 
 ## Decisions
 

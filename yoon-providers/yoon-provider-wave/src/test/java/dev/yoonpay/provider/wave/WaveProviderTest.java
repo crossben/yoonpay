@@ -216,9 +216,33 @@ class WaveProviderTest {
         wm.stubFor(get("/v1/checkout/sessions/cos-18qq25rgr100a").willReturn(okJson(SESSION)));
         wm.stubFor(post("/v1/checkout/sessions/cos-18qq25rgr100a/refund").willReturn(ok()));
 
+        // Wave answers 200 only once the payment is refunded: the answer is the confirmation (ADR-0033).
         assertThat(provider().refund(new RefundRequest("rf_1", new ProviderReference("cos-18qq25rgr100a"), Money.of(1000, "XOF"), null)))
-                .isEqualTo(new CallOutcome.Accepted(new ProviderReference("cos-18qq25rgr100a"), null, null));
-        assertThat(provider().refundStatus(new ProviderReference("cos-18qq25rgr100a")).status()).isEqualTo(RefundStatus.REFUNDED);
+                .isEqualTo(CallOutcome.Accepted.completed(new ProviderReference("cos-18qq25rgr100a")));
+        wm.verify(1, postRequestedFor(urlMatching(".*/refund")));
+    }
+
+    @Test
+    void a_refund_status_check_never_sends_the_refund_again() {
+        wm.stubFor(post("/v1/checkout/sessions/cos-18qq25rgr100a/refund").willReturn(ok()));
+
+        var result = provider().refundStatus(new ProviderReference("cos-18qq25rgr100a"));
+
+        assertThat(result.status()).as("no answer: a human checks the Wave dashboard").isNull();
+        wm.verify(0, postRequestedFor(urlMatching(".*/refund")));
+    }
+
+    @Test
+    void a_payment_wave_cannot_be_asked_about_is_unavailable_not_not_found() {
+        wm.stubFor(get("/v1/checkout/sessions/cos-18qq25rgr100a").willReturn(unauthorized()));
+        CallOutcome auth = provider().refund(new RefundRequest("rf_1", new ProviderReference("cos-18qq25rgr100a"), Money.of(1000, "XOF"), null));
+        wm.stubFor(get("/v1/checkout/sessions/cos-unknown").willReturn(notFound()));
+        CallOutcome missing = provider().refund(new RefundRequest("rf_2", new ProviderReference("cos-unknown"), Money.of(1000, "XOF"), null));
+
+        assertThat(((CallOutcome.Rejected) auth).code()).isEqualTo("PROVIDER_UNAVAILABLE");
+        assertThat(((CallOutcome.Rejected) auth).message()).contains("HTTP 401");
+        assertThat(((CallOutcome.Rejected) missing).code()).isEqualTo("PAYMENT_NOT_FOUND");
+        wm.verify(0, postRequestedFor(urlMatching(".*/refund")));
     }
 
     @Test

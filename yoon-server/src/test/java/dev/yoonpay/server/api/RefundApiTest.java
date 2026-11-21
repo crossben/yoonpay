@@ -112,6 +112,21 @@ class RefundApiTest extends ApiTest {
     }
 
     @Test
+    void a_refund_the_providers_answer_already_confirms_is_refunded_at_once_and_posted_once() {
+        String id = succeededPayment("wave");
+        FAKE_ONE.script(Behaviour.acceptCompleted());
+
+        Response r = post("shop", "/v1/payments/" + id + "/refunds", Map.of("amount", 5000));
+
+        assertThat(r.status()).isEqualTo(201);
+        assertThat(r.text("status")).isEqualTo("refunded");
+        assertThat(jdbc.sql("SELECT count(*) FROM ledger_postings WHERE description LIKE :d")
+                .param("d", "refund " + r.text("id") + " %").query(Long.class).single()).as("posted once").isEqualTo(1);
+        String history = get("shop", "/v1/refunds/" + r.text("id") + "/events").body();
+        assertThat(history).contains("accepted by provider").contains("the provider's answer confirms it refunded");
+    }
+
+    @Test
     void a_rejected_refund_is_failed_and_frees_the_amount_again() {
         String id = succeededPayment("wave");
         FAKE_ONE.script(Behaviour.reject("REFUND_WINDOW_CLOSED"));

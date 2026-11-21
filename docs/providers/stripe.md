@@ -58,6 +58,12 @@ Tested in `StripeStatusTest`.
 - Every create sends Yoon's reference as `Idempotency-Key`: a repeated request never makes a
   second session or refund. A 409 (idempotency conflict) is **unknown**, never failed.
 - Refusals carry Stripe's error code, surfaced as `stripe_<code>`, e.g. `stripe_amount_too_small`.
+- **A refund whose answer is lost** is found by Yoon's reference in its metadata among the 2 000
+  most recent refunds (20 pages). Beyond that it stays unknown and is flagged for review.
+- If Yoon cannot read the Checkout Session before a refund (Stripe down, bad key), the refund is
+  refused as `provider_unavailable` — nothing was sent; `payment_not_found` means Stripe answered 404.
+- **A Checkout Session whose create answer is lost cannot be matched later** (sessions cannot be
+  searched by reference): the payment expires. Low risk: the customer never received the URL.
 - Stripe's minimum charge (about 0.50 USD equivalent) applies.
 - **Callbacks:** add a webhook endpoint in the Stripe Dashboard (Workbench → Webhooks) to
   `https://<YOON_PUBLIC_URL>/v1/hooks/stripe/<application id>` with the events

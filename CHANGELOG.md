@@ -28,6 +28,14 @@ never changes incompatibly.
   flag by itself.
 - Sweeps check payments, refunds and payouts under review last, so many of them cannot hold up
   the others.
+- **Wave refunds are never sent twice.** Wave answers a refund with 200 only once it is refunded, so
+  that answer now confirms it at once (ADR-0033); the status check no longer re-sends the refund.
+  A Wave refund whose answer was lost is flagged for review instead.
+- Stripe, Wave and PI-SPI refunds that cannot read the payment first (provider down, bad
+  credentials) fail as `provider_unavailable`, not `payment_not_found`.
+- A lost Stripe refund answer is looked up among the 2 000 most recent refunds (was 100).
+- Provider docs: PayDunya's callback "signature" authenticates nothing (Yoon never relied on it);
+  PayDunya, NabooPay and Stripe checkouts whose create answer is lost cannot be matched later.
 - Upgrading: migrations `V11` and `V12` run on start-up. `Refund` gains `needs_review` and
   `holds_amount`, `Payment` gains `needs_review` (optional fields).
 

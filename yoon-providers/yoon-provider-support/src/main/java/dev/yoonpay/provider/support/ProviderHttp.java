@@ -140,6 +140,15 @@ public final class ProviderHttp {
         return status >= 500;
     }
 
+    /** What went wrong with a call, for an error message: the HTTP status or the transport cause. */
+    public static String describe(Result result) {
+        return switch (result) {
+            case Result.Answered a -> "HTTP " + a.status();
+            case Result.NotSent n -> n.cause();
+            case Result.Lost l -> l.cause();
+        };
+    }
+
     public static boolean isSuccess(int status) {
         return status >= 200 && status < 300;
     }

@@ -323,6 +323,11 @@ public final class FakeProvider implements PaymentProvider {
                 ProviderReference ref = create(attempt, amount, store, initial);
                 yield new CallOutcome.Accepted(ref, checkoutUrl, null);
             }
+            case Behaviour.AcceptCompleted a -> {
+                mutatingCalls.incrementAndGet();
+                ProviderReference ref = create(attempt, amount, store, initial);
+                yield CallOutcome.Accepted.completed(ref);
+            }
         };
     }
 

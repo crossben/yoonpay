@@ -89,8 +89,14 @@ public class RefundService {
         CallOutcome outcome = providers.call(app, refund.provider(), Operation.REFUND, () -> reserved.provider().refund(call));
 
         switch (outcome) {
-            case CallOutcome.Accepted a -> move(app, refund.id(), RefundStatus.PENDING, "accepted by provider",
-                    Map.of("provider_reference", a.reference().value()));
+            case CallOutcome.Accepted a -> {
+                move(app, refund.id(), RefundStatus.PENDING, "accepted by provider",
+                        Map.of("provider_reference", a.reference().value()));
+                if (a.completed()) {
+                    // The provider's answer is the confirmation (ADR-0033): no status query, no re-send.
+                    move(app, refund.id(), RefundStatus.REFUNDED, "the provider's answer confirms it refunded", Map.of());
+                }
+            }
             case CallOutcome.Unknown u -> move(app, refund.id(), RefundStatus.UNKNOWN,
                     "provider outcome unknown: " + u.cause(),
                     u.reference() == null ? Map.of() : Map.of("provider_reference", u.reference().value()));

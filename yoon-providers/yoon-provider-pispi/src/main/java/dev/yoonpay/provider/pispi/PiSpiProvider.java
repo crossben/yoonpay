@@ -229,7 +229,17 @@ public final class PiSpiProvider implements PaymentProvider {
     @Override
     public CallOutcome refund(RefundRequest request) {
         // Find the payment the customer made in answer to our request: it carries the request's txId.
-        JsonNode received = firstOf(read("/paiements-recus?txId=" + encode(request.payment().value())));
+        String token = token();
+        if (token == null) {
+            return new CallOutcome.Rejected("PROVIDER_UNAVAILABLE", "no PI-SPI access token");
+        }
+        Result got = http.get(path("/paiements-recus?txId=" + encode(request.payment().value())), headers(token));
+        if (!(got instanceof Result.Answered ok) || !ProviderHttp.isSuccess(ok.status())) {
+            // Nothing was sent that moves money: refused, with the real cause (not "not found").
+            return new CallOutcome.Rejected("PROVIDER_UNAVAILABLE",
+                    "could not read the payment from PI-SPI: " + ProviderHttp.describe(got));
+        }
+        JsonNode received = firstOf(Json.parse(ok.body()));
         Optional<String> e2e = Json.text(received, "end2endId");
         if (e2e.isEmpty()) {
             return new CallOutcome.Rejected("PAYMENT_NOT_FOUND", "PI-SPI has no received payment for this request");

@@ -271,7 +271,20 @@ class PiSpiProviderTest {
         wm.stubFor(get(urlPathEqualTo("/piz/v1/paiements-recus")).willReturn(okJson("{\"data\":[]}")));
 
         assertThat(provider().refund(new RefundRequest("rf_1", new ProviderReference("att_1"), Money.of(5000, "XOF"), null)))
-                .isInstanceOf(CallOutcome.Rejected.class);
+                .isInstanceOf(CallOutcome.Rejected.class)
+                .extracting(o -> ((CallOutcome.Rejected) o).code()).isEqualTo("PAYMENT_NOT_FOUND");
+    }
+
+    @Test
+    void a_payment_pispi_cannot_be_asked_about_is_unavailable_not_not_found() {
+        token();
+        wm.stubFor(get(urlPathEqualTo("/piz/v1/paiements-recus")).willReturn(unauthorized()));
+
+        CallOutcome outcome = provider().refund(new RefundRequest("rf_1", new ProviderReference("att_1"), Money.of(5000, "XOF"), null));
+
+        assertThat(((CallOutcome.Rejected) outcome).code()).isEqualTo("PROVIDER_UNAVAILABLE");
+        assertThat(((CallOutcome.Rejected) outcome).message()).contains("HTTP 401");
+        wm.verify(0, putRequestedFor(urlMatching(".*/retours")));
     }
 
     @Test
