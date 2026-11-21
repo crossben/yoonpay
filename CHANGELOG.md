@@ -5,6 +5,16 @@ never changes incompatibly.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-21
+
+Money safety: a fix for a refund that could be paid twice, amount checks on refunds and payouts,
+recovery of refunds and payouts interrupted by a crash, and no refund ever re-sent to learn its
+outcome. From a money-safety audit and PR #1 by @mooder1. Upgrading from 0.7.x: migrations `V11`
+and `V12` run on start-up; `/v1` stays compatible (new optional fields `needs_review` and
+`holds_amount`, new admin routes); new optional settings `YOON_SWEEP_INTERRUPTED_AFTER` and
+`YOON_SWEEP_REFUND_REVIEW_AFTER`. Reload the Prometheus rules (`YoonRefundExceedsPayment`,
+`YoonRefundNeedsReview`).
+
 ### Money safety (audit 2026-11-19, PR #1 by @mooder1)
 - **A refund can no longer be paid twice.** A refund the provider accepted and then reported failed
   keeps its amount reserved (`holds_amount: true` on the refund): the provider may still confirm it,
