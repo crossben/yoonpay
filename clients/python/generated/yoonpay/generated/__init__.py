@@ -45,6 +45,7 @@ __all__ = [
     "AdminListApplications200ResponseDataInner",
     "AdminReleaseRefundRequest",
     "AdminReplayDeadLetter202Response",
+    "AdminResolvePaymentRequest",
     "AdminResolvePayoutRequest",
     "AdminResolveRefundRequest",
     "AmountOff",
@@ -177,6 +178,7 @@ from yoonpay.generated.models.admin_list_applications200_response import AdminLi
 from yoonpay.generated.models.admin_list_applications200_response_data_inner import AdminListApplications200ResponseDataInner as AdminListApplications200ResponseDataInner
 from yoonpay.generated.models.admin_release_refund_request import AdminReleaseRefundRequest as AdminReleaseRefundRequest
 from yoonpay.generated.models.admin_replay_dead_letter202_response import AdminReplayDeadLetter202Response as AdminReplayDeadLetter202Response
+from yoonpay.generated.models.admin_resolve_payment_request import AdminResolvePaymentRequest as AdminResolvePaymentRequest
 from yoonpay.generated.models.admin_resolve_payout_request import AdminResolvePayoutRequest as AdminResolvePayoutRequest
 from yoonpay.generated.models.admin_resolve_refund_request import AdminResolveRefundRequest as AdminResolveRefundRequest
 from yoonpay.generated.models.amount_off import AmountOff as AmountOff

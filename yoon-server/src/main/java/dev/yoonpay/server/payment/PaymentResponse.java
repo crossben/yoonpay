@@ -27,7 +27,8 @@ public record PaymentResponse(
         Failure failure,
         Instant createdAt,
         Instant updatedAt,
-        String paymentLink) {
+        String paymentLink,
+        boolean needsReview) {
 
     public record Customer(String phone) {
     }
@@ -49,6 +50,6 @@ public record PaymentResponse(
                 p.hosted() ? p.hostedCheckoutUrl() : p.checkoutUrl(),
                 p.instructions(), p.routingReason(),
                 p.failureCode() == null ? null : new Failure(p.failureCode(), p.failureMessage()),
-                p.createdAt(), p.updatedAt(), p.paymentLinkId());
+                p.createdAt(), p.updatedAt(), p.paymentLinkId(), p.needsReview());
     }
 }

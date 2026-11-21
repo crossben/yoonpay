@@ -58,6 +58,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
       */
     protected static $openAPITypes = [
         'payment_link' => 'string',
+        'needs_review' => 'bool',
         'id' => 'string',
         'object' => 'string',
         'status' => '\Yoon\Generated\Model\PaymentStatus',
@@ -90,6 +91,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
       */
     protected static $openAPIFormats = [
         'payment_link' => null,
+        'needs_review' => null,
         'id' => null,
         'object' => null,
         'status' => null,
@@ -120,6 +122,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
       */
     protected static array $openAPINullables = [
         'payment_link' => true,
+        'needs_review' => false,
         'id' => false,
         'object' => false,
         'status' => false,
@@ -230,6 +233,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
      */
     protected static $attributeMap = [
         'payment_link' => 'payment_link',
+        'needs_review' => 'needs_review',
         'id' => 'id',
         'object' => 'object',
         'status' => 'status',
@@ -260,6 +264,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
      */
     protected static $setters = [
         'payment_link' => 'setPaymentLink',
+        'needs_review' => 'setNeedsReview',
         'id' => 'setId',
         'object' => 'setObject',
         'status' => 'setStatus',
@@ -290,6 +295,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
      */
     protected static $getters = [
         'payment_link' => 'getPaymentLink',
+        'needs_review' => 'getNeedsReview',
         'id' => 'getId',
         'object' => 'getObject',
         'status' => 'getStatus',
@@ -399,6 +405,7 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
     public function __construct(?array $data = null)
     {
         $this->setIfExists('payment_link', $data ?? [], null);
+        $this->setIfExists('needs_review', $data ?? [], null);
         $this->setIfExists('id', $data ?? [], null);
         $this->setIfExists('object', $data ?? [], null);
         $this->setIfExists('status', $data ?? [], null);
@@ -542,6 +549,33 @@ class Payment implements ModelInterface, ArrayAccess, \JsonSerializable
             }
         }
         $this->container['payment_link'] = $payment_link;
+
+        return $this;
+    }
+
+    /**
+     * Gets needs_review
+     *
+     * @return bool|null
+     */
+    public function getNeedsReview()
+    {
+        return $this->container['needs_review'];
+    }
+
+    /**
+     * Sets needs_review
+     *
+     * @param bool|null $needs_review The provider confirmed a different amount: the payment is not settled, and a human settles it with the customer and resolves it. Since 0.8.0.
+     *
+     * @return self
+     */
+    public function setNeedsReview($needs_review)
+    {
+        if (is_null($needs_review)) {
+            throw new \InvalidArgumentException('non-nullable needs_review cannot be null');
+        }
+        $this->container['needs_review'] = $needs_review;
 
         return $this;
     }

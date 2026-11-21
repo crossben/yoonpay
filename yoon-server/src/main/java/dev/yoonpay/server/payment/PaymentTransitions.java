@@ -87,4 +87,19 @@ public class PaymentTransitions {
             return decision;
         });
     }
+
+    /**
+     * Flags a payment a human must settle (the provider confirmed another amount), once: later
+     * calls change nothing and raise nothing, so a sweep or a callback does not repeat the alert.
+     */
+    public void flagForReview(AppPrincipal app, String id, Alerts.Type alert, String detail) {
+        tx.executeWithoutResult(st -> {
+            PaymentRecord current = payments.lock(app.id(), id).orElseThrow();
+            if (current.needsReview()) {
+                return;
+            }
+            payments.update(id, current.status(), Map.of("needs_review", true));
+            alerts.raise(alert, id, detail);
+        });
+    }
 }

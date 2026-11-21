@@ -21,9 +21,15 @@ never changes incompatibly.
   ledger at once — and is never sent again; the sweep finds it by Yoon's id where the provider
   allows, and a refund still unknown after `YOON_SWEEP_REFUND_REVIEW_AFTER` (default 24 hours) is
   flagged for review (`refund_needs_review`, Prometheus `YoonRefundNeedsReview`).
-- Sweeps check refunds and payouts under review last, so many of them cannot hold up the others.
-- Upgrading: migration `V11` runs on start-up. `Refund` gains `needs_review` and `holds_amount`
-  (optional fields).
+- **A payment confirmed at another amount is flagged once** (`needs_review: true`, one
+  `amount_mismatch` alert) instead of being re-checked and re-alerted on every sweep forever; it
+  never expires while flagged. An operator resolves it after settling the difference with the
+  customer: `POST /admin/v1/payments/{id}/resolve`. A partial payment completed later clears its
+  flag by itself.
+- Sweeps check payments, refunds and payouts under review last, so many of them cannot hold up
+  the others.
+- Upgrading: migrations `V11` and `V12` run on start-up. `Refund` gains `needs_review` and
+  `holds_amount`, `Payment` gains `needs_review` (optional fields).
 
 ## [0.7.0] - 2026-10-16
 

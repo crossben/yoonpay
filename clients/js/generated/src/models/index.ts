@@ -165,6 +165,36 @@ export type AdminReplayDeadLetter202ResponseDeliveryStatusEnum = typeof AdminRep
 /**
  * 
  * @export
+ * @interface AdminResolvePaymentRequest
+ */
+export interface AdminResolvePaymentRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminResolvePaymentRequest
+     */
+    status: AdminResolvePaymentRequestStatusEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminResolvePaymentRequest
+     */
+    note: string;
+}
+
+
+/**
+ * @export
+ */
+export const AdminResolvePaymentRequestStatusEnum = {
+    Succeeded: 'succeeded',
+    Failed: 'failed'
+} as const;
+export type AdminResolvePaymentRequestStatusEnum = typeof AdminResolvePaymentRequestStatusEnum[keyof typeof AdminResolvePaymentRequestStatusEnum];
+
+/**
+ * 
+ * @export
  * @interface AdminResolvePayoutRequest
  */
 export interface AdminResolvePayoutRequest {
@@ -2201,6 +2231,14 @@ export interface Payment {
      * @memberof Payment
      */
     payment_link?: string | null;
+    /**
+     * The provider confirmed a different amount: the payment is not settled, and a human
+     * settles it with the customer and resolves it. Since 0.8.0.
+     * 
+     * @type {boolean}
+     * @memberof Payment
+     */
+    needs_review?: boolean;
     /**
      * 
      * @type {string}

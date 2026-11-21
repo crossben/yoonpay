@@ -44,6 +44,10 @@ Not fixable here without the provider: PI-SPI `txId` on refunds, JWS, bulk/cance
   becomes UNKNOWN (payout reserved), never re-sent; looked up by Yoon's id where the adapter can;
   refunds unknown past `YOON_SWEEP_REFUND_REVIEW_AFTER` flagged once; flagged rows swept last.
   `InterruptedRecoveryTest` (4); the recovery test fails with the recovery off (checked).
+- M3 M1 — done: a mismatched payment is flagged once (`V12`, `needs_review`, one alert, one
+  history entry), never expires while flagged, swept last; `POST /admin/v1/payments/{id}/resolve`;
+  a flag clears when the provider later confirms the right amount (payments, refunds, payouts).
+  `PaymentReviewTest` (3); the alert-once test fails without the guard (checked).
 
 ## Decisions
 

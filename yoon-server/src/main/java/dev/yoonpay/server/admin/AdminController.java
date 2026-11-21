@@ -2,6 +2,7 @@ package dev.yoonpay.server.admin;
 
 import dev.yoonpay.core.lifecycle.Decision;
 import dev.yoonpay.core.lifecycle.IllegalTransitionException;
+import dev.yoonpay.core.lifecycle.PaymentStatus;
 import dev.yoonpay.core.lifecycle.PayoutStatus;
 import dev.yoonpay.core.lifecycle.RefundStatus;
 import dev.yoonpay.server.auth.AppPrincipal;
@@ -9,6 +10,10 @@ import dev.yoonpay.server.auth.Applications;
 import dev.yoonpay.server.lifecycle.StatusEvents.Cause;
 import dev.yoonpay.server.outbox.EventRepository;
 import dev.yoonpay.server.outbox.EventResponse;
+import dev.yoonpay.server.payment.PaymentRecord;
+import dev.yoonpay.server.payment.PaymentRepository;
+import dev.yoonpay.server.payment.PaymentResponse;
+import dev.yoonpay.server.payment.PaymentTransitions;
 import dev.yoonpay.server.payout.PayoutRecord;
 import dev.yoonpay.server.payout.PayoutRepository;
 import dev.yoonpay.server.payout.PayoutResponse;
@@ -47,11 +52,16 @@ public class AdminController {
     private final JdbcClient jdbc;
     private final ObjectMapper json;
     private final RefundOperations refundOperations;
+    private final PaymentRepository payments;
+    private final PaymentTransitions paymentTransitions;
 
     public AdminController(EventRepository events, PayoutRepository payouts, PayoutTransitions payoutTransitions,
                            Applications applications, JdbcClient jdbc, ObjectMapper json,
-                           RefundOperations refundOperations) {
+                           RefundOperations refundOperations, PaymentRepository payments,
+                           PaymentTransitions paymentTransitions) {
         this.refundOperations = refundOperations;
+        this.payments = payments;
+        this.paymentTransitions = paymentTransitions;
         this.events = events;
         this.payouts = payouts;
         this.payoutTransitions = payoutTransitions;
@@ -143,5 +153,36 @@ public class AdminController {
     @PostMapping("/refunds/{id}/release")
     RefundResponse releaseRefund(@PathVariable String id, @Valid @RequestBody Note note) {
         return RefundResponse.of(refundOperations.release(id, note.note()));
+    }
+
+    /** @param status {@code succeeded} or {@code failed}, as settled with the provider and customer out of band */
+    public record PaymentResolution(@NotBlank @Pattern(regexp = "succeeded|failed") String status,
+                                    @NotBlank @Size(max = 500) String note) {
+    }
+
+    /**
+     * A human settles a payment flagged for review (the provider confirmed another amount), after
+     * settling the difference outside Yoon. {@code succeeded} credits the requested amount.
+     */
+    @PostMapping("/payments/{id}/resolve")
+    PaymentResponse resolvePayment(@PathVariable String id, @Valid @RequestBody PaymentResolution resolution) {
+        PaymentRecord payment = jdbc.sql("SELECT p.*, 0 AS amount_refunded FROM payments p WHERE p.id = :id").param("id", id)
+                .query(PaymentRecord.class).optional()
+                .orElseThrow(() -> ApiProblem.notFound("Payment", id));
+        AppPrincipal app = applications.find(payment.applicationId()).orElseThrow();
+        PaymentStatus target = resolution.status().equals("succeeded") ? PaymentStatus.SUCCEEDED : PaymentStatus.FAILED;
+        Map<String, Object> fields = target == PaymentStatus.FAILED
+                ? Map.of("needs_review", false, "failure_code", "resolved_failed", "failure_message", resolution.note())
+                : Map.of("needs_review", false);
+        Decision d;
+        try {
+            d = paymentTransitions.apply(app, id, target, Cause.admin, null, "resolved by operator: " + resolution.note(), fields);
+        } catch (IllegalTransitionException e) {
+            throw ApiProblem.unprocessable("illegal_transition", e.getMessage());
+        }
+        if (d == Decision.IGNORE) {
+            throw ApiProblem.unprocessable("already_final", "Payment " + id + " is already " + payment.status().toLowerCase());
+        }
+        return PaymentResponse.of(payments.find(app.id(), id).orElseThrow());
     }
 }

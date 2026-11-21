@@ -79,7 +79,7 @@ public class Reconciler {
                         WHERE p.status IN ('CREATED', 'PENDING') AND p.updated_at < :before
                           AND NOT (p.checkout = 'hosted' AND p.status = 'CREATED' AND NOT p.checkout_busy
                                    AND p.checkout_expires_at > :now)
-                        ORDER BY p.updated_at LIMIT :batch""")
+                        ORDER BY p.needs_review, p.updated_at LIMIT :batch""")
                 .param("before", Timestamp.from(now.minus(sweep.pendingAfter()))).param("batch", BATCH)
                 .param("now", Timestamp.from(now))
                 .query(PaymentRecord.class).list();

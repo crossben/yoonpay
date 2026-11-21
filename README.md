@@ -104,9 +104,9 @@ once, in Java, instead of in every project.
   Codex, Gemini CLI, Cursor, OpenCode, VS Code or any MCP client read payments, subscriptions, invoices and the ledger with an API key
   of their own. Read-only by default; with `YOON_MCP_WRITES=true` it can also create payment and
   portal links and re-send webhooks. It never sends money out. Contacts are masked.
-- **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters, and payouts and
-  refunds needing review, resolved through the same state machine; releasing the amount a
-  failed refund holds.
+- **Operator API** (`/admin/v1`, behind `YOON_ADMIN_TOKEN`): dead letters, and payments,
+  payouts and refunds needing review, resolved through the same state machine; releasing the
+  amount a failed refund holds.
 - **Alerts** as a Prometheus counter `yoon_alerts_total{type=…}` (amount
   mismatch, late success, payout needs review, dead event…).
 

@@ -217,9 +217,19 @@ application's settings if the outage lasts.
 Alert `YoonAmountMismatch`: a provider confirmed a different amount. Yoon did **not** settle the
 payment, refund or payout. Find it in the logs (`ALERT amount_mismatch resource=pay_…`, `re_…` or
 `po_…`) and its history (`GET /v1/payments/{id}/events`, `/v1/refunds/{id}/events`,
-`/v1/payouts/{id}/events`). A refund or payout is flagged `needs_review` (one alert, not one per
-sweep): resolve it as in "A refund needs review" / "A payout needs review". For a payment, settle
-the difference with the customer outside Yoon.
+`/v1/payouts/{id}/events`). The record is flagged `needs_review` — one alert, not one per sweep —
+and stays open: a payment never expires while flagged. Resolve a refund or payout as in "A refund
+needs review" / "A payout needs review". For a payment, settle the difference with the customer
+outside Yoon, then:
+
+```sh
+curl -X POST -H "Authorization: Bearer $ADMIN" -H "Content-Type: application/json" \
+  "$YOON/admin/v1/payments/pay_…/resolve" \
+  -d '{"status":"succeeded","note":"Customer paid the missing 1 000 XOF in cash"}'
+```
+
+`succeeded` credits the requested amount; `failed` if the customer was refunded instead. A partial
+payment the customer completes later clears its flag by itself.
 
 ## Restore a backup
 

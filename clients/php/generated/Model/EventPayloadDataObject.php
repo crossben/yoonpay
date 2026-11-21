@@ -59,6 +59,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
       */
     protected static $openAPITypes = [
         'payment_link' => 'string',
+        'needs_review' => 'bool',
         'id' => 'string',
         'object' => 'string',
         'status' => '\Yoon\Generated\Model\InvoiceStatus',
@@ -82,7 +83,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => '\DateTime',
         'payment_id' => 'string',
         'reason' => 'string',
-        'needs_review' => 'bool',
         'holds_amount' => 'bool',
         'recipient' => '\Yoon\Generated\Model\PayoutRecipient',
         'discount' => '\Yoon\Generated\Model\Discount',
@@ -124,6 +124,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
       */
     protected static $openAPIFormats = [
         'payment_link' => null,
+        'needs_review' => null,
         'id' => null,
         'object' => null,
         'status' => null,
@@ -147,7 +148,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'date-time',
         'payment_id' => null,
         'reason' => null,
-        'needs_review' => null,
         'holds_amount' => null,
         'recipient' => null,
         'discount' => null,
@@ -187,6 +187,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
       */
     protected static array $openAPINullables = [
         'payment_link' => false,
+        'needs_review' => false,
         'id' => false,
         'object' => false,
         'status' => false,
@@ -210,7 +211,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => false,
         'payment_id' => false,
         'reason' => false,
-        'needs_review' => false,
         'holds_amount' => false,
         'recipient' => false,
         'discount' => false,
@@ -330,6 +330,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
      */
     protected static $attributeMap = [
         'payment_link' => 'payment_link',
+        'needs_review' => 'needs_review',
         'id' => 'id',
         'object' => 'object',
         'status' => 'status',
@@ -353,7 +354,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'updated_at',
         'payment_id' => 'payment_id',
         'reason' => 'reason',
-        'needs_review' => 'needs_review',
         'holds_amount' => 'holds_amount',
         'recipient' => 'recipient',
         'discount' => 'discount',
@@ -393,6 +393,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
      */
     protected static $setters = [
         'payment_link' => 'setPaymentLink',
+        'needs_review' => 'setNeedsReview',
         'id' => 'setId',
         'object' => 'setObject',
         'status' => 'setStatus',
@@ -416,7 +417,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'setUpdatedAt',
         'payment_id' => 'setPaymentId',
         'reason' => 'setReason',
-        'needs_review' => 'setNeedsReview',
         'holds_amount' => 'setHoldsAmount',
         'recipient' => 'setRecipient',
         'discount' => 'setDiscount',
@@ -456,6 +456,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
      */
     protected static $getters = [
         'payment_link' => 'getPaymentLink',
+        'needs_review' => 'getNeedsReview',
         'id' => 'getId',
         'object' => 'getObject',
         'status' => 'getStatus',
@@ -479,7 +480,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         'updated_at' => 'getUpdatedAt',
         'payment_id' => 'getPaymentId',
         'reason' => 'getReason',
-        'needs_review' => 'getNeedsReview',
         'holds_amount' => 'getHoldsAmount',
         'recipient' => 'getRecipient',
         'discount' => 'getDiscount',
@@ -628,6 +628,7 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     public function __construct(?array $data = null)
     {
         $this->setIfExists('payment_link', $data ?? [], null);
+        $this->setIfExists('needs_review', $data ?? [], null);
         $this->setIfExists('id', $data ?? [], null);
         $this->setIfExists('object', $data ?? [], null);
         $this->setIfExists('status', $data ?? [], null);
@@ -651,7 +652,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         $this->setIfExists('updated_at', $data ?? [], null);
         $this->setIfExists('payment_id', $data ?? [], null);
         $this->setIfExists('reason', $data ?? [], null);
-        $this->setIfExists('needs_review', $data ?? [], null);
         $this->setIfExists('holds_amount', $data ?? [], null);
         $this->setIfExists('recipient', $data ?? [], null);
         $this->setIfExists('discount', $data ?? [], null);
@@ -714,6 +714,9 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
     {
         $invalidProperties = [];
 
+        if ($this->container['needs_review'] === null) {
+            $invalidProperties[] = "'needs_review' can't be null";
+        }
         if ($this->container['id'] === null) {
             $invalidProperties[] = "'id' can't be null";
         }
@@ -770,9 +773,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
         }
         if ($this->container['payment_id'] === null) {
             $invalidProperties[] = "'payment_id' can't be null";
-        }
-        if ($this->container['needs_review'] === null) {
-            $invalidProperties[] = "'needs_review' can't be null";
         }
         if ($this->container['recipient'] === null) {
             $invalidProperties[] = "'recipient' can't be null";
@@ -876,6 +876,33 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
             throw new \InvalidArgumentException('non-nullable payment_link cannot be null');
         }
         $this->container['payment_link'] = $payment_link;
+
+        return $this;
+    }
+
+    /**
+     * Gets needs_review
+     *
+     * @return bool
+     */
+    public function getNeedsReview()
+    {
+        return $this->container['needs_review'];
+    }
+
+    /**
+     * Sets needs_review
+     *
+     * @param bool $needs_review The outcome stayed unknown too long; a human should check with the provider.
+     *
+     * @return self
+     */
+    public function setNeedsReview($needs_review)
+    {
+        if (is_null($needs_review)) {
+            throw new \InvalidArgumentException('non-nullable needs_review cannot be null');
+        }
+        $this->container['needs_review'] = $needs_review;
 
         return $this;
     }
@@ -1497,33 +1524,6 @@ class EventPayloadDataObject implements ModelInterface, ArrayAccess, \JsonSerial
             throw new \InvalidArgumentException('non-nullable reason cannot be null');
         }
         $this->container['reason'] = $reason;
-
-        return $this;
-    }
-
-    /**
-     * Gets needs_review
-     *
-     * @return bool
-     */
-    public function getNeedsReview()
-    {
-        return $this->container['needs_review'];
-    }
-
-    /**
-     * Sets needs_review
-     *
-     * @param bool $needs_review The outcome stayed unknown too long; a human should check with the provider.
-     *
-     * @return self
-     */
-    public function setNeedsReview($needs_review)
-    {
-        if (is_null($needs_review)) {
-            throw new \InvalidArgumentException('non-nullable needs_review cannot be null');
-        }
-        $this->container['needs_review'] = $needs_review;
 
         return $this;
     }

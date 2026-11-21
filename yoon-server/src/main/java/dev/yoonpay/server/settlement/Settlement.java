@@ -116,11 +116,15 @@ public class Settlement {
 
         Money expected = new Money(p.amount(), Currency.getInstance(p.currency()));
         if (result.confirmedAmount() != null && !result.confirmedAmount().equals(expected)) {
-            alerts.raise(Alerts.Type.amount_mismatch, p.id(),
+            // Never settle on another amount. Flagged once for a human: later sweeps and callbacks
+            // add no event and no alert (they used to, every 30 s, forever).
+            if (!p.needsReview()) {
+                events.record(app.id(), "payment", p.id(), PaymentStatus.valueOf(p.status()), result.status(),
+                        Decision.IGNORE, cause, result.rawStatus(),
+                        "amount mismatch: provider confirms " + result.confirmedAmount() + ", expected " + expected);
+            }
+            paymentTransitions.flagForReview(app, p.id(), Alerts.Type.amount_mismatch,
                     "provider confirms " + result.confirmedAmount() + ", expected " + expected);
-            events.record(app.id(), "payment", p.id(), PaymentStatus.valueOf(p.status()), result.status(),
-                    Decision.IGNORE, cause, result.rawStatus(),
-                    "amount mismatch: provider confirms " + result.confirmedAmount() + ", expected " + expected);
             return Outcome.AMOUNT_MISMATCH;
         }
 
@@ -128,7 +132,8 @@ public class Settlement {
             return Outcome.STILL_OPEN;
         }
         Decision d = paymentTransitions.apply(app, p.id(), result.status(), cause, result.rawStatus(),
-                "confirmed by provider status API", failureFields(result.status() == PaymentStatus.FAILED, result.rawStatus()));
+                "confirmed by provider status API",
+                clearingReview(p.needsReview(), failureFields(result.status() == PaymentStatus.FAILED, result.rawStatus())));
         return d == Decision.APPLY ? Outcome.APPLIED : Outcome.IGNORED;
     }
 
@@ -172,7 +177,8 @@ public class Settlement {
             return Outcome.STILL_OPEN;
         }
         Decision d = refundTransitions.apply(app, r.id(), result.status(), cause, result.rawStatus(),
-                "confirmed by provider status API", failureFields(result.status() == RefundStatus.FAILED, result.rawStatus()));
+                "confirmed by provider status API",
+                clearingReview(r.needsReview(), failureFields(result.status() == RefundStatus.FAILED, result.rawStatus())));
         return d == Decision.APPLY ? Outcome.APPLIED : Outcome.IGNORED;
     }
 
@@ -214,8 +220,19 @@ public class Settlement {
             return Outcome.STILL_OPEN;
         }
         Decision d = payoutTransitions.apply(app, po.id(), result.status(), cause, result.rawStatus(),
-                "confirmed by provider status API", failureFields(result.status() == PayoutStatus.FAILED, result.rawStatus()));
+                "confirmed by provider status API",
+                clearingReview(po.needsReview(), failureFields(result.status() == PayoutStatus.FAILED, result.rawStatus())));
         return d == Decision.APPLY ? Outcome.APPLIED : Outcome.IGNORED;
+    }
+
+    /** A flagged record the provider now confirms at the right amount is no longer under review. */
+    private static Map<String, Object> clearingReview(boolean flagged, Map<String, Object> fields) {
+        if (!flagged) {
+            return fields;
+        }
+        Map<String, Object> all = new java.util.HashMap<>(fields);
+        all.put("needs_review", false);
+        return all;
     }
 
     private static Map<String, Object> failureFields(boolean failed, String raw) {

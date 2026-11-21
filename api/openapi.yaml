@@ -2302,6 +2302,44 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
 
+  /admin/v1/payments/{id}/resolve:
+    post:
+      tags: [Admin]
+      operationId: adminResolvePayment
+      summary: Settle a payment by hand
+      description: |
+        For a payment flagged `needs_review` (the provider confirmed a different amount), once the
+        difference is settled with the customer outside Yoon. `succeeded` credits the requested
+        amount. Goes through the payment state machine, the ledger and the application's events;
+        the note is kept in the history. Since 0.8.0.
+      security: [{ adminToken: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, note]
+              properties:
+                status: { type: string, enum: [succeeded, failed] }
+                note: { type: string, maxLength: 500, example: 'Customer paid the missing 1 000 XOF in cash' }
+      responses:
+        '200':
+          description: The resolved payment.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Payment' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/AdminDisabled' }
+        '422':
+          description: '`already_final` or `illegal_transition`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
   /admin/v1/refunds/{id}/release:
     post:
       tags: [Admin]
@@ -3126,6 +3164,11 @@ components:
       required: [id, object, status, amount, amount_refunded, currency, country, method, created_at, updated_at]
       properties:
         payment_link: { type: [string, 'null'], description: 'The payment link it was paid through (ADR-0030), if any.' }
+        needs_review:
+          type: boolean
+          description: |
+            The provider confirmed a different amount: the payment is not settled, and a human
+            settles it with the customer and resolves it. Since 0.8.0.
         id: { type: string, example: pay_0199a3f0c2e47a1b9c3d5e6f7a8b9c0d }
         object: { type: string, const: payment }
         status: { $ref: '#/components/schemas/PaymentStatus' }

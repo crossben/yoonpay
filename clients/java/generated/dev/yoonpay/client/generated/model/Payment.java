@@ -39,6 +39,7 @@ import dev.yoonpay.client.generated.ApiClient;
  */
 @JsonPropertyOrder({
   Payment.JSON_PROPERTY_PAYMENT_LINK,
+  Payment.JSON_PROPERTY_NEEDS_REVIEW,
   Payment.JSON_PROPERTY_ID,
   Payment.JSON_PROPERTY_OBJECT,
   Payment.JSON_PROPERTY_STATUS,
@@ -66,6 +67,10 @@ public class Payment {
   public static final String JSON_PROPERTY_PAYMENT_LINK = "payment_link";
   @jakarta.annotation.Nullable
   private String paymentLink;
+
+  public static final String JSON_PROPERTY_NEEDS_REVIEW = "needs_review";
+  @jakarta.annotation.Nullable
+  private Boolean needsReview;
 
   public static final String JSON_PROPERTY_ID = "id";
   @jakarta.annotation.Nonnull
@@ -247,6 +252,30 @@ public class Payment {
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setPaymentLink(@jakarta.annotation.Nullable String paymentLink) {
     this.paymentLink = paymentLink;
+  }
+
+
+  public Payment needsReview(@jakarta.annotation.Nullable Boolean needsReview) {
+    this.needsReview = needsReview;
+    return this;
+  }
+
+  /**
+   * The provider confirmed a different amount: the payment is not settled, and a human settles it with the customer and resolves it. Since 0.8.0. 
+   * @return needsReview
+   */
+  @jakarta.annotation.Nullable
+  @JsonProperty(value = JSON_PROPERTY_NEEDS_REVIEW, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public Boolean getNeedsReview() {
+    return needsReview;
+  }
+
+
+  @JsonProperty(value = JSON_PROPERTY_NEEDS_REVIEW, required = false)
+  @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+  public void setNeedsReview(@jakarta.annotation.Nullable Boolean needsReview) {
+    this.needsReview = needsReview;
   }
 
 
@@ -767,6 +796,7 @@ public class Payment {
     }
     Payment payment = (Payment) o;
     return Objects.equals(this.paymentLink, payment.paymentLink) &&
+        Objects.equals(this.needsReview, payment.needsReview) &&
         Objects.equals(this.id, payment.id) &&
         Objects.equals(this._object, payment._object) &&
         Objects.equals(this.status, payment.status) &&
@@ -792,7 +822,7 @@ public class Payment {
 
   @Override
   public int hashCode() {
-    return Objects.hash(paymentLink, id, _object, status, amount, amountRefunded, currency, country, method, checkout, checkoutExpiresAt, reference, description, customer, provider, providerReference, checkoutUrl, instructions, routingReason, failure, createdAt, updatedAt);
+    return Objects.hash(paymentLink, needsReview, id, _object, status, amount, amountRefunded, currency, country, method, checkout, checkoutExpiresAt, reference, description, customer, provider, providerReference, checkoutUrl, instructions, routingReason, failure, createdAt, updatedAt);
   }
 
   @Override
@@ -800,6 +830,7 @@ public class Payment {
     StringBuilder sb = new StringBuilder();
     sb.append("class Payment {\n");
     sb.append("    paymentLink: ").append(toIndentedString(paymentLink)).append("\n");
+    sb.append("    needsReview: ").append(toIndentedString(needsReview)).append("\n");
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    _object: ").append(toIndentedString(_object)).append("\n");
     sb.append("    status: ").append(toIndentedString(status)).append("\n");
@@ -871,6 +902,11 @@ public class Payment {
     // add `payment_link` to the URL query string
     if (getPaymentLink() != null) {
       joiner.add(String.format(Locale.ROOT, "%spayment_link%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getPaymentLink()))));
+    }
+
+    // add `needs_review` to the URL query string
+    if (getNeedsReview() != null) {
+      joiner.add(String.format(Locale.ROOT, "%sneeds_review%s=%s", prefix, suffix, ApiClient.urlEncode(ApiClient.valueToString(getNeedsReview()))));
     }
 
     // add `id` to the URL query string

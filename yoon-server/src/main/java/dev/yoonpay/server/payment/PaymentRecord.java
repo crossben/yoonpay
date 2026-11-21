@@ -42,7 +42,8 @@ public record PaymentRecord(
         Instant checkoutExpiresAt,
         String checkoutMethod,
         boolean checkoutBusy,
-        String paymentLinkId) {
+        String paymentLinkId,
+        boolean needsReview) {
 
     public static final String DIRECT = "direct";
     public static final String HOSTED = "hosted";

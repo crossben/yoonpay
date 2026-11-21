@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
 from yoonpay.generated.models.failure import Failure
 from yoonpay.generated.models.payment_customer import PaymentCustomer
@@ -31,6 +31,7 @@ class Payment(BaseModel):
     Payment
     """ # noqa: E501
     payment_link: Optional[StrictStr] = Field(default=None, description="The payment link it was paid through (ADR-0030), if any.")
+    needs_review: Optional[StrictBool] = Field(default=None, description="The provider confirmed a different amount: the payment is not settled, and a human settles it with the customer and resolves it. Since 0.8.0. ")
     id: StrictStr
     object: StrictStr
     status: PaymentStatus
@@ -52,7 +53,7 @@ class Payment(BaseModel):
     failure: Optional[Failure] = None
     created_at: datetime
     updated_at: datetime
-    __properties: ClassVar[List[str]] = ["payment_link", "id", "object", "status", "amount", "amount_refunded", "currency", "country", "method", "checkout", "checkout_expires_at", "reference", "description", "customer", "provider", "provider_reference", "checkout_url", "instructions", "routing_reason", "failure", "created_at", "updated_at"]
+    __properties: ClassVar[List[str]] = ["payment_link", "needs_review", "id", "object", "status", "amount", "amount_refunded", "currency", "country", "method", "checkout", "checkout_expires_at", "reference", "description", "customer", "provider", "provider_reference", "checkout_url", "instructions", "routing_reason", "failure", "created_at", "updated_at"]
 
     @field_validator('object')
     def object_validate_enum(cls, value):
@@ -174,6 +175,7 @@ class Payment(BaseModel):
 
         _obj = cls.model_validate({
             "payment_link": obj.get("payment_link"),
+            "needs_review": obj.get("needs_review"),
             "id": obj.get("id"),
             "object": obj.get("object"),
             "status": obj.get("status"),
