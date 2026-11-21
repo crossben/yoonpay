@@ -40,6 +40,10 @@ Not fixable here without the provider: PI-SPI `txId` on refunds, JWS, bulk/cance
   admin `release`/`resolve`, `refunds` CLI); `late_refund`, `refund_exceeds_payment`; refunds and
   payouts with a mismatched amount flagged `needs_review` once. `RefundSafetyTest` (7); the C1
   test fails against the old rule (checked). 282 server tests.
+- M2 H2 — done: a refund or payout still CREATED after `YOON_SWEEP_INTERRUPTED_AFTER` (5 min)
+  becomes UNKNOWN (payout reserved), never re-sent; looked up by Yoon's id where the adapter can;
+  refunds unknown past `YOON_SWEEP_REFUND_REVIEW_AFTER` flagged once; flagged rows swept last.
+  `InterruptedRecoveryTest` (4); the recovery test fails with the recovery off (checked).
 
 ## Decisions
 

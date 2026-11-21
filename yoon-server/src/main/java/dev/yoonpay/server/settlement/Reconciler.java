@@ -1,5 +1,9 @@
 package dev.yoonpay.server.settlement;
 
+import dev.yoonpay.server.lifecycle.Alerts;
+import dev.yoonpay.core.lifecycle.PayoutStatus;
+import dev.yoonpay.core.lifecycle.RefundStatus;
+import dev.yoonpay.server.refund.RefundTransitions;
 import dev.yoonpay.core.lifecycle.PaymentStatus;
 import dev.yoonpay.server.auth.AppPrincipal;
 import dev.yoonpay.server.auth.Applications;
@@ -29,8 +33,8 @@ import java.util.Optional;
 
 /**
  * The fallback half of settlement: finds whatever webhooks did not resolve and asks the
- * provider. Stuck payments settle without human action; only payouts that stay unknown are
- * escalated to a person.
+ * provider. Stuck payments settle without human action; payouts and refunds that stay unknown
+ * are escalated to a person.
  */
 @Component
 public class Reconciler {
@@ -44,6 +48,7 @@ public class Reconciler {
     private final PaymentRepository payments;
     private final PaymentTransitions paymentTransitions;
     private final PayoutTransitions payoutTransitions;
+    private final RefundTransitions refundTransitions;
     private final IdempotencyStore idempotency;
     private final SweepProperties sweep;
     private final Clock clock;
@@ -51,7 +56,9 @@ public class Reconciler {
 
     public Reconciler(JdbcClient jdbc, Settlement settlement, Applications applications, PaymentRepository payments,
                       PaymentTransitions paymentTransitions, PayoutTransitions payoutTransitions,
+                      RefundTransitions refundTransitions,
                       IdempotencyStore idempotency, SweepProperties sweep, Clock clock, PaymentService paymentService) {
+        this.refundTransitions = refundTransitions;
         this.paymentService = paymentService;
         this.jdbc = jdbc;
         this.settlement = settlement;
@@ -147,25 +154,59 @@ public class Reconciler {
         return ended.size();
     }
 
+    /** Open refunds: recover interrupted ones, ask the provider, flag for a human those open too long. */
     public int sweepRefunds() {
+        Instant now = clock.instant();
+        recoverInterruptedRefunds(now);
+        // Flagged refunds last, so a pile of them never starves the others out of the batch.
         List<RefundRecord> open = jdbc.sql("""
-                        SELECT * FROM refunds WHERE status IN ('PENDING', 'UNKNOWN') AND NOT needs_review
-                          AND updated_at < :before
-                        ORDER BY updated_at LIMIT :batch""")
-                .param("before", Timestamp.from(clock.instant().minus(sweep.pendingAfter()))).param("batch", BATCH)
+                        SELECT * FROM refunds WHERE status IN ('PENDING', 'UNKNOWN') AND updated_at < :before
+                        ORDER BY needs_review, updated_at LIMIT :batch""")
+                .param("before", Timestamp.from(now.minus(sweep.pendingAfter()))).param("batch", BATCH)
                 .query(RefundRecord.class).list();
         for (RefundRecord r : open) {
-            applications.find(r.applicationId()).ifPresent(app -> settlement.settleRefund(app, r, Cause.sweep));
+            Optional<AppPrincipal> app = applications.find(r.applicationId());
+            if (app.isEmpty()) {
+                continue;
+            }
+            Outcome outcome = settlement.settleRefund(app.get(), r, Cause.sweep);
+            boolean stillOpen = outcome == Outcome.STILL_OPEN || outcome == Outcome.NO_ANSWER;
+            if (stillOpen && r.createdAt().isBefore(now.minus(sweep.refundReviewAfter()))) {
+                refundTransitions.flagForReview(app.get(), r.id(), Alerts.Type.refund_needs_review,
+                        r.status().toLowerCase() + " for more than " + sweep.refundReviewAfter());
+            }
         }
         return open.size();
     }
 
-    /** Open payouts: ask the provider; flag for a human those still open past the review threshold. */
+    /**
+     * A refund left CREATED means the process stopped around the provider call: Yoon cannot tell
+     * whether it was sent, so it is treated like a lost answer — UNKNOWN, never sent again. The
+     * sweep then finds it by Yoon's id where the provider allows, or a human settles it.
+     */
+    private void recoverInterruptedRefunds(Instant now) {
+        List<RefundRecord> stuck = jdbc.sql("""
+                        SELECT * FROM refunds WHERE status = 'CREATED' AND created_at < :before
+                        ORDER BY created_at LIMIT :batch""")
+                .param("before", Timestamp.from(now.minus(sweep.interruptedAfter()))).param("batch", BATCH)
+                .query(RefundRecord.class).list();
+        for (RefundRecord r : stuck) {
+            applications.find(r.applicationId()).ifPresent(app -> refundTransitions.apply(app, r.id(),
+                    RefundStatus.UNKNOWN, Cause.sweep, null,
+                    "creation interrupted around the provider call; outcome unknown, not sent again", Map.of()));
+        }
+        if (!stuck.isEmpty()) {
+            log.warn("Recovered {} refund(s) left in CREATED: now unknown", stuck.size());
+        }
+    }
+
+    /** Open payouts: recover interrupted ones, ask the provider, flag for a human those open too long. */
     public int sweepPayouts() {
         Instant now = clock.instant();
+        recoverInterruptedPayouts(now);
         List<PayoutRecord> open = jdbc.sql("""
                         SELECT * FROM payouts WHERE status IN ('PROCESSING', 'UNKNOWN') AND updated_at < :before
-                        ORDER BY updated_at LIMIT :batch""")
+                        ORDER BY needs_review, updated_at LIMIT :batch""")
                 .param("before", Timestamp.from(now.minus(sweep.pendingAfter()))).param("batch", BATCH)
                 .query(PayoutRecord.class).list();
         for (PayoutRecord po : open) {
@@ -181,6 +222,27 @@ public class Reconciler {
             }
         }
         return open.size();
+    }
+
+    /**
+     * A payout left CREATED: the money may have left. UNKNOWN reserves it in the ledger (as for a
+     * lost answer) and it is never sent again; the sweep finds it by Yoon's id where the provider
+     * allows, or it is flagged for a human.
+     */
+    private void recoverInterruptedPayouts(Instant now) {
+        List<PayoutRecord> stuck = jdbc.sql("""
+                        SELECT * FROM payouts WHERE status = 'CREATED' AND created_at < :before
+                        ORDER BY created_at LIMIT :batch""")
+                .param("before", Timestamp.from(now.minus(sweep.interruptedAfter()))).param("batch", BATCH)
+                .query(PayoutRecord.class).list();
+        for (PayoutRecord po : stuck) {
+            applications.find(po.applicationId()).ifPresent(app -> payoutTransitions.apply(app, po.id(),
+                    PayoutStatus.UNKNOWN, Cause.sweep, null,
+                    "creation interrupted around the provider call; outcome unknown, not sent again", Map.of()));
+        }
+        if (!stuck.isEmpty()) {
+            log.warn("Recovered {} payout(s) left in CREATED: now unknown", stuck.size());
+        }
     }
 
     /** Retention: completed idempotency keys and old raw inbound webhooks. */

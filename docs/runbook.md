@@ -162,7 +162,9 @@ Never resolve as `failed` without checking: the application may pay again.
 ## A refund needs review
 
 Alert `YoonRefundNeedsReview` or `YoonAmountMismatch` on a `re_…` resource. The refund carries
-`needs_review: true`; the sweep stops checking it. Check the provider's dashboard, then:
+`needs_review: true`: its outcome stayed unknown for `YOON_SWEEP_REFUND_REVIEW_AFTER` (for
+example a refund the process stopped around, on a provider that cannot look it up by Yoon's id —
+Wave, PI-SPI), or the provider confirmed another amount. Check the provider's dashboard, then:
 
 ```sh
 curl -X POST -H "Authorization: Bearer $ADMIN" -H "Content-Type: application/json" \

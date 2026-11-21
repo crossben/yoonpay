@@ -16,6 +16,12 @@ never changes incompatibly.
 - Refunds and payouts are no longer settled when the provider confirms a different amount: they are
   flagged `needs_review` with one `amount_mismatch` alert, and an operator resolves them
   (`POST /admin/v1/refunds/{id}/resolve`, the existing payout resolve).
+- **Refunds and payouts interrupted by a crash are recovered.** One still `created` after
+  `YOON_SWEEP_INTERRUPTED_AFTER` (default 5 minutes) becomes `unknown` — a payout is reserved in the
+  ledger at once — and is never sent again; the sweep finds it by Yoon's id where the provider
+  allows, and a refund still unknown after `YOON_SWEEP_REFUND_REVIEW_AFTER` (default 24 hours) is
+  flagged for review (`refund_needs_review`, Prometheus `YoonRefundNeedsReview`).
+- Sweeps check refunds and payouts under review last, so many of them cannot hold up the others.
 - Upgrading: migration `V11` runs on start-up. `Refund` gains `needs_review` and `holds_amount`
   (optional fields).
 

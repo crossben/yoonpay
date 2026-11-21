@@ -66,8 +66,9 @@ once, in Java, instead of in every project.
   `GET /v1/events` for catching up.
 - **Automatic reconciliation**: stuck payments, refunds and payouts are resolved
   through the provider's status API without human action; unpaid payments expire;
-  a success that arrives after expiry is still recovered; a payout whose outcome
-  stays unknown is flagged for a human instead of guessed.
+  a success that arrives after expiry is still recovered; a refund or payout whose
+  outcome stays unknown is flagged for a human instead of guessed. A refund or payout
+  the process stopped around (crash mid-call) becomes unknown and is never sent again.
 - **Billing** — prepaid subscriptions for mobile money
   ([guide: Billing for SaaS](docs/billing.md), [plan](docs/plans/billing-0.3.0.md), ADR-0025 to ADR-0027):
   - customers found by your own user id; plans with free-form `features` (limits, flags); prices
@@ -255,6 +256,8 @@ Build and test (needs a running Docker daemon — integration tests start a real
 | `YOON_ADMIN_TOKEN` | optional | Enables the operator API `/admin/v1` (at least 32 characters) |
 | `YOON_SWEEP_PAYMENT_TTL` | no | Unpaid payments expire after this (default `30m`) |
 | `YOON_SWEEP_PAYOUT_REVIEW_AFTER` | no | Open payouts are flagged for review after this (default `24h`) |
+| `YOON_SWEEP_REFUND_REVIEW_AFTER` | no | Open refunds are flagged for review after this (default `24h`) |
+| `YOON_SWEEP_INTERRUPTED_AFTER` | no | A refund or payout still `created` this long is treated as interrupted: outcome unknown (default `5m`) |
 | `YOON_SWEEP_PENDING_AFTER` | no | Wait before the sweep asks a provider (default `1m`) |
 | `YOON_DEMO_ENABLED` | no | `true` enables the demo provider and its checkout page. Never in production |
 | `YOON_CHECKOUT_TTL` | no | How long a hosted checkout waits for the customer's choice before it fails with `checkout_expired` (default `30m`) |
